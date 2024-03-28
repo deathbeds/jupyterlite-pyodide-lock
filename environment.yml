@@ -20,3 +20,10 @@ dependencies:
   # lint
   - ruff >=0.3.0
   - pyproject-fmt
+  # test
+  - pytest >=8,<9
+  - pytest-console-scripts
+  - pytest-cov
+  - pytest-html
+  - pytest-sugar
+  - pytest-xdist

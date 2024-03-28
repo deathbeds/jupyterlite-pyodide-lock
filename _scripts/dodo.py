@@ -7,6 +7,8 @@ try:
 except ImportError:
     import tomli as tomllib
 
+from doit.tools import CmdAction
+
 
 def task_build():
     for ppt, src in P.PY_SRC.items():
@@ -29,11 +31,25 @@ def task_build():
 
 
 def task_dev():
+    yield dict(
+        name="env",
+        file_dep=[P.ENV_DEV],
+        targets=[B.ENV_DEV_HISTORY],
+        actions=[
+            ["mamba", "env", "update", "--file", P.ENV_DEV, "--prefix", B.ENV_DEV]
+        ],
+    )
+
     for ppt in P.PY_SRC:
         pkg = ppt.parent
         yield dict(
             name=pkg.name,
-            actions=[[*C.PIP, "install", "-e", pkg, "--no-deps", "--ignore-installed"]],
+            actions=[
+                U.do(
+                    [*C.PIP, "install", "-e", ".", "--no-deps", "--ignore-installed"],
+                    cwd=pkg,
+                )
+            ],
             file_dep=[ppt],
         )
 
@@ -45,7 +61,7 @@ def task_fix():
             [*C.RUFF, "format", *P.PY_ALL],
             [*C.RUFF, "check", "--fix-only", *P.PY_ALL],
         ],
-        file_dep=[*P.PPT_ALL, *P.PY_ALL],
+        file_dep=[*P.PPT_ALL, *P.PY_ALL, B.ENV_DEV_HISTORY],
     )
 
 
@@ -56,8 +72,24 @@ def task_lint():
             [*C.RUFF, "format", "--check"],
             [*C.RUFF, "check"],
         ],
-        file_dep=[*P.PPT_ALL, *P.PY_ALL],
+        file_dep=[*P.PPT_ALL, *P.PY_ALL, B.ENV_DEV_HISTORY],
     )
+
+
+def task_test():
+    for ppt, src in P.PY_SRC.items():
+        pkg = ppt.parent
+
+        yield dict(
+            name=f"pytest:{pkg.name}",
+            actions=[U.do(["pytest"], cwd=pkg)],
+            file_dep=[ppt, *src, *P.PY_TEST[ppt], B.ENV_DEV_HISTORY],
+            task_dep=[f"dev:{pkg.name}"],
+            targets=[
+                pkg / "build/reports/pytest.html",
+                pkg / "build/reports/htmlcov/status.json",
+            ],
+        )
 
 
 class C:
@@ -81,18 +113,22 @@ class P:
     PPT = ROOT / "pyproject.toml"
     LICENSE = ROOT / "LICENSE"
     README = ROOT / "README.md"
+    ENV_DEV = ROOT / "environment.yml"
 
     # per-package
     PY = ROOT / "py"
     PY_SRC = {
-        ppt: [*ppt.parent.glob("src/*/**/*.py")] for ppt in PY.glob("*/pyproject.toml")
+        ppt: [*(ppt.parent / "src").rglob("*.py")]
+        for ppt in PY.glob("*/pyproject.toml")
     }
+    PY_TEST = {ppt: [*(ppt.parent / "tests").rglob("*.py")] for ppt in PY_SRC}
     PY_SRC_ALL = sum(PY_SRC.values(), [])
+    PY_TEST_ALL = sum(PY_TEST.values(), [])
 
     DOCS = ROOT / "docs"
     PY_DOCS = [*DOCS.rglob("*.py")]
 
-    PY_ALL = [*PY_DOCS, *PY_SCRIPTS, *PY_SRC_ALL]
+    PY_ALL = [*PY_DOCS, *PY_SCRIPTS, *PY_SRC_ALL, *PY_TEST_ALL]
     PPT_ALL = [PPT, *PY_SRC]
 
 
@@ -111,6 +147,8 @@ class B:
         ]
         for ppt in P.PY_SRC
     }
+    ENV_DEV = P.ROOT / ".venv"
+    ENV_DEV_HISTORY = ENV_DEV / "conda-meta/history"
 
 
 class U:
@@ -120,10 +158,9 @@ class U:
             shutil.rmtree(dest)
         elif dest.exists():
             dest.unlink()
-
         dest.parent.mkdir(exist_ok=True, parents=True)
+        shutil.copytree(src, dest) if src.is_dir() else shutil.copy2(src, dest)
 
-        if src.is_dir():
-            shutil.copytree(src, dest)
-        else:
-            shutil.copy2(src, dest)
+    @staticmethod
+    def do(cmd: T.List[str], cwd=None):
+        return CmdAction(cmd, shell=False, cwd=str(cwd) if cwd else None)

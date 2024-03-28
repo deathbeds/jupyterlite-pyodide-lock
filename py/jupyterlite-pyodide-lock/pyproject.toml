@@ -23,34 +23,49 @@ dependencies = [
 pyodide-lock = "jupyterlite_pyodide_lock.addon:PyodideLockAddon"
 
 [project.optional-dependencies]
-selenium = [
-    "selenium >=4.18.1,<5.0.0",
-]
-
-dev = [
-    "build",
-    "flit",
-]
-
-lint = [
-    "ruff >=0.3.0",
-]
-
 test = [
-    "pytest-console-scripts >=1.4.0",
+    "pytest >=8,<9",
+    "pytest-console-scripts",
     "pytest-cov",
     "pytest-html",
-    "pytest",
+    "pytest-sugar",
+    "pytest-xdist",
+]
+selenium = [
+    "selenium >=4.19.0,<5.0.0",
 ]
 
-docs = [
-    "myst-parser",
-    "pydata-sphinx-theme",
-    "sphinx-copybutton",
+[tool.pytest.ini_options]
+cache_dir = "build/.cache/pytest"
+script_launch_mode = "subprocess"
+addopts = [
+  # for humans
+  "--html=build/reports/pytest.html",
+  "--self-contained-html",
+  "--cov-report=html:build/reports/htmlcov",
+  "--cov-report=term-missing:skip-covered",
+  "--color=yes",
+  # xdist
+  "--dist=worksteal",
+  # cov
+  "--cov=jupyterlite_pyodide_lock",
+  "--cov-branch",
+  "--cov-context=test",
+  "--no-cov-on-fail",
+  # misc
+  "--tb=long",
 ]
 
-[tool.doit]
-backend = "sqlite3"
-verbosity = 2
-par_type = "thread"
-dodoFile = "_scripts/dodo.py"
+[tool.coverage.html]
+show_contexts = true
+
+[tool.coverage.report]
+exclude_lines = [
+  "except ImportError as err:",
+  "except MissingDependencyError as err:",
+  "if TYPE_CHECKING:",
+  "pragma: no cover",
+]
+
+[tool.coverage.run]
+data_file = "build/reports/coverage/.coverage"
