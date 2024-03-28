@@ -1,0 +1,56 @@
+[build-system]
+requires = ["flit_core >=3.9,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "jupyterlite-pyodide-lock"
+description = "Create pre-solved environments for jupyterlite-pyodide-kernel with pyodide-lock"
+version = "0.1.0"
+authors = [
+    {name = "JupyterLite Contributors"},
+]
+readme = "README.md"
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "jupyterlite-pyodide-kernel >=0.3.0,<0.4.0",
+    "pyodide-lock[wheel] ==0.1.0a4",
+    "tornado >=6.1.0",
+]
+[project.entry-points."jupyterlite.addon.v0"]
+pyodide-lock = "jupyterlite_pyodide_lock.addon:PyodideLockAddon"
+
+[project.optional-dependencies]
+selenium = [
+    "selenium >=4.18.1,<5.0.0",
+]
+
+dev = [
+    "build",
+    "flit",
+]
+
+lint = [
+    "ruff >=0.3.0",
+]
+
+test = [
+    "pytest-console-scripts >=1.4.0",
+    "pytest-cov",
+    "pytest-html",
+    "pytest",
+]
+
+docs = [
+    "myst-parser",
+    "pydata-sphinx-theme",
+    "sphinx-copybutton",
+]
+
+[tool.doit]
+backend = "sqlite3"
+verbosity = 2
+par_type = "thread"
+dodoFile = "_scripts/dodo.py"

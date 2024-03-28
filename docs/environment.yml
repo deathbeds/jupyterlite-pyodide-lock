@@ -1,0 +1,22 @@
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  # build
+  - pip
+  - flit >=3.9.0,<4.0.0
+  - python-build
+  # run
+  - jupyterlite-pyodide-kernel >=0.3.0,<0.4.0
+  - jupyterlite-core >=0.3.0,<0.4.0
+  - selenium >=4.18.1,<5.0.0
+  # browser
+  - geckodriver
+  - firefox ==115.*
+  # docs
+  - sphinx
+  - myst-parser
+  - pydata-sphinx-theme
+  # lint
+  - ruff >=0.3.0
+  - pyproject-fmt

@@ -1,0 +1,5 @@
+[tool.doit]
+backend = "sqlite3"
+verbosity = 2
+par_type = "thread"
+dodoFile = "_scripts/dodo.py"
