@@ -1,4 +1,6 @@
 from pathlib import Path
+import shutil
+import typing as T
 
 try:
     import tomllib
@@ -9,10 +11,19 @@ except ImportError:
 def task_build():
     for ppt, src in P.PY_SRC.items():
         pkg = ppt.parent
+        license = pkg / P.LICENSE.name
+
         yield dict(
-            name=pkg.name,
+            name=f"license:{pkg.name}",
+            actions=[(U.copy, [P.LICENSE, license])],
+            file_dep=[P.LICENSE],
+            targets=[license],
+        )
+
+        yield dict(
+            name=f"flit:{pkg.name}",
             actions=[["pyproject-build", pkg, "--no-isolation"]],
-            file_dep=[ppt, pkg / P.LICENSE.name, pkg / P.LICENSE.name, *src],
+            file_dep=[ppt, license, *src],
             targets=B.DIST[ppt],
         )
 
@@ -100,3 +111,19 @@ class B:
         ]
         for ppt in P.PY_SRC
     }
+
+
+class U:
+    @staticmethod
+    def copy(src: Path, dest: Path) -> T.Optional[bool]:
+        if dest.is_dir():
+            shutil.rmtree(dest)
+        elif dest.exists():
+            dest.unlink()
+
+        dest.parent.mkdir(exist_ok=True, parents=True)
+
+        if src.is_dir():
+            shutil.copytree(src, dest)
+        else:
+            shutil.copy2(src, dest)
