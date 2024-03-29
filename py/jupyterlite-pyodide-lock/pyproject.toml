@@ -11,9 +11,18 @@ authors = [
 ]
 readme = "README.md"
 classifiers = [
-    "License :: OSI Approved :: MIT License",
+    "Framework :: Jupyter",
+    "Framework :: Jupyter :: JupyterLab",
+    "Framework :: Jupyter :: JupyterLab :: 4",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "jupyterlite-pyodide-kernel >=0.3.0,<0.4.0",
     "pyodide-lock[wheel] ==0.1.0a4",
@@ -34,9 +43,6 @@ test = [
     "pytest-html",
     "pytest-sugar",
     "pytest-xdist",
-]
-selenium = [
-    "selenium >=4.19.0,<5.0.0",
 ]
 
 [tool.pytest.ini_options]

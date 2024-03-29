@@ -6,7 +6,7 @@ from typing import Union as _Union
 from traitlets import Dict, Instance, Int, List, Unicode
 from traitlets.config import LoggingConfigurable
 
-from ..constants import PYODIDE_VERSION
+from jupyterlite_pyodide_kernel.constants import PYODIDE_VERSION
 
 if TYPE_CHECKING:
     from ..addons.lock import PyodideLockAddon

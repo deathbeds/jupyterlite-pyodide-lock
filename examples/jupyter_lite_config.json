@@ -1,0 +1,11 @@
+{
+    "LiteBuildConfig": {
+        "cache_dir": "../build/.cache/lite",
+        "output_dir": "../build/docs-app",
+        "contents": ["."]
+    },
+    "PyodideLockAddon": {
+        "enabled": true,
+        "specs": ["ipywidgets >=8.1,<8.2"]
+    }
+}

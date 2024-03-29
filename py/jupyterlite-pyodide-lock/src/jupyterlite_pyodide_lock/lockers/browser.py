@@ -46,7 +46,7 @@ if TYPE_CHECKING:
 
 #: default browser aliases
 BROWSERS = {
-    "firefox": ["firefox", "--safe-mode", "--private-window"],
+    "firefox": ["firefox", "--headless", "--private-window"],
 }
 
 

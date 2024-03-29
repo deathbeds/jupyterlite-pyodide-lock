@@ -28,10 +28,13 @@ from jupyterlite_pyodide_kernel.constants import (
     PKG_JSON_PIPLITE,
     PKG_JSON_WHEELDIR,
     PYODIDE_LOCK,
+    PYODIDE,
+    PYODIDE_VERSION,
 )
 from traitlets import Bool, Enum, Unicode
 
 from .. import __version__
+from ..constants import PYODIDE_LOCK_STEM
 from ..lockers import get_locker_entry_points
 
 if TYPE_CHECKING:
@@ -147,9 +150,15 @@ class PyodideLockAddon(_BaseAddon):
 
     def lock(self, packages: _List[Path], specs: _List[str], lockfile: Path):
         """generate the lockfile"""
-        locker_class: _Type["BaseLocker"] = LOCKERS.get(self.locker)
+        locker_ep: _Type["BaseLocker"] = LOCKERS.get(self.locker)
 
-        if locker_class is None:
+        if locker_ep is None:
+            return False
+
+        try:
+            locker_class = locker_ep.load()
+        except Exception as err:
+            self.log.error("Failed to load locker %s: %s", self.locker, err)
             return False
 
         # build
@@ -162,8 +171,12 @@ class PyodideLockAddon(_BaseAddon):
 
     # derived properties
     @property
+    def output_pyodide(self):
+        """where pyodide will go in the output folder"""
+        return self.manager.output_dir / "static" / PYODIDE
+    @property
     def well_known_packages(self) -> Path:
-        return self.manager.lite_dir / "static" / PYODIDE_LOCK.stem
+        return self.manager.lite_dir / "static" / PYODIDE_LOCK_STEM
 
     @property
     def lockfile(self) -> Path:
@@ -172,11 +185,11 @@ class PyodideLockAddon(_BaseAddon):
     @property
     def lock_output_dir(self) -> Path:
         """The folder where the `pyodide-lock.json` and packages will be stored."""
-        return self.manager.output_dir / "static" / PYODIDE_LOCK.stem
+        return self.manager.output_dir / "static" / PYODIDE_LOCK_STEM
 
     @property
     def package_cache(self) -> Path:
-        return self.manager.cache_dir / PYODIDE_LOCK.stem
+        return self.manager.cache_dir / PYODIDE_LOCK_STEM
 
     @property
     def federated_wheel_dirs(self) -> _List[Path]:
