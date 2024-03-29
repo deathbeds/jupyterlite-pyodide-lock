@@ -21,7 +21,6 @@ from typing import (
 )
 
 from jupyterlite_core.constants import LAB_EXTENSIONS
-from jupyterlite_core.optional import has_optional_dependency
 from jupyterlite_core.trait_types import TypedTuple
 from jupyterlite_pyodide_kernel.addons._base import _BaseAddon
 from jupyterlite_pyodide_kernel.constants import (
@@ -38,8 +37,6 @@ from ..lockers import get_locker_entry_points
 if TYPE_CHECKING:
     from ..lockers._base import BaseLocker
 
-HAS_PYODIDE_LOCK = has_optional_dependency("pyodide_lock")
-
 LOCKERS = get_locker_entry_points()
 
 
@@ -50,6 +47,13 @@ class PyodideLockAddon(_BaseAddon):
     """
 
     __all__ = ["status", "post_init", "post_build"]
+
+    flags = {
+        "pyodide-lock-enabled": (
+            {"PyodideLockAddon": {"enabled": True}},
+            "enable pyodide-lock features",
+        )
+    }
 
     # traits
     enabled: bool = Bool(
@@ -81,19 +85,19 @@ class PyodideLockAddon(_BaseAddon):
             from textwrap import indent
 
             lines = [
-                f"""version:  {__version__}""",
-                f"""enabled:  {self.enabled}""",
-                f"""lockers:  {", ".join(LOCKERS.keys())}""",
+                f"""version:      {__version__}""",
+                f"""enabled:      {self.enabled}""",
+                f"""all lockers:  {", ".join(LOCKERS.keys())}""",
             ]
 
             if self.enabled:
                 lines += [
-                    f"""locker:   {self.locker}""",
-                    f"""specs:    {", ".join(self.specs)}""",
-                    f"""packages: {", ".join(self.packages)}""",
+                    f"""locker:      {self.locker}""",
+                    f"""specs:       {", ".join(self.specs)}""",
+                    f"""packages:    {", ".join(self.packages)}""",
                 ]
 
-            print(indent("\n".join(lines), "    "))
+            print(indent("\n".join(lines), "    "), flush=True)
 
         yield self.task(name="lock", actions=[_status])
 

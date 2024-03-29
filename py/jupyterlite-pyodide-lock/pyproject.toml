@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 [project.entry-points."jupyterlite.addon.v0"]
-jupyterlite-pyodide-lock = "jupyterlite_pyodide_lock.addons.lock:PyodideLockAddon"
+pyodide-lock = "jupyterlite_pyodide_lock.addons.lock:PyodideLockAddon"
 
 [project.entry-points."jupyterlite-pyodide-lock.locker.v0"]
 browser = "jupyterlite_pyodide_lock.lockers.browser:BrowserLocker"
@@ -46,23 +46,21 @@ addopts = [
   # for humans
   "--html=build/reports/pytest.html",
   "--self-contained-html",
+  "--cov-report=html:build/reports/htmlcov",
+  "--cov-report=term-missing:skip-covered",
   "--color=yes",
-  # xdist
-  "--dist=worksteal",
+  "--cov-fail-under=14",
+  # cov
+  "--cov=jupyterlite_pyodide_lock",
+  "--cov-branch",
+  "--cov-context=test",
+  "--no-cov-on-fail",
+  # misc
   "--tb=long",
-  "--color=yes"
 ]
 
 [tool.coverage.run]
-data_file = "build/reports/coverage/.coverage"
-
-[tool.coverage.report]
-exclude_lines = [
-  "except ImportError as err:",
-  "except MissingDependencyError as err:",
-  "if TYPE_CHECKING:",
-  "pragma: no cover",
-]
+data_file = "build/reports/.coverage"
 
 [tool.coverage.html]
 show_contexts = true

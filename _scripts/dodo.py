@@ -79,10 +79,13 @@ def task_lint():
 def task_test():
     for ppt, src in P.PY_SRC.items():
         pkg = ppt.parent
+        mod = pkg.name.replace("-", "_")
 
         yield dict(
             name=f"pytest:{pkg.name}",
-            actions=[U.do(["pytest"], cwd=pkg)],
+            actions=[
+                U.do([*C.COV_RUN, "--source", mod, "-m", "pytest"], cwd=pkg),
+            ],
             file_dep=[ppt, *src, *P.PY_TEST[ppt], B.ENV_DEV_HISTORY],
             task_dep=[f"dev:{pkg.name}"],
             targets=[
@@ -99,7 +102,10 @@ class C:
     PIP = [*PYM, "pip"]
     COV = ["coverage"]
     RUFF = ["ruff"]
-    COV_RUN_M = [COV, "run"]
+    COV_RUN = [*COV, "run", "--branch"]
+    COV_REPORT = [*COV, "report"]
+    COV_HTML = [*COV, "html"]
+    COV_COMBINE = [*COV, "combine"]
     DIST_EXT = [".tar.gz", "-py3-none-any.whl"]
 
 

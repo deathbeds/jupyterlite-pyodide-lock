@@ -1,12 +1,12 @@
-from jupyterlite_pyodide_lock import __version__
-from jupyterlite_pyodide_lock.constants import NAME
-
-LITE = ["jupyter", "lite"]
+import pytest
 
 
-def test_cli_status(script_runner):
+@pytest.mark.parametrize(["args"], [(["--pyodide-lock"],), ([],)])
+def test_cli_status(lite, args):
     """do various invocations work"""
-    returned_status = script_runner.run([*LITE, "status"])
+    from jupyterlite_pyodide_lock import __version__
+
+    returned_status = lite("status", *args)
     assert returned_status.success
-    ours = returned_status.stdout.split(NAME)[1]
-    assert __version__ in returned_status.stdout
+    ours = returned_status.stdout.split("status:pyodide-lock:lock")[1]
+    assert __version__ in ours
