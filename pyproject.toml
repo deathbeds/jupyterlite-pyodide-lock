@@ -3,3 +3,20 @@ backend = "sqlite3"
 verbosity = 2
 par_type = "thread"
 dodoFile = "_scripts/dodo.py"
+
+[tool.ruff]
+target-version = "py39"
+line-length = 88
+extend-include = ["*.ipynb"]
+
+[tool.ruff.lint]
+select = [
+  "A", "B", "C", "DTZ", "E", "EM", "F", "FBT", "I", "ICN", "N",
+  "PLC", "PLE", "PLR", "PLW", "Q", "RUF", "S", "SIM", "T", "TID", "UP",
+  "W", "YTT",
+]
+ignore = []
+exclude = []
+
+[tool.ruff.lint.per-file-ignores]
+"_scripts/dodo.py" = ["A001", "C408", "N812", "RUF012", "RUF017", "UP006"]

@@ -19,8 +19,12 @@ dependencies = [
     "pyodide-lock[wheel] ==0.1.0a4",
     "tornado >=6.1.0",
 ]
+
 [project.entry-points."jupyterlite.addon.v0"]
-pyodide-lock = "jupyterlite_pyodide_lock.addon:PyodideLockAddon"
+pyodide-lock = "jupyterlite_pyodide_lock.addons.lock:PyodideLockAddon"
+
+[project.entry-points."jupyterlite-pyodide-lock.locker.v0"]
+browser = "jupyterlite_pyodide_lock.lockers.browser:BrowserLocker"
 
 [project.optional-dependencies]
 test = [
