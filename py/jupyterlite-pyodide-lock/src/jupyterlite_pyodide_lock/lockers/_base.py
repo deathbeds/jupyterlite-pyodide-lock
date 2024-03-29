@@ -3,10 +3,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Union as _Union
 
+from jupyterlite_pyodide_kernel.constants import PYODIDE_VERSION
 from traitlets import Dict, Instance, Int, List, Unicode
 from traitlets.config import LoggingConfigurable
-
-from jupyterlite_pyodide_kernel.constants import PYODIDE_VERSION
 
 if TYPE_CHECKING:
     from ..addons.lock import PyodideLockAddon

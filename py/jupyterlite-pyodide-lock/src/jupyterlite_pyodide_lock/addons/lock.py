@@ -20,16 +20,15 @@ from typing import (
     Union as _Union,
 )
 
-from jupyterlite_core.constants import LAB_EXTENSIONS
+from jupyterlite_core.constants import JUPYTERLITE_JSON, LAB_EXTENSIONS
 from jupyterlite_core.trait_types import TypedTuple
 from jupyterlite_pyodide_kernel.addons._base import _BaseAddon
 from jupyterlite_pyodide_kernel.constants import (
     ALL_WHL,
     PKG_JSON_PIPLITE,
     PKG_JSON_WHEELDIR,
-    PYODIDE_LOCK,
     PYODIDE,
-    PYODIDE_VERSION,
+    PYODIDE_LOCK,
 )
 from traitlets import Bool, Enum, Unicode
 
@@ -148,6 +147,15 @@ class PyodideLockAddon(_BaseAddon):
             targets=[args["lockfile"]],
         )
 
+        jupyterlite_json = self.manager.output_dir / JUPYTERLITE_JSON
+
+        yield dict(
+            name="patch",
+            actions=[(self.patch_lite_config, [jupyterlite_json])],
+            file_dep=[jupyterlite_json, self.lockfile],
+        )
+
+    # actions
     def lock(self, packages: _List[Path], specs: _List[str], lockfile: Path):
         """generate the lockfile"""
         locker_ep: _Type["BaseLocker"] = LOCKERS.get(self.locker)
@@ -169,11 +177,18 @@ class PyodideLockAddon(_BaseAddon):
         locker.resolve_sync()
         return self.lockfile.exists()
 
+    def patch_lite_config(self, jupyterlite_json: Path):
+        settings = self.get_pyodide_settings(jupyterlite_json)
+        rel = self.lockfile.relative_to(self.manager.output_dir).as_posix()
+        settings.setdefault("loadPyodideOptions", {}).update(pyodideLockURL=f"./{rel}")
+        self.set_pyodide_settings(jupyterlite_json, settings)
+
     # derived properties
     @property
     def output_pyodide(self):
         """where pyodide will go in the output folder"""
         return self.manager.output_dir / "static" / PYODIDE
+
     @property
     def well_known_packages(self) -> Path:
         return self.manager.lite_dir / "static" / PYODIDE_LOCK_STEM
