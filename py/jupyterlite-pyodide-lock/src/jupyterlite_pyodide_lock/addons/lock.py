@@ -32,6 +32,7 @@ from jupyterlite_pyodide_kernel.constants import (
 )
 from traitlets import Bool, Enum, Unicode
 
+from .. import __version__
 from ..lockers import get_locker_entry_points
 
 if TYPE_CHECKING:
@@ -76,25 +77,25 @@ class PyodideLockAddon(_BaseAddon):
     def status(self, manager):
         """report on the status of pyodide"""
 
-        if not self.enabled:
-            yield dict(name="pyodide-lock", actions=[lambda: print("     not enabled")])
-            return
+        def _status():
+            from textwrap import indent
 
-        yield self.task(
-            name="pyodide-lock",
-            actions=[
-                lambda: print(
-                    "\n".join(
-                        [
-                            f"""    enabled:  {self.enabled}""",
-                            f"""    locker:   {self.locker_class}""",
-                            f"""    specs:    {", ".join(self.specs)}""",
-                            f"""    packages: {", ".join(self.packages)}""",
-                        ]
-                    )
-                ),
-            ],
-        )
+            lines = [
+                f"""version:  {__version__}""",
+                f"""enabled:  {self.enabled}""",
+                f"""lockers:  {", ".join(LOCKERS.keys())}""",
+            ]
+
+            if self.enabled:
+                lines += [
+                    f"""locker:   {self.locker}""",
+                    f"""specs:    {", ".join(self.specs)}""",
+                    f"""packages: {", ".join(self.packages)}""",
+                ]
+
+            print(indent("\n".join(lines), "    "))
+
+        yield self.task(name="lock", actions=[_status])
 
     def post_init(self, manager):
         """handle downloading of packages to the package cache"""
