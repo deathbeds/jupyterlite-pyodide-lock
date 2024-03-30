@@ -46,7 +46,9 @@ LOCKERS = get_locker_entry_points()
 class PyodideLockAddon(_BaseAddon):
     """Creates and configures a `pyodide-lock.json`
 
-    Can handle PEP508 specs, wheels, special pyodide packages, and their dependencies.
+    Can handle PEP508 specs, wheels, and their dependencies.
+
+    Special `pyodide`-specific `.zip` packages are _not_ supported.
     """
 
     __all__ = ["status", "post_init", "post_build"]
@@ -138,8 +140,7 @@ class PyodideLockAddon(_BaseAddon):
         ]
 
         for path in package_dirs:
-            for glob in ["*.zip", "*.whl"]:
-                args["packages"] += [*path.glob(glob)]
+            args["packages"] += [*path.glob("*.whl")]
 
         yield dict(
             name="lock",
@@ -257,7 +258,7 @@ class PyodideLockAddon(_BaseAddon):
             elif local_path.exists():
                 suffix = local_path.suffix
 
-                if suffix in [".whl", ".zip"]:
+                if suffix in [".whl"]:
                     yield from self.copy_wheel(local_path, cache_root)
 
             else:  # pragma: no cover
@@ -266,6 +267,4 @@ class PyodideLockAddon(_BaseAddon):
 
 def list_packages(package_dir: Path):
     """get all wheels we know how to handle in a directory"""
-    return sorted(
-        sum([[*package_dir.glob(f"*{pkg}")] for pkg in [*ALL_WHL, ".zip"]], [])
-    )
+    return sorted(sum([[*package_dir.glob(f"*{pkg}")] for pkg in [*ALL_WHL]], []))
