@@ -24,7 +24,7 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "jupyterlite-pyodide-kernel >=0.3.0,<0.4.0",
+    "jupyterlite-pyodide-kernel >=0.3.1,<0.4.0",
     "pyodide-lock[wheel] ==0.1.0a4",
     "tornado >=6.1.0",
 ]
@@ -41,8 +41,6 @@ test = [
     "pytest-console-scripts",
     "pytest-cov",
     "pytest-html",
-    "pytest-sugar",
-    "pytest-xdist",
 ]
 
 [tool.pytest.ini_options]
@@ -55,7 +53,7 @@ addopts = [
   "--cov-report=html:build/reports/htmlcov",
   "--cov-report=term-missing:skip-covered",
   "--color=yes",
-  "--cov-fail-under=14",
+  "--cov-fail-under=85",
   # cov
   "--cov=jupyterlite_pyodide_lock",
   "--cov-branch",
@@ -63,10 +61,12 @@ addopts = [
   "--no-cov-on-fail",
   # misc
   "--tb=long",
+  "-vv",
 ]
 
 [tool.coverage.run]
 data_file = "build/reports/.coverage"
+disable_warnings = ["no-data-collected", "module-not-measured"]
 
 [tool.coverage.html]
 show_contexts = true

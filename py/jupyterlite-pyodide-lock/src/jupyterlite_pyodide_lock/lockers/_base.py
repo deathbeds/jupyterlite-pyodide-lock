@@ -7,6 +7,8 @@ from jupyterlite_pyodide_kernel.constants import PYODIDE_VERSION
 from traitlets import Dict, Instance, Int, List, Unicode
 from traitlets.config import LoggingConfigurable
 
+from ..constants import FILES_PYTHON_HOSTED
+
 if TYPE_CHECKING:
     from ..addons.lock import PyodideLockAddon
 
@@ -24,7 +26,7 @@ class BaseLocker(LoggingConfigurable):
         "https://pypi.org/pypi", help="remote URL for a Warehouse-compatible JSON API"
     ).tag(config=True)
     pythonhosted_cdn_url = Unicode(
-        "https://files.pythonhosted.org",
+        FILES_PYTHON_HOSTED,
         help="remote URL for python packages (third-party not supported)",
     )
 

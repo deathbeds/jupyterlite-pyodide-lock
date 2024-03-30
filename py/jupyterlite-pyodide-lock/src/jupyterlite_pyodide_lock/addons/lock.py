@@ -62,8 +62,9 @@ class PyodideLockAddon(_BaseAddon):
 
     __all__ = ["pre_status", "status", "post_init", "post_build"]
 
+    # cli
     flags = {
-        "pyodide-lock-enabled": (
+        "pyodide-lock": (
             {"PyodideLockAddon": {"enabled": True}},
             "enable pyodide-lock features",
         )
@@ -75,9 +76,18 @@ class PyodideLockAddon(_BaseAddon):
         help="whether experimental pyodide-lock integration is enabled",
     ).tag(config=True)
 
-    pyodide_baseline_url: str = Unicode(
+    locker = Enum(
+        default_value="browser",
+        values=[*LOCKERS.keys()],
+        help=(
+            "approach to use for running pyodide and solving the lock: "
+            "these will have further configuration options"
+        ),
+    ).tag(config=True)
+
+    pyodide_url: str = Unicode(
         default_value=PYODIDE_CORE_URL,
-        help="a URL, folder, or path to a pyodide distribution",
+        help="a URL, folder, or path to a pyodide distribution, patched into `PyodideAddon.pyodide_url`",
     )
 
     pyodide_cdn_url: str = Unicode(
@@ -124,12 +134,6 @@ class PyodideLockAddon(_BaseAddon):
         help="packages names from the lockfile to ensure before attempting a lock",
     ).tag(config=True)
 
-    locker = Enum(
-        default_value="browser",
-        values=[*LOCKERS.keys()],
-        help="approach to use for running pyodide and solving the lock",
-    ).tag(config=True)
-
     # API methods
 
     def pre_status(self, manager):
@@ -137,7 +141,7 @@ class PyodideLockAddon(_BaseAddon):
         if not self.enabled or self.pyodide_addon.pyodide_url:
             return
 
-        self.pyodide_addon.pyodide_url = self.pyodide_baseline_url
+        self.pyodide_addon.pyodide_url = self.pyodide_url
 
         yield self.task(
             name="patch:pyodide",
@@ -177,7 +181,6 @@ class PyodideLockAddon(_BaseAddon):
             yield from self.resolve_one_file_requirement(
                 path_or_url,
                 self.package_cache,
-                self.lock_output_dir,
             )
 
     def post_build(self, manager):
@@ -244,12 +247,12 @@ class PyodideLockAddon(_BaseAddon):
         """generate the lockfile"""
         locker_ep: _Type["BaseLocker"] = LOCKERS.get(self.locker)
 
-        if locker_ep is None:
+        if locker_ep is None:  # pragma: no cover
             return False
 
         try:
             locker_class = locker_ep.load()
-        except Exception as err:
+        except Exception as err:  # pragma: no cover
             self.log.error("Failed to load locker %s: %s", self.locker, err)
             return False
 
@@ -357,6 +360,18 @@ class PyodideLockAddon(_BaseAddon):
 
             else:  # pragma: no cover
                 raise FileNotFoundError(path_or_url)
+
+    def copy_wheel(self, wheel):
+        """copy one wheel to output"""
+        dest = self.lock_output_dir / wheel.name
+        if dest == wheel:  # pragma: no cover
+            return
+        yield self.task(
+            name=f"copy:whl:{wheel.name}",
+            file_dep=[wheel],
+            targets=[dest],
+            actions=[(self.copy_one, [wheel, dest])],
+        )
 
 
 def list_packages(package_dir: Path):

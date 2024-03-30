@@ -147,7 +147,6 @@ class SolverHTML(RequestHandler):
     def get(self, *args, **kwargs):
         template = jinja2.Template(self.TEMPLATE)
         rendered = template.render(self.context)
-        self.log.debug("%s\n%s", LOCK_HTML, rendered)
         self.write(rendered)
 
     TEMPLATE = """
@@ -207,15 +206,22 @@ class PyodideLock(RequestHandler):
 
     lockfile: Path
 
-    def initialize(self, lockfile: Path, **kwargs):
+    def initialize(self, lockfile: Path, log: "Logger", **kwargs):
         self.lockfile = lockfile
+        self.log = log
         super().initialize(**kwargs)
 
     def post(self):
         """Accept a `pyodide-lock.json` as the POST body."""
         # parse and write out the re-normalized lockfile
         lock_json = json.loads(self.request.body)
+        if "packages" not in lock_json:
+            self.log.error("Unexpected response %s", lock_json)
+            return
+
+        self.lockfile.parent.mkdir(parents=True, exist_ok=True)
         self.lockfile.write_text(json.dumps(lock_json, **JSON_FMT), **UTF8)
+        self.log.info("Wrote %s", self.lockfile)
 
 
 class Log(RequestHandler):

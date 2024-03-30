@@ -2,7 +2,6 @@
 
 import asyncio
 import json
-import pprint
 import shutil
 import socket
 import subprocess
@@ -262,7 +261,6 @@ class BrowserLocker(BaseLocker):
         from tornado.web import Application
 
         handlers = self._handlers
-        self.log.debug("handlers:\n%s", pprint.pformat(handlers))
         return Application(self._handlers, **self.tornado_settings)
 
     @default("tornado_settings")

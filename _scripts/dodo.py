@@ -7,7 +7,7 @@ try:
 except ImportError:
     import tomli as tomllib
 
-from doit.tools import CmdAction, create_folder
+from doit.tools import CmdAction
 
 
 def task_build():
@@ -30,24 +30,6 @@ def task_build():
         )
 
 
-def task_preflight():
-    pk_partial = dict(name="pk:fetch", targets=[B.PK_WHEEL])
-    if not B.PK_WHEEL.exists():
-        yield dict(
-            **pk_partial,
-            actions=[
-                (create_folder, [B.BUILD]),
-                U.do(["wget", "-N", C.PK_WHEEL_URL], cwd=B.BUILD),
-            ],
-        )
-    else:
-        yield dict(
-            **pk_partial,
-            uptodate=[lambda: True],
-            actions=[lambda: print(B.PK_WHEEL, "already exists")],
-        )
-
-
 def task_dev():
     yield dict(
         name="env",
@@ -58,33 +40,17 @@ def task_dev():
         ],
     )
 
-    yield dict(
-        name="pk:install",
-        file_dep=[B.ENV_DEV_HISTORY, B.PK_WHEEL],
-        actions=[
-            [
-                *C.PIP,
-                "install",
-                "--no-deps",
-                "--ignore-installed",
-                "--no-cache-dir",
-                B.PK_WHEEL,
-            ]
-        ],
-    )
-
     for ppt in P.PY_SRC:
         pkg = ppt.parent
         yield dict(
             name=pkg.name,
             actions=[
                 U.do(
-                    [*C.PIP, "install", "-e", ".", "--no-deps", "--ignore-installed"],
+                    [*C.PIP_E, "."],
                     cwd=pkg,
                 )
             ],
             file_dep=[ppt],
-            task_dep=["dev:pk:install"],
         )
 
 
@@ -134,6 +100,15 @@ class C:
     PY = ["python"]
     PYM = [*PY, "-m"]
     PIP = [*PYM, "pip"]
+    PIP_E = [
+        *PIP,
+        "install",
+        "-vv",
+        "--no-deps",
+        "--ignore-installed",
+        "--no-build-isolation",
+        "-e",
+    ]
     COV = ["coverage"]
     RUFF = ["ruff"]
     COV_RUN = [*COV, "run", "--branch"]
@@ -141,11 +116,6 @@ class C:
     COV_HTML = [*COV, "html"]
     COV_COMBINE = [*COV, "combine"]
     DIST_EXT = [".tar.gz", "-py3-none-any.whl"]
-    PK_WHEEL_NAME = "jupyterlite_pyodide_kernel-0.3.0-py3-none-any.whl"
-    PK_WHEEL_URL = (
-        "https://jupyterlite-pyodide-kernel--105.org.readthedocs.build/en/105/"
-        f"_static/{PK_WHEEL_NAME}"
-    )
 
 
 class P:
@@ -194,7 +164,6 @@ class B:
     }
     ENV_DEV = P.ROOT / ".venv"
     ENV_DEV_HISTORY = ENV_DEV / "conda-meta/history"
-    PK_WHEEL = BUILD / C.PK_WHEEL_NAME
 
 
 class U:
