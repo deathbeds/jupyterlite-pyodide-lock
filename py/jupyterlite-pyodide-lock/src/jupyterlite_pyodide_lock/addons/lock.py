@@ -3,6 +3,7 @@
 import json
 import re
 import urllib.parse
+from hashlib import sha256
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -33,7 +34,7 @@ from jupyterlite_pyodide_kernel.constants import (
 from traitlets import Bool, Enum, Unicode
 
 from .. import __version__
-from ..constants import PYODIDE_LOCK_STEM
+from ..constants import LOAD_PYODIDE_OPTIONS, OPTION_LOCK_FILE_URL, PYODIDE_LOCK_STEM
 from ..lockers import get_locker_entry_points
 
 if TYPE_CHECKING:
@@ -180,7 +181,10 @@ class PyodideLockAddon(_BaseAddon):
     def patch_lite_config(self, jupyterlite_json: Path):
         settings = self.get_pyodide_settings(jupyterlite_json)
         rel = self.lockfile.relative_to(self.manager.output_dir).as_posix()
-        settings.setdefault("loadPyodideOptions", {}).update(pyodideLockURL=f"./{rel}")
+        lock_hash = sha256(self.lockfile.read_bytes()).hexdigest()
+        settings.setdefault(LOAD_PYODIDE_OPTIONS, {}).update(
+            {OPTION_LOCK_FILE_URL: f"./{rel}?sha256={lock_hash}"}
+        )
         self.set_pyodide_settings(jupyterlite_json, settings)
 
     # derived properties

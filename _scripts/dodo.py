@@ -7,7 +7,7 @@ try:
 except ImportError:
     import tomli as tomllib
 
-from doit.tools import CmdAction
+from doit.tools import CmdAction, create_folder
 
 
 def task_build():
@@ -40,6 +40,30 @@ def task_dev():
         ],
     )
 
+    yield dict(
+        name="pk:fetch",
+        actions=[
+            (create_folder, [B.BUILD]),
+            U.do(["wget", "-N", C.PK_WHEEL_URL], cwd=B.BUILD),
+        ],
+        targets=[B.PK_WHEEL],
+    )
+
+    yield dict(
+        name="pk:install",
+        file_dep=[B.ENV_DEV_HISTORY, B.PK_WHEEL],
+        actions=[
+            [
+                *C.PIP,
+                "install",
+                "--no-deps",
+                "--ignore-installed",
+                "--no-cache-dir",
+                B.PK_WHEEL,
+            ]
+        ],
+    )
+
     for ppt in P.PY_SRC:
         pkg = ppt.parent
         yield dict(
@@ -51,6 +75,7 @@ def task_dev():
                 )
             ],
             file_dep=[ppt],
+            task_dep=["dev:pk:install"],
         )
 
 
@@ -107,6 +132,11 @@ class C:
     COV_HTML = [*COV, "html"]
     COV_COMBINE = [*COV, "combine"]
     DIST_EXT = [".tar.gz", "-py3-none-any.whl"]
+    PK_WHEEL_NAME = "jupyterlite_pyodide_kernel-0.3.0-py3-none-any.whl"
+    PK_WHEEL_URL = (
+        "https://jupyterlite-pyodide-kernel--105.org.readthedocs.build/en/105/"
+        f"_static/{PK_WHEEL_NAME}"
+    )
 
 
 class P:
@@ -155,6 +185,7 @@ class B:
     }
     ENV_DEV = P.ROOT / ".venv"
     ENV_DEV_HISTORY = ENV_DEV / "conda-meta/history"
+    PK_WHEEL = BUILD / C.PK_WHEEL_NAME
 
 
 class U:

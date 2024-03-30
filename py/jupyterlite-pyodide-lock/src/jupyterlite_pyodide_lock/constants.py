@@ -18,3 +18,9 @@ PROXY = "_proxy"
 
 #: the name of the hosted HTML app
 LOCK_HTML = "lock.html"
+
+#: configuration key for the loadPyodide options
+LOAD_PYODIDE_OPTIONS = "loadPyodideOptions"
+
+#: configuration key for the lockfile URL
+OPTION_LOCK_FILE_URL = "lockFileURL"
