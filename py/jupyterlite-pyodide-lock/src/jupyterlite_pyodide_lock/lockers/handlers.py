@@ -33,10 +33,10 @@ def make_handlers(locker: "BrowserLocker"):
 
     pyodide_handlers = []
 
-    if not locker.parent.output_pyodide.exists():
+    if not locker.parent.pyodide_addon.output_pyodide.exists():
         route = "^/static/pyodide/(.*)$"
         pyodide_handlers += [
-            make_proxy(locker, "pyodide", locker.pydodide_cdn_url, route=route),
+            make_proxy(locker, "pyodide", locker.pyodide_cdn_url, route=route),
         ]
 
     return (
@@ -48,6 +48,8 @@ def make_handlers(locker: "BrowserLocker"):
         ),
         # the page to which the client POSTs
         (f"^/{PYODIDE_LOCK}$", PyodideLock, lock_kwargs),
+        # logs
+        ("^/log/(.*)$", Log, {"log": locker.log}),
         # remote proxies
         make_proxy(locker, "pythonhosted", locker.pythonhosted_cdn_url),
         make_proxy(locker, "pypi", locker.pypi_api_url, **pypi_kwargs),
@@ -152,8 +154,28 @@ class SolverHTML(RequestHandler):
         <html>
             <script type="module">
                 import { loadPyodide } from './static/pyodide/pyodide.mjs';
-                const pyodide = await loadPyodide();
+
+                async function post(url, body) {
+                    return await fetch(
+                        url, {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body
+                    });
+                }
+
+                function tee(pipe, message) {
+                    console.log(pipe, message);
+                    void post(`/log/${pipe}`, JSON.stringify({ message }, null, 2));
+                }
+
+                const pyodide = await loadPyodide({
+                    stdout: tee.bind(this, 'stdout'),
+                    stderr: tee.bind(this, 'stderr'),
+                });
+
                 await pyodide.loadPackage("micropip");
+
                 await pyodide.runPythonAsync(`
                     try:
                         import micropip, js, json
@@ -168,13 +190,12 @@ class SolverHTML(RequestHandler):
                     except Exception as err:
                         js.window.PYODIDE_ERROR = str(err)
                 `);
-                await fetch(
-                    "./pyodide-lock.json", {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: window.PYODIDE_LOCK
+
+                await post(
+                    "./pyodide-lock.json",
+                    window.PYODIDE_LOCK
                         || JSON.stringify({"error": window.PYODIDE_ERROR})
-                });
+                );
                 window.close();
             </script>
         </html>
@@ -192,8 +213,18 @@ class PyodideLock(RequestHandler):
 
     def post(self):
         """Accept a `pyodide-lock.json` as the POST body."""
-        lock_bytes = self.request.body
-
         # parse and write out the re-normalized lockfile
-        lock_json = json.loads(lock_bytes)
+        lock_json = json.loads(self.request.body)
         self.lockfile.write_text(json.dumps(lock_json, **JSON_FMT), **UTF8)
+
+
+class Log(RequestHandler):
+    """Log repeater from the browser."""
+
+    def initialize(self, log: "Logger", **kwargs):
+        self.log = log
+        super().initialize(**kwargs)
+
+    def post(self, pipe):
+        """Accept a log message as the POST body."""
+        self.log.debug("pyodide %s: %s", pipe, json.loads(self.request.body))

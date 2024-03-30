@@ -1,4 +1,4 @@
-"""a JupyterLite addon for supporting pyodide-lock.json files"""
+"""a JupyterLite addon for patching pyodide-lock.json files"""
 
 import json
 import re
@@ -28,30 +28,39 @@ from jupyterlite_pyodide_kernel.constants import (
     ALL_WHL,
     PKG_JSON_PIPLITE,
     PKG_JSON_WHEELDIR,
-    PYODIDE,
     PYODIDE_LOCK,
 )
 from traitlets import Bool, Enum, Unicode
 
 from .. import __version__
-from ..constants import LOAD_PYODIDE_OPTIONS, OPTION_LOCK_FILE_URL, PYODIDE_LOCK_STEM
+from ..constants import (
+    LOAD_PYODIDE_OPTIONS,
+    OPTION_LOCK_FILE_URL,
+    OPTION_PACKAGES,
+    PYODIDE_ADDON,
+    PYODIDE_CDN_URL,
+    PYODIDE_CORE_URL,
+    PYODIDE_LOCK_STEM,
+)
 from ..lockers import get_locker_entry_points
 
 if TYPE_CHECKING:
+    from jupyterlite_pyodide_kernel.addons.pyodide import PyodideAddon
+
     from ..lockers._base import BaseLocker
 
 LOCKERS = get_locker_entry_points()
 
 
 class PyodideLockAddon(_BaseAddon):
-    """Creates and configures a `pyodide-lock.json`
+    """Patches a `pyodide` distribution to include `pyodide-kernel` and custom packages.
 
     Can handle PEP508 specs, wheels, and their dependencies.
 
     Special `pyodide`-specific `.zip` packages are _not_ supported.
     """
 
-    __all__ = ["status", "post_init", "post_build"]
+    __all__ = ["pre_status", "status", "post_init", "post_build"]
 
     flags = {
         "pyodide-lock-enabled": (
@@ -66,6 +75,16 @@ class PyodideLockAddon(_BaseAddon):
         help="whether experimental pyodide-lock integration is enabled",
     ).tag(config=True)
 
+    pyodide_baseline_url: str = Unicode(
+        default_value=PYODIDE_CORE_URL,
+        help="a URL, folder, or path to a pyodide distribution",
+    )
+
+    pyodide_cdn_url: str = Unicode(
+        default_value=PYODIDE_CDN_URL,
+        help="the URL prefix for all packages not managed by `pyodide-lock`",
+    )
+
     specs: _Tuple[str] = TypedTuple(
         Unicode(), help="raw pep508 requirements for pyodide dependencies"
     ).tag(config=True)
@@ -75,6 +94,36 @@ class PyodideLockAddon(_BaseAddon):
         help="URLs of packages, or local (folders of) packages for pyodide depdendencies",
     ).tag(config=True)
 
+    preload_packages: _Tuple[str] = TypedTuple(
+        Unicode(),
+        default_value=[
+            "ssl",
+            "sqlite3",
+            "ipykernel",
+            "comm",
+            "pyodide_kernel",
+            "ipython",
+        ],
+        help=(
+            "`pyodide_kernel` dependencies to add to PyodideAddon.loadPyodideOptions.packages: "
+            "these will be downloaded and installed, but _not_ imported to sys.modules"
+        ),
+    ).tag(config=True)
+
+    extra_preload_packages: _Tuple[str] = TypedTuple(
+        Unicode(),
+        help=(
+            "extra packages to add to PyodideAddon.loadPyodideOptions.packages: "
+            "these will be downloaded and installed, but _not_ imported to sys.modules"
+        ),
+    ).tag(config=True)
+
+    bootstrap_wheels: _Tuple[str] = TypedTuple(
+        Unicode(),
+        default_value=("micropip", "packaging"),
+        help="packages names from the lockfile to ensure before attempting a lock",
+    ).tag(config=True)
+
     locker = Enum(
         default_value="browser",
         values=[*LOCKERS.keys()],
@@ -82,6 +131,18 @@ class PyodideLockAddon(_BaseAddon):
     ).tag(config=True)
 
     # API methods
+
+    def pre_status(self, manager):
+        """patch configuration of `PyodideAddon` if needed."""
+        if not self.enabled or self.pyodide_addon.pyodide_url:
+            return
+
+        self.pyodide_addon.pyodide_url = self.pyodide_baseline_url
+
+        yield self.task(
+            name="patch:pyodide",
+            actions=[lambda: print("    PyodideAddon.pyodide_url was patched")],
+        )
 
     def status(self, manager):
         """report on the status of pyodide"""
@@ -97,9 +158,10 @@ class PyodideLockAddon(_BaseAddon):
 
             if self.enabled:
                 lines += [
-                    f"""locker:      {self.locker}""",
-                    f"""specs:       {", ".join(self.specs)}""",
-                    f"""packages:    {", ".join(self.packages)}""",
+                    f"""locker:       {self.locker}""",
+                    f"""specs:        {", ".join(self.specs)}""",
+                    f"""packages:     {", ".join(self.packages)}""",
+                    f"""fallback:     {self.pyodide_cdn_url}""",
                 ]
 
             print(indent("\n".join(lines), "    "), flush=True)
@@ -142,16 +204,36 @@ class PyodideLockAddon(_BaseAddon):
         for path in package_dirs:
             args["packages"] += [*path.glob("*.whl")]
 
-        yield dict(
+        out = self.pyodide_addon.output_pyodide
+        out_lockfile = out / PYODIDE_LOCK
+
+        out_lock = json.load(out_lockfile.open())
+
+        lock_dep_wheels = []
+
+        for dep in self.bootstrap_wheels:
+            file_name = out_lock["packages"][dep]["file_name"]
+            out_whl = out / file_name
+            if out_whl.exists():
+                continue
+            lock_dep_wheels += [out_whl]
+            url = f"{self.pyodide_cdn_url}/{file_name}"
+            yield self.task(
+                name=f"bootstrap:{dep}",
+                actions=[(self.fetch_one, [url, out_whl])],
+                targets=[out_whl],
+            )
+
+        yield self.task(
             name="lock",
             actions=[(self.lock, [], args)],
-            file_dep=args["packages"],
+            file_dep=[*args["packages"], *lock_dep_wheels],
             targets=[args["lockfile"]],
         )
 
         jupyterlite_json = self.manager.output_dir / JUPYTERLITE_JSON
 
-        yield dict(
+        yield self.task(
             name="patch",
             actions=[(self.patch_lite_config, [jupyterlite_json])],
             file_dep=[jupyterlite_json, self.lockfile],
@@ -183,16 +265,28 @@ class PyodideLockAddon(_BaseAddon):
         settings = self.get_pyodide_settings(jupyterlite_json)
         rel = self.lockfile.relative_to(self.manager.output_dir).as_posix()
         lock_hash = sha256(self.lockfile.read_bytes()).hexdigest()
-        settings.setdefault(LOAD_PYODIDE_OPTIONS, {}).update(
-            {OPTION_LOCK_FILE_URL: f"./{rel}?sha256={lock_hash}"}
+        load_pyodide_options = settings.setdefault(LOAD_PYODIDE_OPTIONS, {})
+
+        preload = [
+            *load_pyodide_options.get(OPTION_PACKAGES, []),
+            *self.preload_packages,
+            *self.extra_preload_packages,
+        ]
+
+        load_pyodide_options.update(
+            {
+                OPTION_LOCK_FILE_URL: f"./{rel}?sha256={lock_hash}",
+                OPTION_PACKAGES: sorted(set(preload)),
+            }
         )
+
         self.set_pyodide_settings(jupyterlite_json, settings)
 
     # derived properties
     @property
-    def output_pyodide(self):
-        """where pyodide will go in the output folder"""
-        return self.manager.output_dir / "static" / PYODIDE
+    def pyodide_addon(self) -> "PyodideAddon":
+        """the manager's pyodide addon, which will be reconfigured if needed."""
+        return self.manager._addons[PYODIDE_ADDON]
 
     @property
     def well_known_packages(self) -> Path:

@@ -34,7 +34,7 @@ from jupyterlite_core.constants import JSON_FMT, UTF8
 from jupyterlite_core.trait_types import TypedTuple
 from traitlets import Dict, Instance, Int, Tuple, Type, Unicode, default
 
-from ..constants import LOCK_HTML, PROXY, PYODIDE_LOCK
+from ..constants import LOCK_HTML, PROXY, PYODIDE_LOCK, PYODIDE_LOCK_STEM
 from ._base import BaseLocker
 
 if TYPE_CHECKING:
@@ -147,6 +147,7 @@ class BrowserLocker(BaseLocker):
         self.log.info("collecting %s packages", len(packages))
         for name, package in packages.items():
             try:
+                self.log.debug("collecting %s", name)
                 found.update(self.collect_one_package(name, package))
             except Exception:
                 self.log.error("Failed to collect %s: %s", name, package, exc_info=1)
@@ -156,7 +157,7 @@ class BrowserLocker(BaseLocker):
     def collect_one_package(self, name: str, package: _Dict[str, _Any]) -> _List[Path]:
         found: _Optional[Path] = None
         file_name: str = package["file_name"]
-        pyodide_output = self.parent.output_pyodide
+        pyodide_output = self.parent.pyodide_addon.output_pyodide
 
         if file_name.startswith(self.base_url):
             stem = file_name.replace(f"{self.base_url}/", "")
@@ -172,6 +173,7 @@ class BrowserLocker(BaseLocker):
 
         if found and found.exists():
             return {found.name: found}
+
         return {}
 
     def fix_lock(self, found: _Dict[str, Path]):
@@ -220,7 +222,6 @@ class BrowserLocker(BaseLocker):
 
         if found_path:
             path_posix = found_path.as_posix()
-            self.log.debug("checking if in output\n\t%s \n\t%s", path_posix, root_posix)
             if path_posix.startswith(root_posix):
                 # build relative path to existing file
                 new_file_name = found_path.as_posix().replace(root_posix, "../..")
@@ -228,6 +229,9 @@ class BrowserLocker(BaseLocker):
                 # copy to be sibling of lockfile, leaving name unchanged
                 dest = lock_dir / file_name
                 shutil.copy2(found_path, dest)
+                new_file_name = f"../{PYODIDE_LOCK_STEM}/{file_name}"
+        else:
+            new_file_name = f"{self.parent.pyodide_cdn_url}/{file_name}"
 
         package["file_name"] = new_file_name
 

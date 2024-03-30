@@ -1,6 +1,6 @@
 """Contants for jupyterlite-pyodide-lock."""
 
-from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK
+from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK, PYODIDE_VERSION
 
 __all__ = ["NAME", "LOCKER_ENTRYPOINT", "PYODIDE_LOCK_STEM", "PROXY", "LOCK_HTML"]
 
@@ -24,3 +24,15 @@ LOAD_PYODIDE_OPTIONS = "loadPyodideOptions"
 
 #: configuration key for the lockfile URL
 OPTION_LOCK_FILE_URL = "lockFileURL"
+
+#: configuration key for preloaded packages
+OPTION_PACKAGES = "packages"
+
+#: the entry point name of `PyodideAddon`
+PYODIDE_ADDON = "jupyterlite-pyodide-kernel-pyodide"
+
+#: the default fallback URL prefix for pyodide packages
+PYODIDE_CDN_URL = f"https://cdn.jsdelivr.net/pyodide/v{PYODIDE_VERSION}/full"
+
+#: the default URL for a viable pyodide distribution
+PYODIDE_CORE_URL = f"https://github.com/pyodide/pyodide/releases/download/{PYODIDE_VERSION}/pyodide-core-{PYODIDE_VERSION}.tar.bz2"

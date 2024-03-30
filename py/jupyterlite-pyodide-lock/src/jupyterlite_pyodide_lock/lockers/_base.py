@@ -16,7 +16,7 @@ class BaseLocker(LoggingConfigurable):
 
     # configurables
     extra_micropip_args = Dict(help="options for `micropip.install`").tag(config=True)
-    pydodide_cdn_url = Unicode(
+    pyodide_cdn_url = Unicode(
         f"https://cdn.jsdelivr.net/pyodide/v{PYODIDE_VERSION}/full",
         help="remote URL for the version of a full pyodide distribution",
     ).tag(config=True)
