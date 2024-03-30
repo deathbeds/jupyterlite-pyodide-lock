@@ -16,17 +16,19 @@ mamba install -c conda-forge jupyterlite-pyodide-lock
 
 ## Why Use This?
 
-- during a build
-  - doesn't require rebuilding a full custom `pyodide` distribution
-  - all downloaded wheels can be optionally shipped along with the application
-  - optionally uses of `SOURCE_DATE_EPOCH` will ensure newer packages aren't
-    used
-  - supports multiple sources of custom wheels and dependencies
 - in the browser
-  - fetches `pyodide-kernel` and dependencies in parallel while `pyodide` is
-    starting, skpping `micropip` and many requests to a PyPI API
+  - fetches `pyodide-kernel`, its dependencies, and configured packages in parallel
+    while `pyodide` is starting, skpping `micropip.install` and its requests to
+    the PyPI API
   - doesn't require `%pip install` for locked packages and their dependencies
     - once shipped, package versions loaded in the browser won't change over time
+- during a build
+  - doesn't require rebuilding a full custom `pyodide` distribution
+    - but will patch an custom deployed `pyodide`
+    - all downloaded wheels can be optionally shipped along with the application
+  - optionally uses `SOURCE_DATE_EPOCH` to ensure newer packages aren't
+    found during a solve
+  - supports multiple sources of custom wheels and dependencies
 
 ## Usage
 

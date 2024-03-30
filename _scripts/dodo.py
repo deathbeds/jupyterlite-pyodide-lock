@@ -30,6 +30,24 @@ def task_build():
         )
 
 
+def task_preflight():
+    pk_partial = dict(name="pk:fetch", targets=[B.PK_WHEEL])
+    if not B.PK_WHEEL.exists():
+        yield dict(
+            **pk_partial,
+            actions=[
+                (create_folder, [B.BUILD]),
+                U.do(["wget", "-N", C.PK_WHEEL_URL], cwd=B.BUILD),
+            ],
+        )
+    else:
+        yield dict(
+            **pk_partial,
+            uptodate=[lambda: True],
+            actions=[lambda: print(B.PK_WHEEL, "already exists")],
+        )
+
+
 def task_dev():
     yield dict(
         name="env",
@@ -38,15 +56,6 @@ def task_dev():
         actions=[
             ["mamba", "env", "update", "--file", P.ENV_DEV, "--prefix", B.ENV_DEV]
         ],
-    )
-
-    yield dict(
-        name="pk:fetch",
-        actions=[
-            (create_folder, [B.BUILD]),
-            U.do(["wget", "-N", C.PK_WHEEL_URL], cwd=B.BUILD),
-        ],
-        targets=[B.PK_WHEEL],
     )
 
     yield dict(
