@@ -9,7 +9,7 @@ from traitlets.config import LoggingConfigurable
 
 from ..constants import FILES_PYTHON_HOSTED
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from ..addons.lock import PyodideLockAddon
 
 
@@ -30,7 +30,7 @@ class BaseLocker(LoggingConfigurable):
         help="remote URL for python packages (third-party not supported)",
     )
 
-    timeout = Int(30, help="seconds to wait for a solve").tag(config=True)
+    timeout = Int(120, help="seconds to wait for a solve").tag(config=True)
 
     # from parent
     specs = List(Unicode())
@@ -62,10 +62,10 @@ class BaseLocker(LoggingConfigurable):
         try:
             async with asyncio.timeout(self.timeout):
                 return await self.resolve()
-        except TimeoutError:
+        except TimeoutError:  # pragma: no cover
             self.log.error("Failed to lock within %s seconds", self.timeout)
 
-    async def resolve(self) -> _Union[bool, None]:
+    async def resolve(self) -> _Union[bool, None]:  # pragma: no cover
         """Asynchronous solve.
 
         An async locker should overload this.

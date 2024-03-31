@@ -8,5 +8,10 @@
         "enabled": true,
         "specs": ["ipywidgets >=8.1,<8.2"],
         "extra_preload_packages": ["ipywidgets", "piplite"]
+    },
+    "BrowserLocker": {
+        "private_mode": true,
+        "headless": true,
+        "new_profile": true
     }
 }

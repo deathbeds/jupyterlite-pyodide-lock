@@ -53,7 +53,7 @@ addopts = [
   "--cov-report=html:build/reports/htmlcov",
   "--cov-report=term-missing:skip-covered",
   "--color=yes",
-  "--cov-fail-under=85",
+  "--cov-fail-under=100",
   # cov
   "--cov=jupyterlite_pyodide_lock",
   "--cov-branch",

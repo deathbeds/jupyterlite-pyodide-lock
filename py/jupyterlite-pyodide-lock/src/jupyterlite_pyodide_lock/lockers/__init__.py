@@ -9,21 +9,6 @@ from ..constants import LOCKER_ENTRYPOINT, NAME
 
 
 @lru_cache(1)
-def get_locker_implementations(force=None):
-    """Load (and cache) locker implementations.
-
-    Pass some noise (like `date.date`) to the ``force`` argument to reload.
-    """
-    addon_implementations = {}
-    for name, entry_point in get_locker_entry_points(force).items():
-        try:
-            addon_implementations[name] = entry_point.load()
-        except Exception as err:  # pragma: no cover
-            warnings.warn(f"[{NAME}] [{name}] failed to load: {err}", stacklevel=2)
-    return addon_implementations
-
-
-@lru_cache(1)
 def get_locker_entry_points(force=None):
     """Discover (and cache) modern entrypoints as a ``dict`` with sorted keys.
 

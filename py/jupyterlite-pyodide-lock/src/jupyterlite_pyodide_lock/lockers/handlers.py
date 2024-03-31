@@ -13,7 +13,7 @@ from tornado.web import RequestHandler, StaticFileHandler
 
 from ..constants import LOCK_HTML, PROXY, PYODIDE_LOCK
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from logging import Logger
 
     from .browser import BrowserLocker
@@ -25,19 +25,12 @@ def make_handlers(locker: "BrowserLocker"):
 
     pypi_kwargs = {
         "rewrites": {"/json$": [(files_cdn, files_local)]},
-        "mime_map": {"/json$": "application/json"},
-    }
-    lock_kwargs = {
-        "lockfile": locker.lockfile_cache,
+        "mime_map": {
+            r"/json$": "application/json",
+        },
     }
 
     pyodide_handlers = []
-
-    if not locker.parent.pyodide_addon.output_pyodide.exists():
-        route = "^/static/pyodide/(.*)$"
-        pyodide_handlers += [
-            make_proxy(locker, "pyodide", locker.pyodide_cdn_url, route=route),
-        ]
 
     return (
         # the page the client GETs as HTML
@@ -47,7 +40,7 @@ def make_handlers(locker: "BrowserLocker"):
             {"context": locker._context, "log": locker.log},
         ),
         # the page to which the client POSTs
-        (f"^/{PYODIDE_LOCK}$", PyodideLock, lock_kwargs),
+        (f"^/{PYODIDE_LOCK}$", MicropipFreeze, {"locker": locker}),
         # logs
         ("^/log/(.*)$", Log, {"log": locker.log}),
         # remote proxies
@@ -55,7 +48,15 @@ def make_handlers(locker: "BrowserLocker"):
         make_proxy(locker, "pypi", locker.pypi_api_url, **pypi_kwargs),
         *pyodide_handlers,
         # fallback to `output_dir`
-        ("^/(.*)$", StaticFileHandler, {"path": locker.parent.manager.output_dir}),
+        (
+            r"^/(.*)$",
+            ExtraMimeFiles,
+            {
+                "log": locker.log,
+                "path": locker.parent.manager.output_dir,
+                "mime_map": {r"\.whl$": "application/x-zip"},
+            },
+        ),
     )
 
 
@@ -75,7 +76,39 @@ def make_proxy(
     return (route, CachingRemoteFiles, config)
 
 
-class CachingRemoteFiles(StaticFileHandler):
+class ExtraMimeFiles(StaticFileHandler):
+    log: "Logger"
+
+    #: map URL regex to content type
+    mime_map: dict[str, str]
+
+    def initialize(self, log, mime_map=None, **kwargs):
+        super().initialize(**kwargs)
+        self.mime_map = mime_map or {}
+        self.log = log
+
+    def get_content_type(self) -> str:
+        from_parent = super().get_content_type()
+        from_map = None
+        if self.absolute_path is None:  # pragma: no cover
+            return from_parent
+        for pattern, mimetype in self.mime_map.items():
+            if not re.search(pattern, self.absolute_path):  # pragma: no cover
+                continue
+            from_map = mimetype
+            break
+
+        self.log.debug(
+            "serving %s as %s (of %s %s)",
+            self.absolute_path,
+            from_map or from_parent,
+            from_parent,
+            from_map,
+        )
+        return from_map or from_parent
+
+
+class CachingRemoteFiles(ExtraMimeFiles):
     """a handler which serves files from a cache, downloading them as needed."""
 
     #: remote URL root
@@ -84,48 +117,37 @@ class CachingRemoteFiles(StaticFileHandler):
     client: AsyncHTTPClient
     #: URL patterns that should have text replaced
     rewrites: dict[str, _Any]
-    #: map URL regex to content type
-    mime_map: dict[str, str]
-    log: "Logger"
 
-    def initialize(self, remote, log, rewrites=None, mime_map=None, **kwargs):
+    def initialize(self, remote, rewrites=None, **kwargs):
         super().initialize(**kwargs)
-        self.log = log
         self.remote = remote
         self.client = AsyncHTTPClient()
         self.rewrites = rewrites or {}
-        self.mime_map = mime_map or {}
 
     async def get(self, path: str, include_body: bool = True) -> None:
         """actually fetch a file"""
         cache_path = self.root / path
-        if not cache_path.exists():
+        if cache_path.exists():  # pragma: no cover
+            pass
+        else:
             await self.cache_file(path, cache_path)
         return await super().get(path, include_body)
-
-    def get_content_type(self) -> str:
-        if self.absolute_path is not None:
-            for pattern, mimetype in self.mime_map.items():
-                if re.search(pattern, self.absolute_path):
-                    return mimetype
-        return super().get_content_type()
 
     async def cache_file(self, path: str, cache_path: Path):
         """get the file, and rewrite it."""
         url = f"{self.remote}/{path}"
         self.log.debug("fetching:    %s", url)
         res = await self.client.fetch(url)
-        if not cache_path.parent.exists():
-            cache_path.parent.mkdir(parents=True)
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
 
         body = res.body
 
         for url_pattern, replacements in self.rewrites.items():
-            if re.search(url_pattern, path) is None:
+            if re.search(url_pattern, path) is None:  # pragma: no cover
                 self.log.debug("%s is not %s", url, url_pattern)
                 continue
             for marker, replacement in replacements:
-                if marker not in body:
+                if marker not in body:  # pragma: no cover
                     self.log.debug("%s does not contain %s", url, marker)
                 else:
                     self.log.debug("found:     %s contains %s", url, marker)
@@ -144,10 +166,11 @@ class SolverHTML(RequestHandler):
         self.context = context
         self.log = log
 
-    def get(self, *args, **kwargs):
+    async def get(self, *args, **kwargs):
         template = jinja2.Template(self.TEMPLATE)
         rendered = template.render(self.context)
-        self.write(rendered)
+        self.log.debug("Serving HTML\n%s", rendered)
+        await self.finish(rendered)
 
     TEMPLATE = """
         <html>
@@ -201,27 +224,30 @@ class SolverHTML(RequestHandler):
     """
 
 
-class PyodideLock(RequestHandler):
-    """Accept a `pyodide-lock.json` from the client and write it to disk."""
+class MicropipFreeze(RequestHandler):
+    """Accept raw `micropip.freeze` output from the client and write it to disk."""
 
-    lockfile: Path
+    locker: "BrowserLocker"
 
-    def initialize(self, lockfile: Path, log: "Logger", **kwargs):
-        self.lockfile = lockfile
-        self.log = log
+    def initialize(self, locker: "BrowserLocker", **kwargs):
+        self.locker = locker
         super().initialize(**kwargs)
 
-    def post(self):
+    async def post(self):
         """Accept a `pyodide-lock.json` as the POST body."""
         # parse and write out the re-normalized lockfile
         lock_json = json.loads(self.request.body)
-        if "packages" not in lock_json:
-            self.log.error("Unexpected response %s", lock_json)
-            return
+        if "packages" in lock_json:
+            lockfile = self.locker.lockfile_cache
+            lockfile.parent.mkdir(parents=True, exist_ok=True)
+            lockfile.write_text(json.dumps(lock_json, **JSON_FMT), **UTF8)
+            self.locker.log.info("Wrote raw `micropip.freeze` to %s", lockfile)
+        else:
+            self.locker.log.error("Unexpected `micropip.freeze` response %s", lock_json)
 
-        self.lockfile.parent.mkdir(parents=True, exist_ok=True)
-        self.lockfile.write_text(json.dumps(lock_json, **JSON_FMT), **UTF8)
-        self.log.info("Wrote %s", self.lockfile)
+        self.locker._solve_halted = True
+
+        await self.finish()
 
 
 class Log(RequestHandler):

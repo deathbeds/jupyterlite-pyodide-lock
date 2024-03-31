@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import (
     TYPE_CHECKING,
 )
+from typing import Dict as _Dict
 from typing import (
     List as _List,
 )
@@ -21,6 +22,7 @@ from typing import (
     Union as _Union,
 )
 
+import pkginfo
 from jupyterlite_core.constants import JUPYTERLITE_JSON, LAB_EXTENSIONS
 from jupyterlite_core.trait_types import TypedTuple
 from jupyterlite_pyodide_kernel.addons._base import _BaseAddon
@@ -44,7 +46,7 @@ from ..constants import (
 )
 from ..lockers import get_locker_entry_points
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from jupyterlite_pyodide_kernel.addons.pyodide import PyodideAddon
 
     from ..lockers._base import BaseLocker
@@ -174,13 +176,15 @@ class PyodideLockAddon(_BaseAddon):
 
     def post_init(self, manager):
         """handle downloading of packages to the package cache"""
-        if not self.enabled:
+        if not self.enabled:  # pragma: no cover
             return
 
-        for path_or_url in self.packages:
+        for path_or_url in [
+            *self.packages,
+            *map(str, list_packages(self.well_known_packages)),
+        ]:
             yield from self.resolve_one_file_requirement(
-                path_or_url,
-                self.package_cache,
+                path_or_url, self.package_cache
             )
 
     def post_build(self, manager):
@@ -189,29 +193,12 @@ class PyodideLockAddon(_BaseAddon):
         This includes those provided by federated labextensions (such as
         `jupyterlite-pyodide-kernel` iteself), copied during `build:federated_extensions`.
         """
-        if not self.enabled:
+        if not self.enabled:  # pragma: no cover
             return
-
-        args = {
-            "packages": [],
-            "specs": self.specs,
-            "lockfile": self.lockfile,
-        }
-
-        package_dirs = [
-            self.package_cache,
-            self.well_known_packages,
-            *self.federated_wheel_dirs,
-        ]
-
-        for path in package_dirs:
-            args["packages"] += [*path.glob("*.whl")]
 
         out = self.pyodide_addon.output_pyodide
         out_lockfile = out / PYODIDE_LOCK
-
         out_lock = json.load(out_lockfile.open())
-
         lock_dep_wheels = []
 
         for dep in self.bootstrap_wheels:
@@ -226,6 +213,12 @@ class PyodideLockAddon(_BaseAddon):
                 actions=[(self.fetch_one, [url, out_whl])],
                 targets=[out_whl],
             )
+
+        args = {
+            "packages": self.get_packages(),
+            "specs": self.specs,
+            "lockfile": self.lockfile,
+        }
 
         yield self.task(
             name="lock",
@@ -322,41 +315,46 @@ class PyodideLockAddon(_BaseAddon):
             wheel_dir = pkg_data.get(PKG_JSON_PIPLITE, {}).get(PKG_JSON_WHEELDIR)
             if wheel_dir:
                 wheel_path = pkg_json.parent / f"{wheel_dir}"
-                if wheel_path.exists():
+                if not wheel_path.exists():  # pragma: no cover
+                    self.log.warning(
+                        "`%s` in %s does not exist", PKG_JSON_WHEELDIR, pkg_json
+                    )
+                else:
                     wheel_paths += [wheel_path]
 
         return wheel_paths
 
-    # utilties
+    # task generators
     def resolve_one_file_requirement(
         self, path_or_url: _Union[str, Path], cache_root: Path
     ):
         """download a wheel, and copy to the cache"""
-        local_path: Path = None
-
         if re.findall(r"^https?://", path_or_url):
             url = urllib.parse.urlparse(path_or_url)
             name = f"""{url.path.split("/")[-1]}"""
-            dest = cache_root / name
-            local_path = dest
-            if not dest.exists():
+            cached = cache_root / name
+            if not cached.exists():
                 yield self.task(
                     name=f"fetch:{name}",
                     doc=f"fetch the wheel {name}",
-                    actions=[(self.fetch_one, [path_or_url, dest])],
-                    targets=[dest],
+                    actions=[(self.fetch_one, [path_or_url, cached])],
+                    targets=[cached],
                 )
+            yield from self.copy_wheel(cached)
         else:
             local_path = (self.manager.lite_dir / path_or_url).resolve()
 
             if local_path.is_dir():
                 for wheel in list_packages(local_path):
-                    yield from self.copy_wheel(wheel, cache_root)
+                    yield from self.copy_wheel(wheel)
+
             elif local_path.exists():
                 suffix = local_path.suffix
 
-                if suffix in [".whl"]:
-                    yield from self.copy_wheel(local_path, cache_root)
+                if suffix not in [".whl"]:  # pragma: no cover
+                    self.log.warning("%s is not a wheel, ignoring", local_path)
+                else:
+                    yield from self.copy_wheel(local_path)
 
             else:  # pragma: no cover
                 raise FileNotFoundError(path_or_url)
@@ -372,6 +370,25 @@ class PyodideLockAddon(_BaseAddon):
             targets=[dest],
             actions=[(self.copy_one, [wheel, dest])],
         )
+
+    def get_packages(self) -> _Dict[str, Path]:
+        package_dirs = [
+            self.lock_output_dir,
+            *self.federated_wheel_dirs,
+        ]
+
+        wheels: _List[Path] = []
+
+        for path in package_dirs:
+            wheels += [*path.glob("*.whl")]
+
+        named_packages = {}
+
+        for wheel in sorted(wheels, key=lambda x: x.name):
+            metadata = pkginfo.get_metadata(str(wheel))
+            named_packages[metadata.name] = wheel
+
+        return sorted(named_packages.values())
 
 
 def list_packages(package_dir: Path):

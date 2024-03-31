@@ -6,7 +6,7 @@ import urllib.request
 from pathlib import Path
 
 from jupyterlite_core.constants import JSON_FMT, JUPYTER_LITE_CONFIG, UTF8
-from jupyterlite_pyodide_lock.constants import FILES_PYTHON_HOSTED
+from jupyterlite_pyodide_lock.constants import FILES_PYTHON_HOSTED, PYODIDE_LOCK_STEM
 
 try:
     import tomllib
@@ -22,12 +22,13 @@ PPT = ROOT / "pyproject.toml"
 WIDGETS_WHEEL = "ipywidgets-8.1.2-py3-none-any.whl"
 WIDGETS_URL = f"{FILES_PYTHON_HOSTED}/packages/py3/i/ipywidgets/{WIDGETS_WHEEL}"
 
-WIDGETS_CONFIG = [
-    {"specs": ["ipywidgets >=8.1,<8.2"]},
-    {"packages": [WIDGETS_URL]},
-    {"packages": [WIDGETS_WHEEL]},
-    {"packages": ["../dist"]},
-]
+WIDGETS_CONFIG = dict(
+    specs_pep508={"specs": ["ipywidgets >=8.1,<8.2"]},
+    packages_url={"packages": [WIDGETS_URL]},
+    packages_local_wheel={"packages": [WIDGETS_WHEEL]},
+    packages_local_folder={"packages": ["../dist"]},
+    well_known={},
+)
 
 
 @fixture
@@ -68,17 +69,25 @@ def a_lite_config(a_lite_dir: Path) -> Path:
     return conf
 
 
-@fixture(params=WIDGETS_CONFIG)
+@fixture(params=sorted(WIDGETS_CONFIG))
 def a_lite_config_with_widgets(request, a_lite_dir: Path, a_lite_config: Path) -> Path:
-    packages = request.param.get("packages")
+    approach = WIDGETS_CONFIG[request.param]
+
+    packages = approach.get("packages")
+
+    fetch_dest = None
+
     if packages:
-        dest = None
         if WIDGETS_WHEEL in packages:
-            dest = a_lite_dir / WIDGETS_WHEEL
+            fetch_dest = a_lite_dir / WIDGETS_WHEEL
         elif "../dist" in packages:
-            dest = a_lite_dir / "../dist" / WIDGETS_WHEEL
-        if dest:
-            fetch(WIDGETS_URL, dest)
+            fetch_dest = a_lite_dir / "../dist" / WIDGETS_WHEEL
+
+    if not approach:
+        fetch_dest = a_lite_dir / "static" / PYODIDE_LOCK_STEM
+
+    if fetch_dest:
+        fetch(WIDGETS_URL, fetch_dest)
 
     a_lite_config.write_text(
         json.dumps(
@@ -86,7 +95,7 @@ def a_lite_config_with_widgets(request, a_lite_dir: Path, a_lite_config: Path) -
                 "PyodideLockAddon": {
                     "enabled": True,
                     "extra_preload_packages": ["ipywidgets"],
-                    **request.param,
+                    **(approach or {}),
                 }
             },
             **JSON_FMT,

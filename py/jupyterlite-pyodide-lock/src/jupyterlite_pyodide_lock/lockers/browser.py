@@ -1,6 +1,7 @@
 """Solve `pyodide-lock` with the browser."""
 
 import asyncio
+import atexit
 import json
 import shutil
 import socket
@@ -28,15 +29,18 @@ from typing import (
 from typing import (
     Type as _Type,
 )
+from typing import (
+    Union as _Union,
+)
 
 from jupyterlite_core.constants import JSON_FMT, UTF8
 from jupyterlite_core.trait_types import TypedTuple
-from traitlets import Dict, Instance, Int, Tuple, Type, Unicode, default
+from traitlets import Bool, Dict, Instance, Int, Tuple, Type, Unicode, default
 
 from ..constants import LOCK_HTML, PROXY, PYODIDE_LOCK, PYODIDE_LOCK_STEM
 from ._base import BaseLocker
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from logging import Logger
 
     from tornado.httpserver import HTTPServer
@@ -45,9 +49,24 @@ if TYPE_CHECKING:
 
 #: default browser aliases
 BROWSERS = {
-    "firefox": ["firefox", "--headless", "--private-window"],
+    "firefox": ["firefox"],
+    "chromium": ["chromium-browser"],
 }
 
+HEADLESS_MODE = {
+    "firefox": ["--headless"],
+    "chromium": ["--headless"],
+}
+
+PRIVATE_MODE = {
+    "firefox": ["--private-window"],
+    "chromium": ["--incognito"],
+}
+
+NEW_PROFILE = {
+    "firefox": ["--new-instance", "--profile", "."],
+    "chromium": ["--user-data-dir", "."],
+}
 
 #: a type for tornado rules
 THandler = _Tuple[str, _Type, _Dict[str, _Any]]
@@ -75,12 +94,23 @@ class BrowserLocker(BaseLocker):
 
     log: "Logger"
 
+    browser_argv = TypedTuple(
+        Unicode(),
+        help=(
+            "the non-URL arguments for the browser process: if configured, "
+            "`browser`, `headless`, `private_mode`, `new_profile` are ignored"
+        ),
+    ).tag(config=True)
+
     browser = Unicode("firefox", help="an alias for a pre-configured browser").tag(
         config=True
     )
-    browser_argv = TypedTuple(
-        Unicode(), help="the non-URL arguments for the browser process"
-    ).tag(config=True)
+    headless = Bool(True, help="run the browser in headless mode").tag(config=True)
+    private_mode = Bool(True, help="run the browser in private mode").tag(config=True)
+    new_profile = Bool(False, help="run the browser with a temporary profile").tag(
+        config=True
+    )
+
     port = Int(help="the port on which to listen").tag(config=True)
     host = Unicode("127.0.0.1", help="the host on which to bind").tag(config=True)
     protocol = Unicode("http", help="the protocol to serve").tag(config=True)
@@ -93,20 +123,30 @@ class BrowserLocker(BaseLocker):
     _web_app: "Application" = Instance("tornado.web.Application")
     _http_server: "HTTPServer" = Instance("tornado.httpserver.HTTPServer")
     _handlers: _Tuple[THandler] = TypedTuple(Tuple(Unicode(), Type(), Dict()))
+    _solve_halted: bool = Bool(False)
 
     # API methods
-    async def resolve(self) -> Path:
+    async def resolve(self) -> _Union[bool, None]:
         """the main solve"""
         self.preflight()
         self.log.info("Starting server at:   %s", self.base_url)
+
         server = self._http_server
+
         try:
             server.listen(self.port, self.host)
             await self.fetch()
         finally:
             server.stop()
+
+        if not self.lockfile_cache.exists():
+            self.log.error("No lockfile was created at %s", self.lockfile)
+            return False
+
         found = self.collect()
         self.fix_lock(found)
+
+        return True
 
     # derived properties
     @property
@@ -138,9 +178,6 @@ class BrowserLocker(BaseLocker):
         """copy all packages in the cached lockfile to `output_dir`, and fix lock"""
         cached_lock = json.loads(self.lockfile_cache.read_text(**UTF8))
         packages = cached_lock["packages"]
-        if not packages:
-            self.log.error("No packages found after solve in %s", self.lockfile_cache)
-            return
 
         found = {}
         self.log.info("collecting %s packages", len(packages))
@@ -148,7 +185,7 @@ class BrowserLocker(BaseLocker):
             try:
                 self.log.debug("collecting %s", name)
                 found.update(self.collect_one_package(name, package))
-            except Exception:
+            except Exception:  # pragma: no cover
                 self.log.error("Failed to collect %s: %s", name, package, exc_info=1)
 
         return found
@@ -156,7 +193,6 @@ class BrowserLocker(BaseLocker):
     def collect_one_package(self, name: str, package: _Dict[str, _Any]) -> _List[Path]:
         found: _Optional[Path] = None
         file_name: str = package["file_name"]
-        pyodide_output = self.parent.pyodide_addon.output_pyodide
 
         if file_name.startswith(self.base_url):
             stem = file_name.replace(f"{self.base_url}/", "")
@@ -165,10 +201,6 @@ class BrowserLocker(BaseLocker):
                 found = self.cache_dir / stem
             else:
                 found = self.parent.manager.output_dir / stem
-        elif pyodide_output.exists():
-            in_pyodide = pyodide_output / file_name
-            if in_pyodide.exists():
-                new_file_name = f"../pyodide/{file_name}"
 
         if found and found.exists():
             return {found.name: found}
@@ -192,9 +224,6 @@ class BrowserLocker(BaseLocker):
             spec = add_wheels_to_spec(spec, tmp_wheels)
             spec.to_json(tmp_lock)
             lock_json = json.load(tmp_lock.open())
-
-        if lock_dir.exists():
-            shutil.rmtree(lock_dir)
 
         lock_dir.mkdir(parents=True, exist_ok=True)
         root_path = self.parent.manager.output_dir.as_posix()
@@ -228,9 +257,14 @@ class BrowserLocker(BaseLocker):
                 # copy to be sibling of lockfile, leaving name unchanged
                 dest = lock_dir / file_name
                 shutil.copy2(found_path, dest)
-                new_file_name = f"../{PYODIDE_LOCK_STEM}/{file_name}"
+                new_file_name = f"../../static/{PYODIDE_LOCK_STEM}/{file_name}"
         else:
             new_file_name = f"{self.parent.pyodide_cdn_url}/{file_name}"
+
+        if file_name == new_file_name:  # pragma: no cover
+            self.log.debug("File did not need fixing %s", file_name)
+        else:
+            self.log.debug("File fixed %s -> %s", file_name, new_file_name)
 
         package["file_name"] = new_file_name
 
@@ -238,29 +272,34 @@ class BrowserLocker(BaseLocker):
         if self.lockfile_cache.exists():
             self.lockfile_cache.unlink()
 
-        args = [*self.browser_argv, f"{self.base_url}/{LOCK_HTML}"]
-        self.log.debug("browser args: %s", args)
-        browser = subprocess.Popen(args)
+        with tempfile.TemporaryDirectory() as td:
+            args = [*self.browser_argv, f"{self.base_url}/{LOCK_HTML}"]
+            self.log.debug("browser args: %s", args)
+            browser = subprocess.Popen(args, cwd=td)
 
-        try:
-            while not self.lockfile_cache.exists():
-                await asyncio.sleep(1)
-        finally:
-            browser.terminate()
+            def cleanup():
+                if browser.returncode is not None:  # pragma: no cover
+                    self.log.info("Browser is already closed")
+
+                self.log.info("Closing browser")
+                browser.terminate()
+                browser.wait()
+
+            atexit.register(cleanup)
+
+            try:
+                while not self._solve_halted:
+                    await asyncio.sleep(1)
+                cleanup()
+            finally:
+                cleanup()
 
     # trait defaults
-    @default("argv")
-    def _default_argv(self):
-        argv = [*BROWSERS.get(self.browser)]
-        argv[0] = shutil.which(argv[0]) or shutil.which(f"{argv[0]}.exe")
-        return argv
-
     @default("_web_app")
     def _default_web_app(self):
         """build the web application"""
         from tornado.web import Application
 
-        handlers = self._handlers
         return Application(self._handlers, **self.tornado_settings)
 
     @default("tornado_settings")
@@ -292,6 +331,17 @@ class BrowserLocker(BaseLocker):
     def _default_browser_argv(self):
         argv = [*BROWSERS[self.browser]]
         argv[0] = shutil.which(argv[0]) or shutil.which(f"{argv[0]}.exe")
+
+        if True:  # pragma: no cover
+            if self.headless:
+                argv += HEADLESS_MODE[self.browser]
+
+            if self.private_mode:
+                argv += PRIVATE_MODE[self.browser]
+
+            if self.new_profile:
+                argv += NEW_PROFILE[self.browser]
+
         return argv
 
     @default("_context")
