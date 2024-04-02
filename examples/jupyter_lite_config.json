@@ -12,6 +12,7 @@
     "BrowserLocker": {
         "private_mode": true,
         "headless": true,
-        "new_profile": true
+        "browser": "firefox",
+        "profile": "../build/.cache/lite/.firefox-profile"
     }
 }

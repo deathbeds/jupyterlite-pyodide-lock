@@ -2,6 +2,7 @@
 
 import json
 import shutil
+import subprocess
 import urllib.request
 from pathlib import Path
 
@@ -33,7 +34,7 @@ WIDGETS_CONFIG = dict(
 
 @fixture
 def the_pyproject():
-    return tomllib.load(PPT.open("rb"))
+    return tomllib.loads(PPT.read_text(**UTF8))
 
 
 @fixture
@@ -44,12 +45,15 @@ def a_lite_dir(tmp_path: Path):
 
 
 @fixture
-def lite_cli(script_runner, a_lite_dir: Path):
-    def lite_runner(*args, **kwargs):
+def lite_cli(a_lite_dir: Path):
+    def run(*args, **kwargs):
         kwargs["cwd"] = str(kwargs.get("cwd", a_lite_dir))
-        return script_runner.run(["jupyter-lite", *args], **kwargs)
+        kwargs["encoding"] = "utf-8"
+        proc = subprocess.Popen(["jupyter-lite", *args], **kwargs)
+        stdout, stderr = proc.communicate()
+        return proc.returncode, stdout, stderr
 
-    return lite_runner
+    return run
 
 
 @fixture

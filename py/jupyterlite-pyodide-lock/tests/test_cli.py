@@ -3,6 +3,7 @@
 import difflib
 import json
 import pprint
+import subprocess
 from pathlib import Path
 
 import pyodide_lock
@@ -23,9 +24,9 @@ def test_cli_status(lite_cli, args):
     """Verify various status invocations work."""
     from jupyterlite_pyodide_lock import __version__
 
-    status = lite_cli("status", *args)
-    assert status.success
-    ours = status.stdout.split("status:pyodide-lock:lock")[1]
+    status, stdout, stderr = lite_cli("status", *args, stdout=subprocess.PIPE)
+    assert status == 0
+    ours = stdout.split("status:pyodide-lock:lock")[1]
     assert __version__ in ours
 
 
@@ -36,12 +37,12 @@ def test_cli_status(lite_cli, args):
 def test_cli_bad_config(
     lite_cli, a_lite_config: Path, bad_config, message: str
 ) -> None:
-    config = json.load(a_lite_config.open())
+    config = json.loads(a_lite_config.read_text(**UTF8))
     config["PyodideLockAddon"].update(bad_config)
     pprint.pprint(config)
-    json.dump(config, a_lite_config.open("w"))
-    status = lite_cli("status")
-    assert MESSAGES[message] in status.stderr
+    a_lite_config.write_text(json.dumps(config), **UTF8)
+    proc, stdout, stderr = lite_cli("status", stderr=subprocess.PIPE)
+    assert MESSAGES[message] in stderr
 
 
 def test_cli_good_build(
@@ -50,8 +51,9 @@ def test_cli_good_build(
     """Verify a build works, twice."""
     from jupyterlite_pyodide_lock.constants import PYODIDE_LOCK_STEM
 
-    build = lite_cli("build", "--debug")
-    assert build.success
+    build, stdout, stderr = lite_cli("build", "--debug")
+    assert build == 0
+
     out = a_lite_dir / "_output"
     assert out.exists()
     lock_dir = out / "static" / PYODIDE_LOCK_STEM
@@ -60,8 +62,9 @@ def test_cli_good_build(
     lock_text = lock.read_text(**UTF8)
     pyodide_lock.PyodideLockSpec.from_json(lock)
 
-    rebuild = lite_cli("build", "--debug")
-    assert rebuild.success
+    rebuild, stdout, stderr = lite_cli("build", "--debug")
+    assert rebuild == 0
+
     relock_text = lock.read_text(**UTF8)
     diff = [
         *difflib.unified_diff(
@@ -76,9 +79,9 @@ def test_cli_bad_build(lite_cli, a_lite_config: Path):
     """Verify an impossible solve fails."""
     a_lite_config.write_text(
         json.dumps(
-            {"PyodideLockAddon": {"enabled": True, "specs": ["pytorch"]}}, **JSON_FMT
+            {"PyodideLockAddon": {"enabled": True, "specs": ["torch"]}}, **JSON_FMT
         ),
         **UTF8,
     )
     build = lite_cli("build", "--debug")
-    assert not build.success
+    assert build != 0

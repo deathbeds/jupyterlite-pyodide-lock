@@ -194,9 +194,8 @@ class SolverHTML(RequestHandler):
                 const pyodide = await loadPyodide({
                     stdout: tee.bind(this, 'stdout'),
                     stderr: tee.bind(this, 'stderr'),
+                    packages: ["micropip"],
                 });
-
-                await pyodide.loadPackage("micropip");
 
                 await pyodide.runPythonAsync(`
                     try:

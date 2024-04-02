@@ -8,6 +8,9 @@ from pathlib import Path
 from typing import (
     TYPE_CHECKING,
 )
+from typing import (
+    Any as _Any,
+)
 from typing import Dict as _Dict
 from typing import (
     List as _List,
@@ -23,7 +26,8 @@ from typing import (
 )
 
 import pkginfo
-from jupyterlite_core.constants import JUPYTERLITE_JSON, LAB_EXTENSIONS
+from doit.tools import config_changed
+from jupyterlite_core.constants import JUPYTERLITE_JSON, LAB_EXTENSIONS, UTF8
 from jupyterlite_core.trait_types import TypedTuple
 from jupyterlite_pyodide_kernel.addons._base import _BaseAddon
 from jupyterlite_pyodide_kernel.constants import (
@@ -198,7 +202,7 @@ class PyodideLockAddon(_BaseAddon):
 
         out = self.pyodide_addon.output_pyodide
         out_lockfile = out / PYODIDE_LOCK
-        out_lock = json.load(out_lockfile.open())
+        out_lock = json.loads(out_lockfile.read_text(**UTF8))
         lock_dep_wheels = []
 
         for dep in self.bootstrap_wheels:
@@ -220,10 +224,17 @@ class PyodideLockAddon(_BaseAddon):
             "lockfile": self.lockfile,
         }
 
+        config_str = f"""{args} {self.locker} {self.locker_config}"""
+
         yield self.task(
             name="lock",
+            uptodate=[config_changed(config_str)],
             actions=[(self.lock, [], args)],
-            file_dep=[*args["packages"], *lock_dep_wheels],
+            file_dep=[
+                *args["packages"],
+                *lock_dep_wheels,
+                self.pyodide_addon.output_pyodide / PYODIDE_LOCK,
+            ],
             targets=[args["lockfile"]],
         )
 
@@ -311,7 +322,7 @@ class PyodideLockAddon(_BaseAddon):
         wheel_paths: _List[Path] = []
 
         for pkg_json in sorted(pkg_jsons):
-            pkg_data = json.load(pkg_json.open())
+            pkg_data = json.loads(pkg_json.read_text(**UTF8))
             wheel_dir = pkg_data.get(PKG_JSON_PIPLITE, {}).get(PKG_JSON_WHEELDIR)
             if wheel_dir:
                 wheel_path = pkg_json.parent / f"{wheel_dir}"
@@ -323,6 +334,17 @@ class PyodideLockAddon(_BaseAddon):
                     wheel_paths += [wheel_path]
 
         return wheel_paths
+
+    @property
+    def locker_config(self) -> _Any:
+        """A preview of the locker config."""
+        try:
+            ep = LOCKERS[self.locker]
+            configurable = ep.value.split(":")[-1]
+            return self.config.get(configurable)
+        except KeyError as err:  # pragma: no cover
+            self.log.warn("Failed to check %s locker config: %s", self.locker, err)
+            return None
 
     # task generators
     def resolve_one_file_requirement(

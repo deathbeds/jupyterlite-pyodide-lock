@@ -50,7 +50,7 @@ def task_dev():
                     cwd=pkg,
                 )
             ],
-            file_dep=[ppt],
+            file_dep=[ppt, B.ENV_DEV_HISTORY],
         )
 
 
@@ -116,6 +116,7 @@ class C:
     COV_HTML = [*COV, "html"]
     COV_COMBINE = [*COV, "combine"]
     DIST_EXT = [".tar.gz", "-py3-none-any.whl"]
+    UTF8 = dict(encoding="utf-8")
 
 
 class P:
@@ -148,7 +149,7 @@ class P:
 
 
 class D:
-    PPT = {ppt: tomllib.load(ppt.open("rb")) for ppt in P.PY_SRC}
+    PPT = {ppt: tomllib.loads(ppt.read_text(**C.UTF8)) for ppt in P.PY_SRC}
     VERSION = {ppt: pptd["project"]["version"] for ppt, pptd in PPT.items()}
 
 

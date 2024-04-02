@@ -63,10 +63,11 @@ PRIVATE_MODE = {
     "chromium": ["--incognito"],
 }
 
-NEW_PROFILE = {
-    "firefox": ["--new-instance", "--profile", "."],
-    "chromium": ["--user-data-dir", "."],
+PROFILE = {
+    "firefox": ["--new-instance", "--profile"],
+    "chromium": ["--user-data-dir"],
 }
+
 
 #: a type for tornado rules
 THandler = _Tuple[str, _Type, _Dict[str, _Any]]
@@ -97,8 +98,8 @@ class BrowserLocker(BaseLocker):
     browser_argv = TypedTuple(
         Unicode(),
         help=(
-            "the non-URL arguments for the browser process: if configured, "
-            "`browser`, `headless`, `private_mode`, `new_profile` are ignored"
+            "the non-URL arguments for the browser process: if configured, ignore "
+            "`browser`, `headless`, `private_mode`, `temp_profile`, and `profile`"
         ),
     ).tag(config=True)
 
@@ -107,9 +108,15 @@ class BrowserLocker(BaseLocker):
     )
     headless = Bool(True, help="run the browser in headless mode").tag(config=True)
     private_mode = Bool(True, help="run the browser in private mode").tag(config=True)
-    new_profile = Bool(False, help="run the browser with a temporary profile").tag(
-        config=True
-    )
+    profile = Unicode(
+        None,
+        help="run the browser with a copy of the given profile directory",
+        allow_none=True,
+    ).tag(config=True)
+    temp_profile: bool = Bool(
+        False,
+        help="run the browser with a temporary profile: incompatible with `profile`",
+    ).tag(config=True)
 
     port = Int(help="the port on which to listen").tag(config=True)
     host = Unicode("127.0.0.1", help="the host on which to bind").tag(config=True)
@@ -124,6 +131,7 @@ class BrowserLocker(BaseLocker):
     _http_server: "HTTPServer" = Instance("tornado.httpserver.HTTPServer")
     _handlers: _Tuple[THandler] = TypedTuple(Tuple(Unicode(), Type(), Dict()))
     _solve_halted: bool = Bool(False)
+    _temp_profile_path: Path = Instance(Path, allow_none=True)
 
     # API methods
     async def resolve(self) -> _Union[bool, None]:
@@ -147,6 +155,12 @@ class BrowserLocker(BaseLocker):
         self.fix_lock(found)
 
         return True
+
+    async def cleanup(self) -> None:
+        if (
+            self._temp_profile_path and self._temp_profile_path.exists()
+        ):  # pragma: no cover
+            shutil.rmtree(self._temp_profile_path)
 
     # derived properties
     @property
@@ -174,6 +188,9 @@ class BrowserLocker(BaseLocker):
         if pypi_cache.exists():
             shutil.rmtree(pypi_cache)
 
+        if self.lockfile_cache.exists():
+            self.lockfile_cache.unlink()
+
     def collect(self) -> _Dict[str, Path]:
         """copy all packages in the cached lockfile to `output_dir`, and fix lock"""
         cached_lock = json.loads(self.lockfile_cache.read_text(**UTF8))
@@ -183,7 +200,6 @@ class BrowserLocker(BaseLocker):
         self.log.info("collecting %s packages", len(packages))
         for name, package in packages.items():
             try:
-                self.log.debug("collecting %s", name)
                 found.update(self.collect_one_package(name, package))
             except Exception:  # pragma: no cover
                 self.log.error("Failed to collect %s: %s", name, package, exc_info=1)
@@ -223,7 +239,7 @@ class BrowserLocker(BaseLocker):
             tmp_wheels = sorted(tdp.glob("*.whl"))
             spec = add_wheels_to_spec(spec, tmp_wheels)
             spec.to_json(tmp_lock)
-            lock_json = json.load(tmp_lock.open())
+            lock_json = json.loads(tmp_lock.read_text(**UTF8))
 
         lock_dir.mkdir(parents=True, exist_ok=True)
         root_path = self.parent.manager.output_dir.as_posix()
@@ -263,15 +279,10 @@ class BrowserLocker(BaseLocker):
 
         if file_name == new_file_name:  # pragma: no cover
             self.log.debug("File did not need fixing %s", file_name)
-        else:
-            self.log.debug("File fixed %s -> %s", file_name, new_file_name)
 
         package["file_name"] = new_file_name
 
     async def fetch(self):
-        if self.lockfile_cache.exists():
-            self.lockfile_cache.unlink()
-
         with tempfile.TemporaryDirectory() as td:
             args = [*self.browser_argv, f"{self.base_url}/{LOCK_HTML}"]
             self.log.debug("browser args: %s", args)
@@ -280,15 +291,16 @@ class BrowserLocker(BaseLocker):
             def cleanup():
                 if browser.returncode is not None:  # pragma: no cover
                     self.log.info("Browser is already closed")
+                    return
 
                 self.log.info("Closing browser")
                 browser.terminate()
-                browser.wait()
+                browser.kill()
 
             atexit.register(cleanup)
 
             try:
-                while not self._solve_halted:
+                while not self._solve_halted and browser.returncode is None:
                     await asyncio.sleep(1)
                 cleanup()
             finally:
@@ -336,11 +348,26 @@ class BrowserLocker(BaseLocker):
             if self.headless:
                 argv += HEADLESS_MODE[self.browser]
 
+            if self.profile and self.temp_profile:
+                self.log.warning(
+                    "`profile` and `temp_profile` both specified: using %s",
+                    self.profile,
+                )
+
+            if self.profile:
+                argv += [
+                    *PROFILE[self.browser],
+                    self.ensure_temp_profile(
+                        (self.parent.manager.lite_dir / self.profile).resolve()
+                    ),
+                ]
+            elif self.temp_profile:
+                argv += [*PROFILE[self.browser], self.ensure_temp_profile()]
+
             if self.private_mode:
                 argv += PRIVATE_MODE[self.browser]
 
-            if self.new_profile:
-                argv += NEW_PROFILE[self.browser]
+        self.log.debug("Non-URL browser argv %s", argv)
 
         return argv
 
@@ -373,3 +400,18 @@ class BrowserLocker(BaseLocker):
     @default("extra_micropip_args")
     def _default_extra_micropip_args(self):
         return {}
+
+    # utilities
+    def ensure_temp_profile(
+        self, baseline: _Union[Path, None] = None
+    ) -> str:  # pragma: no cover
+        """create a temporary browser profile."""
+        if self._temp_profile_path is None:
+            path = self.cache_dir / ".browser" / self.browser
+            if baseline and baseline.is_dir():
+                path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copytree(baseline, path)
+            else:
+                path.mkdir(parents=True, exist_ok=True)
+            self._temp_profile_path = path
+        return str(self._temp_profile_path)

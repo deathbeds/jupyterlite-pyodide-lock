@@ -29,6 +29,5 @@ dependencies:
   - pyproject-fmt
   # test
   - pytest >=8,<9
-  - pytest-console-scripts
   - pytest-cov
   - pytest-html

@@ -64,6 +64,15 @@ class BaseLocker(LoggingConfigurable):
                 return await self.resolve()
         except TimeoutError:  # pragma: no cover
             self.log.error("Failed to lock within %s seconds", self.timeout)
+        finally:
+            await self.cleanup()
+
+    async def cleanup(self) -> None:  # pragma: no cover
+        """Asynchronous cleanup.
+
+        An async locker may overload this.
+        """
+        pass
 
     async def resolve(self) -> _Union[bool, None]:  # pragma: no cover
         """Asynchronous solve.

@@ -38,27 +38,27 @@ browser = "jupyterlite_pyodide_lock.lockers.browser:BrowserLocker"
 [project.optional-dependencies]
 test = [
     "pytest >=8,<9",
-    "pytest-console-scripts",
     "pytest-cov",
     "pytest-html",
 ]
 
 [tool.pytest.ini_options]
 cache_dir = "build/.cache/pytest"
-script_launch_mode = "subprocess"
 addopts = [
   # for humans
   "--html=build/reports/pytest.html",
   "--self-contained-html",
+  # cov
   "--cov-report=html:build/reports/htmlcov",
   "--cov-report=term-missing:skip-covered",
   "--color=yes",
-  "--cov-fail-under=100",
-  # cov
   "--cov=jupyterlite_pyodide_lock",
   "--cov-branch",
   "--cov-context=test",
   "--no-cov-on-fail",
+  "--cov-fail-under=100",
+  # treat warnings as errors
+  "-Werror",
   # misc
   "--tb=long",
   "-vv",
