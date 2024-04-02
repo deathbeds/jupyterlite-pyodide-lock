@@ -5,7 +5,6 @@ from jupyterlite_core.constants import JSON_FMT, UTF8
 from tornado.web import RequestHandler
 
 if TYPE_CHECKING:  # pragma: no cover
-
     from ..browser import BrowserLocker
 
 

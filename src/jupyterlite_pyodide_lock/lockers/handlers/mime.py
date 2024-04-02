@@ -7,7 +7,6 @@ if TYPE_CHECKING:  # pragma: no cover
     from logging import Logger
 
 
-
 class ExtraMimeFiles(StaticFileHandler):
     log: "Logger"
 

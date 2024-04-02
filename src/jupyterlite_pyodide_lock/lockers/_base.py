@@ -1,7 +1,6 @@
 import asyncio
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Union as _Union
 
 from jupyterlite_pyodide_kernel.constants import PYODIDE_VERSION
 from traitlets import Dict, Instance, Int, List, Unicode
@@ -44,7 +43,7 @@ class BaseLocker(LoggingConfigurable):
     micropip_args = Dict()
 
     # API methods
-    def resolve_sync(self) -> _Union[bool, None]:
+    def resolve_sync(self) -> bool | None:
         """A synchronous facade for doing async solves, called by `PyodideLockAddon`.
 
         If a locker is entirely synchronous, it can overload this.
@@ -53,7 +52,7 @@ class BaseLocker(LoggingConfigurable):
         future = self.resolve_async()
         return loop.run_until_complete(future)
 
-    async def resolve_async(self) -> _Union[bool, None]:
+    async def resolve_async(self) -> bool | None:
         """Asynchronous solve that handles timeout.
 
         An async locker should _not_ overload this unless it has some other means
@@ -74,7 +73,7 @@ class BaseLocker(LoggingConfigurable):
         """
         pass
 
-    async def resolve(self) -> _Union[bool, None]:  # pragma: no cover
+    async def resolve(self) -> bool | None:  # pragma: no cover
         """Asynchronous solve.
 
         An async locker should overload this.

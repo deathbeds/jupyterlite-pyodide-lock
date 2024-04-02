@@ -1,29 +1,20 @@
 """web handlers for BrowserLocker"""
 
-import json
-import re
-from pathlib import Path
-from typing import TYPE_CHECKING
-from typing import Any as _Any
-
-import jinja2
-from jupyterlite_core.constants import JSON_FMT, UTF8
-from tornado.httpclient import AsyncHTTPClient
-from tornado.web import RequestHandler, StaticFileHandler
+from typing import TYPE_CHECKING, Any
 
 from ...constants import LOCK_HTML, PROXY, PYODIDE_LOCK
 from .cacher import CachingRemoteFiles
 from .freezer import MicropipFreeze
+from .logger import Log
 from .mime import ExtraMimeFiles
 from .solver import SolverHTML
 
 if TYPE_CHECKING:  # pragma: no cover
-    from logging import Logger
-
     from ..browser import BrowserLocker
 
 
 def make_handlers(locker: "BrowserLocker"):
+    """create the default handlers used for serving proxied CDN assets and locking"""
     files_cdn = locker.pythonhosted_cdn_url.encode("utf-8")
     files_local = f"{locker.base_url}/{PROXY}/pythonhosted".encode()
 
@@ -68,7 +59,6 @@ def make_proxy(
     locker: "BrowserLocker", path: str, remote: str, route: str = None, **extra_config
 ):
     """generate a proxied tornado handler rule"""
-    from .handlers import CachingRemoteFiles
 
     route = route or f"^/{PROXY}/{path}/(.*)$"
     config = {

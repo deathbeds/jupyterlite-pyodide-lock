@@ -10,27 +10,7 @@ import tempfile
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
-)
-from typing import (
-    Any as _Any,
-)
-from typing import (
-    Dict as _Dict,
-)
-from typing import (
-    List as _List,
-)
-from typing import (
-    Optional as _Optional,
-)
-from typing import (
-    Tuple as _Tuple,
-)
-from typing import (
-    Type as _Type,
-)
-from typing import (
-    Union as _Union,
+    Any,
 )
 
 from jupyterlite_core.constants import JSON_FMT, UTF8
@@ -39,6 +19,7 @@ from traitlets import Bool, Dict, Instance, Int, Tuple, Type, Unicode, default
 
 from ..constants import BROWSERS, LOCK_HTML, PROXY, PYODIDE_LOCK, PYODIDE_LOCK_STEM
 from ._base import BaseLocker
+from .handlers import make_handlers
 
 if TYPE_CHECKING:  # pragma: no cover
     from logging import Logger
@@ -48,7 +29,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 #: a type for tornado rules
-THandler = _Tuple[str, _Type, _Dict[str, _Any]]
+THandler = tuple[str, type, dict[str, Any]]
 
 
 class BrowserLocker(BaseLocker):
@@ -104,15 +85,15 @@ class BrowserLocker(BaseLocker):
     )
 
     # runtime
-    _context: _Dict[str, _Any] = Dict()
+    _context: dict[str, Any] = Dict()
     _web_app: "Application" = Instance("tornado.web.Application")
     _http_server: "HTTPServer" = Instance("tornado.httpserver.HTTPServer")
-    _handlers: _Tuple[THandler] = TypedTuple(Tuple(Unicode(), Type(), Dict()))
+    _handlers: tuple[THandler, ...] = TypedTuple(Tuple(Unicode(), Type(), Dict()))
     _solve_halted: bool = Bool(False)
     _temp_profile_path: Path = Instance(Path, allow_none=True)
 
     # API methods
-    async def resolve(self) -> _Union[bool, None]:
+    async def resolve(self) -> bool | None:
         """the main solve"""
         self.preflight()
         self.log.info("Starting server at:   %s", self.base_url)
@@ -169,7 +150,7 @@ class BrowserLocker(BaseLocker):
         if self.lockfile_cache.exists():
             self.lockfile_cache.unlink()
 
-    def collect(self) -> _Dict[str, Path]:
+    def collect(self) -> dict[str, Path]:
         """copy all packages in the cached lockfile to `output_dir`, and fix lock"""
         cached_lock = json.loads(self.lockfile_cache.read_text(**UTF8))
         packages = cached_lock["packages"]
@@ -184,8 +165,8 @@ class BrowserLocker(BaseLocker):
 
         return found
 
-    def collect_one_package(self, name: str, package: _Dict[str, _Any]) -> _List[Path]:
-        found: _Optional[Path] = None
+    def collect_one_package(self, name: str, package: dict[str, Any]) -> list[Path]:
+        found: Path | None = None
         file_name: str = package["file_name"]
 
         if file_name.startswith(self.base_url):
@@ -201,7 +182,7 @@ class BrowserLocker(BaseLocker):
 
         return {}
 
-    def fix_lock(self, found: _Dict[str, Path]):
+    def fix_lock(self, found: dict[str, Path]):
         from pyodide_lock import PyodideLockSpec
         from pyodide_lock.utils import add_wheels_to_spec
 
@@ -236,7 +217,7 @@ class BrowserLocker(BaseLocker):
         self,
         root_posix: str,
         lock_dir: Path,
-        package: _Dict[str, _Any],
+        package: dict[str, Any],
         found_path: Path,
     ):
         file_name = package["file_name"]
@@ -298,8 +279,6 @@ class BrowserLocker(BaseLocker):
 
     @default("_handlers")
     def _default_handlers(self):
-        from .handlers import make_handlers
-
         return make_handlers(self)
 
     @default("_http_server")
@@ -384,7 +363,7 @@ class BrowserLocker(BaseLocker):
 
     # utilities
     def ensure_temp_profile(
-        self, baseline: _Union[Path, None] = None
+        self, baseline: Path | None = None
     ) -> str:  # pragma: no cover
         """create a temporary browser profile."""
         if self._temp_profile_path is None:
@@ -397,8 +376,8 @@ class BrowserLocker(BaseLocker):
             self._temp_profile_path = path
         return str(self._temp_profile_path)
 
-    def browser_cli_arg(self, browser: str, trait_name: str) -> _List[str]:
-        if trait_name not in BROWSERS[browser]:
+    def browser_cli_arg(self, browser: str, trait_name: str) -> list[str]:
+        if trait_name not in BROWSERS[browser]:  # pragma: no cover
             self.log.warning(
                 "%s.%s does not work with %s",
                 self.__class__.__name__,

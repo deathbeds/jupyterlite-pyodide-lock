@@ -5,25 +5,7 @@ import re
 import urllib.parse
 from hashlib import sha256
 from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-)
-from typing import (
-    Any as _Any,
-)
-from typing import Dict as _Dict
-from typing import (
-    List as _List,
-)
-from typing import (
-    Tuple as _Tuple,
-)
-from typing import (
-    Type as _Type,
-)
-from typing import (
-    Union as _Union,
-)
+from typing import TYPE_CHECKING, Any, Type
 
 import pkginfo
 from doit.tools import config_changed
@@ -101,16 +83,16 @@ class PyodideLockAddon(_BaseAddon):
         help="the URL prefix for all packages not managed by `pyodide-lock`",
     )
 
-    specs: _Tuple[str] = TypedTuple(
+    specs: tuple[str] = TypedTuple(
         Unicode(), help="raw pep508 requirements for pyodide dependencies"
     ).tag(config=True)
 
-    packages: _Tuple[str] = TypedTuple(
+    packages: tuple[str] = TypedTuple(
         Unicode(),
         help="URLs of packages, or local (folders of) packages for pyodide depdendencies",
     ).tag(config=True)
 
-    preload_packages: _Tuple[str] = TypedTuple(
+    preload_packages: tuple[str] = TypedTuple(
         Unicode(),
         default_value=[
             "ssl",
@@ -126,7 +108,7 @@ class PyodideLockAddon(_BaseAddon):
         ),
     ).tag(config=True)
 
-    extra_preload_packages: _Tuple[str] = TypedTuple(
+    extra_preload_packages: tuple[str] = TypedTuple(
         Unicode(),
         help=(
             "extra packages to add to PyodideAddon.loadPyodideOptions.packages: "
@@ -134,7 +116,7 @@ class PyodideLockAddon(_BaseAddon):
         ),
     ).tag(config=True)
 
-    bootstrap_wheels: _Tuple[str] = TypedTuple(
+    bootstrap_wheels: tuple[str] = TypedTuple(
         Unicode(),
         default_value=("micropip", "packaging"),
         help="packages names from the lockfile to ensure before attempting a lock",
@@ -247,9 +229,9 @@ class PyodideLockAddon(_BaseAddon):
         )
 
     # actions
-    def lock(self, packages: _List[Path], specs: _List[str], lockfile: Path):
+    def lock(self, packages: list[Path], specs: list[str], lockfile: Path):
         """generate the lockfile"""
-        locker_ep: _Type["BaseLocker"] = LOCKERS.get(self.locker)
+        locker_ep: Type["BaseLocker"] = LOCKERS.get(self.locker)
 
         if locker_ep is None:  # pragma: no cover
             return False
@@ -313,13 +295,13 @@ class PyodideLockAddon(_BaseAddon):
         return self.manager.cache_dir / PYODIDE_LOCK_STEM
 
     @property
-    def federated_wheel_dirs(self) -> _List[Path]:
-        pkg_jsons: _List[Path] = []
+    def federated_wheel_dirs(self) -> list[Path]:
+        pkg_jsons: list[Path] = []
         extensions = self.manager.output_dir / LAB_EXTENSIONS
         for glob in ["*/package.json", "@*/*/package.json"]:
             pkg_jsons += [*extensions.glob(glob)]
 
-        wheel_paths: _List[Path] = []
+        wheel_paths: list[Path] = []
 
         for pkg_json in sorted(pkg_jsons):
             pkg_data = json.loads(pkg_json.read_text(**UTF8))
@@ -336,7 +318,7 @@ class PyodideLockAddon(_BaseAddon):
         return wheel_paths
 
     @property
-    def locker_config(self) -> _Any:
+    def locker_config(self) -> Any:
         """A preview of the locker config."""
         try:
             ep = LOCKERS[self.locker]
@@ -347,9 +329,7 @@ class PyodideLockAddon(_BaseAddon):
             return None
 
     # task generators
-    def resolve_one_file_requirement(
-        self, path_or_url: _Union[str, Path], cache_root: Path
-    ):
+    def resolve_one_file_requirement(self, path_or_url: str | Path, cache_root: Path):
         """download a wheel, and copy to the cache"""
         if re.findall(r"^https?://", path_or_url):
             url = urllib.parse.urlparse(path_or_url)
@@ -393,13 +373,13 @@ class PyodideLockAddon(_BaseAddon):
             actions=[(self.copy_one, [wheel, dest])],
         )
 
-    def get_packages(self) -> _Dict[str, Path]:
+    def get_packages(self) -> dict[str, Path]:
         package_dirs = [
             self.lock_output_dir,
             *self.federated_wheel_dirs,
         ]
 
-        wheels: _List[Path] = []
+        wheels: list[Path] = []
 
         for path in package_dirs:
             wheels += [*path.glob("*.whl")]

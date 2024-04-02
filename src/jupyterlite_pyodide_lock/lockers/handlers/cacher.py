@@ -1,15 +1,9 @@
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING
-from typing import Any as _Any
 
 from tornado.httpclient import AsyncHTTPClient
 
 from .mime import ExtraMimeFiles
-
-if TYPE_CHECKING:  # pragma: no cover
-
-    pass
 
 
 class CachingRemoteFiles(ExtraMimeFiles):
@@ -20,7 +14,7 @@ class CachingRemoteFiles(ExtraMimeFiles):
     #: HTTP client
     client: AsyncHTTPClient
     #: URL patterns that should have text replaced
-    rewrites: dict[str, _Any]
+    rewrites: dict[str, list[tuple[str, str]]]
 
     def initialize(self, remote, rewrites=None, **kwargs):
         super().initialize(**kwargs)

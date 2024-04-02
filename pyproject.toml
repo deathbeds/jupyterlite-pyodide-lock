@@ -25,6 +25,7 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 dependencies = [
+    "jinja2",
     "jupyterlite-pyodide-kernel >=0.3.1,<0.4.0",
     "pyodide-lock[wheel] ==0.1.0a4",
     "tornado >=6.1.0",
