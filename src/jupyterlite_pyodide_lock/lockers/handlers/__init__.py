@@ -1,6 +1,6 @@
 """web handlers for BrowserLocker"""
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from ...constants import LOCK_HTML, PROXY, PYODIDE_LOCK
 from .cacher import CachingRemoteFiles
@@ -20,20 +20,18 @@ def make_handlers(locker: "BrowserLocker"):
 
     pypi_kwargs = {
         "rewrites": {"/json$": [(files_cdn, files_local)]},
-        "mime_map": {
-            r"/json$": "application/json",
-        },
+        "mime_map": {r"/json$": "application/json"},
     }
-
-    pyodide_handlers = []
+    solver_kwargs = {"context": locker._context, "log": locker.log}
+    fallback_kwargs = {
+        "log": locker.log,
+        "path": locker.parent.manager.output_dir,
+        "mime_map": {r"\.whl$": "application/x-zip"},
+    }
 
     return (
         # the page the client GETs as HTML
-        (
-            f"^/{LOCK_HTML}$",
-            SolverHTML,
-            {"context": locker._context, "log": locker.log},
-        ),
+        (f"^/{LOCK_HTML}$", SolverHTML, solver_kwargs),
         # the page to which the client POSTs
         (f"^/{PYODIDE_LOCK}$", MicropipFreeze, {"locker": locker}),
         # logs
@@ -41,17 +39,8 @@ def make_handlers(locker: "BrowserLocker"):
         # remote proxies
         make_proxy(locker, "pythonhosted", locker.pythonhosted_cdn_url),
         make_proxy(locker, "pypi", locker.pypi_api_url, **pypi_kwargs),
-        *pyodide_handlers,
         # fallback to `output_dir`
-        (
-            r"^/(.*)$",
-            ExtraMimeFiles,
-            {
-                "log": locker.log,
-                "path": locker.parent.manager.output_dir,
-                "mime_map": {r"\.whl$": "application/x-zip"},
-            },
-        ),
+        (r"^/(.*)$", ExtraMimeFiles, fallback_kwargs),
     )
 
 
