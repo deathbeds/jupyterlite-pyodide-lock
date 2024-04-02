@@ -42,3 +42,20 @@ PYODIDE_CORE_URL = f"{PYODIDE_GH}/releases/download/{PYODIDE_VERSION}/pyodide-co
 
 #: the default URL for python wheels
 FILES_PYTHON_HOSTED = "https://files.pythonhosted.org"
+
+#: browser CLI args, keyed by configurable
+BROWSERS = {
+    "firefox": {
+        "launch": ["firefox"],
+        "headless": ["--headless"],
+        "private_mode": ["--private-window"],
+        "profile": ["--new-instance", "--profile", "{PROFILE_DIR}"],
+    },
+    "chromium": {
+        "launch": ["chromium-browser", "--new-window"],
+        # doesn't appear to work
+        # "headless": ["--headless"],
+        "private_mode": ["--incognito"],
+        "profile": ["--user-data-dir={PROFILE_DIR}"],
+    },
+}

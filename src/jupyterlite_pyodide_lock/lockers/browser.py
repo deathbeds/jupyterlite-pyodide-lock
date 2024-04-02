@@ -37,7 +37,7 @@ from jupyterlite_core.constants import JSON_FMT, UTF8
 from jupyterlite_core.trait_types import TypedTuple
 from traitlets import Bool, Dict, Instance, Int, Tuple, Type, Unicode, default
 
-from ..constants import LOCK_HTML, PROXY, PYODIDE_LOCK, PYODIDE_LOCK_STEM
+from ..constants import BROWSERS, LOCK_HTML, PROXY, PYODIDE_LOCK, PYODIDE_LOCK_STEM
 from ._base import BaseLocker
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -45,28 +45,6 @@ if TYPE_CHECKING:  # pragma: no cover
 
     from tornado.httpserver import HTTPServer
     from tornado.web import Application
-
-
-#: default browser aliases
-BROWSERS = {
-    "firefox": ["firefox"],
-    "chromium": ["chromium-browser"],
-}
-
-HEADLESS_MODE = {
-    "firefox": ["--headless"],
-    "chromium": ["--headless"],
-}
-
-PRIVATE_MODE = {
-    "firefox": ["--private-window"],
-    "chromium": ["--incognito"],
-}
-
-PROFILE = {
-    "firefox": ["--new-instance", "--profile"],
-    "chromium": ["--user-data-dir"],
-}
 
 
 #: a type for tornado rules
@@ -341,12 +319,12 @@ class BrowserLocker(BaseLocker):
 
     @default("browser_argv")
     def _default_browser_argv(self):
-        argv = [*BROWSERS[self.browser]]
+        argv = self.browser_cli_arg(self.browser, "launch")
         argv[0] = shutil.which(argv[0]) or shutil.which(f"{argv[0]}.exe")
 
         if True:  # pragma: no cover
             if self.headless:
-                argv += HEADLESS_MODE[self.browser]
+                argv += self.browser_cli_arg(self.browser, "headless")
 
             if self.profile and self.temp_profile:
                 self.log.warning(
@@ -355,17 +333,20 @@ class BrowserLocker(BaseLocker):
                 )
 
             if self.profile:
-                argv += [
-                    *PROFILE[self.browser],
-                    self.ensure_temp_profile(
-                        (self.parent.manager.lite_dir / self.profile).resolve()
-                    ),
-                ]
+                self.ensure_temp_profile(
+                    (self.parent.manager.lite_dir / self.profile).resolve()
+                )
             elif self.temp_profile:
-                argv += [*PROFILE[self.browser], self.ensure_temp_profile()]
+                self.ensure_temp_profile()
+
+            if self._temp_profile_path:
+                argv += [
+                    arg.replace("{PROFILE_DIR}", str(self._temp_profile_path))
+                    for arg in self.browser_cli_arg(self.browser, "profile")
+                ]
 
             if self.private_mode:
-                argv += PRIVATE_MODE[self.browser]
+                argv += self.browser_cli_arg(self.browser, "private_mode")
 
         self.log.debug("Non-URL browser argv %s", argv)
 
@@ -415,3 +396,14 @@ class BrowserLocker(BaseLocker):
                 path.mkdir(parents=True, exist_ok=True)
             self._temp_profile_path = path
         return str(self._temp_profile_path)
+
+    def browser_cli_arg(self, browser: str, trait_name: str) -> _List[str]:
+        if trait_name not in BROWSERS[browser]:
+            self.log.warning(
+                "%s.%s does not work with %s",
+                self.__class__.__name__,
+                trait_name,
+                browser,
+            )
+            return []
+        return BROWSERS[browser][trait_name]
