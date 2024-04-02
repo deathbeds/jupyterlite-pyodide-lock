@@ -14,7 +14,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 def make_handlers(locker: "BrowserLocker"):
-    """create the default handlers used for serving proxied CDN assets and locking"""
+    """Create the default handlers used for serving proxied CDN assets and locking"""
     files_cdn = locker.pythonhosted_cdn_url.encode("utf-8")
     files_local = f"{locker.base_url}/{PROXY}/pythonhosted".encode()
 
@@ -45,10 +45,13 @@ def make_handlers(locker: "BrowserLocker"):
 
 
 def make_proxy(
-    locker: "BrowserLocker", path: str, remote: str, route: str = None, **extra_config
+    locker: "BrowserLocker",
+    path: str,
+    remote: str,
+    route: str = None,
+    **extra_config,
 ):
-    """generate a proxied tornado handler rule"""
-
+    """Generate a proxied tornado handler rule"""
     route = route or f"^/{PROXY}/{path}/(.*)$"
     config = {
         "path": locker.cache_dir / path,

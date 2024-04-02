@@ -1,6 +1,9 @@
+"""Project automation for jupyterlite-pyodide-lock."""
+
 import shutil
-import typing as T
+from collections.abc import Generator
 from pathlib import Path
+from typing import Any
 
 try:
     import tomllib
@@ -9,8 +12,11 @@ except ImportError:
 
 from doit.tools import CmdAction
 
+TTaskGenerator = Generator[None, None, dict[str, Any]]
 
-def task_build():
+
+def task_build() -> TTaskGenerator:
+    """Build distributions."""
     for ppt, src in P.PY_SRC.items():
         pkg = ppt.parent
         license = pkg / P.LICENSE.name
@@ -31,13 +37,14 @@ def task_build():
         )
 
 
-def task_dev():
+def task_dev() -> TTaskGenerator:
+    """Prepare for development."""
     yield dict(
         name="env",
         file_dep=[P.ENV_DEV],
         targets=[B.ENV_DEV_HISTORY],
         actions=[
-            ["mamba", "env", "update", "--file", P.ENV_DEV, "--prefix", B.ENV_DEV]
+            ["mamba", "env", "update", "--file", P.ENV_DEV, "--prefix", B.ENV_DEV],
         ],
     )
 
@@ -49,35 +56,38 @@ def task_dev():
                 U.do(
                     [*C.PIP_E, "."],
                     cwd=pkg,
-                )
+                ),
             ],
             file_dep=[ppt, B.ENV_DEV_HISTORY],
         )
 
 
-def task_fix():
+def task_fix() -> TTaskGenerator:
+    """Fix code style."""
     yield dict(
         name="ruff",
         actions=[
-            [*C.RUFF, "format", *P.PY_ALL],
             [*C.RUFF, "check", "--fix-only", *P.PY_ALL],
+            [*C.RUFF, "format", *P.PY_ALL],
         ],
         file_dep=[*P.PPT_ALL, *P.PY_ALL, B.ENV_DEV_HISTORY],
     )
 
 
-def task_lint():
+def task_lint() -> TTaskGenerator:
+    """Run style checks."""
     yield dict(
         name="ruff",
         actions=[
-            [*C.RUFF, "format", "--check"],
             [*C.RUFF, "check"],
+            [*C.RUFF, "format", "--check"],
         ],
         file_dep=[*P.PPT_ALL, *P.PY_ALL, B.ENV_DEV_HISTORY],
     )
 
 
-def task_test():
+def task_test() -> TTaskGenerator:
+    """Run unit tests."""
     for ppt, src in P.PY_SRC.items():
         pkg = ppt.parent
         mod = pkg.name.replace("-", "_")
@@ -97,6 +107,8 @@ def task_test():
 
 
 class C:
+    """Constants."""
+
     PY_NAME = "jupyterlite_pyodide_lock"
     PY = ["python"]
     PYM = [*PY, "-m"]
@@ -121,6 +133,8 @@ class C:
 
 
 class P:
+    """Paths."""
+
     DODO = Path(__file__)
     SCRIPTS = DODO.parent
     PY_SCRIPTS = [*SCRIPTS.glob("*.py")]
@@ -147,11 +161,15 @@ class P:
 
 
 class D:
+    """Data."""
+
     PPT = {ppt: tomllib.loads(ppt.read_text(**C.UTF8)) for ppt in P.PY_SRC}
     VERSION = {ppt: pptd["project"]["version"] for ppt, pptd in PPT.items()}
 
 
 class B:
+    """Build."""
+
     BUILD = P.ROOT / "build"
     DIST = {
         ppt: [
@@ -166,15 +184,22 @@ class B:
 
 
 class U:
+    """Utilities."""
+
     @staticmethod
-    def copy(src: Path, dest: Path) -> T.Optional[bool]:
+    def copy(src: Path, dest: Path) -> bool | None:
+        """Copy a folder or file."""
+        if not src.exists:
+            return False
         if dest.is_dir():
             shutil.rmtree(dest)
         elif dest.exists():
             dest.unlink()
         dest.parent.mkdir(exist_ok=True, parents=True)
         shutil.copytree(src, dest) if src.is_dir() else shutil.copy2(src, dest)
+        return True
 
     @staticmethod
-    def do(cmd: T.List[str], cwd=None):
-        return CmdAction(cmd, shell=False, cwd=str(cwd) if cwd else None)
+    def do(cmd: list[str], cwd: None | Path = None, **kwargs: Any) -> CmdAction:
+        """Wrap a command line with extra options."""
+        return CmdAction(cmd, shell=False, cwd=str(cwd) if cwd else None, **kwargs)

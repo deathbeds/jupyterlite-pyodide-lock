@@ -19,8 +19,8 @@ MESSAGES = {
 }
 
 
-@pytest.mark.parametrize(["args"], [(["--pyodide-lock"],), ([],)])
-def test_cli_status(lite_cli, args):
+@pytest.mark.parametrize("args", [["--pyodide-lock"], []])
+def test_cli_status(lite_cli, args) -> None:
     """Verify various status invocations work."""
     from jupyterlite_pyodide_lock import __version__
 
@@ -35,7 +35,10 @@ def test_cli_status(lite_cli, args):
     [({"locker": "not-a-locker"}, "not-a-locker")],
 )
 def test_cli_bad_config(
-    lite_cli, a_lite_config: Path, bad_config, message: str
+    lite_cli,
+    a_lite_config: Path,
+    bad_config,
+    message: str,
 ) -> None:
     config = json.loads(a_lite_config.read_text(**UTF8))
     config["PyodideLockAddon"].update(bad_config)
@@ -46,7 +49,9 @@ def test_cli_bad_config(
 
 
 def test_cli_good_build(
-    lite_cli, a_lite_dir: Path, a_lite_config_with_widgets: Path
+    lite_cli,
+    a_lite_dir: Path,
+    a_lite_config_with_widgets: Path,
 ) -> None:
     """Verify a build works, twice."""
     from jupyterlite_pyodide_lock.constants import PYODIDE_LOCK_STEM
@@ -68,18 +73,22 @@ def test_cli_good_build(
     relock_text = lock.read_text(**UTF8)
     diff = [
         *difflib.unified_diff(
-            lock_text.splitlines(), relock_text.splitlines(), "build", "rebuild"
-        )
+            lock_text.splitlines(),
+            relock_text.splitlines(),
+            "build",
+            "rebuild",
+        ),
     ]
     print("\n".join(diff))
     assert not diff, "didn't see same lockfile on rebuild"
 
 
-def test_cli_bad_build(lite_cli, a_lite_config: Path):
+def test_cli_bad_build(lite_cli, a_lite_config: Path) -> None:
     """Verify an impossible solve fails."""
     a_lite_config.write_text(
         json.dumps(
-            {"PyodideLockAddon": {"enabled": True, "specs": ["torch"]}}, **JSON_FMT
+            {"PyodideLockAddon": {"enabled": True, "specs": ["torch"]}},
+            **JSON_FMT,
         ),
         **UTF8,
     )

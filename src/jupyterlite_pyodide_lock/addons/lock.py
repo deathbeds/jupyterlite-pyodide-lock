@@ -55,7 +55,7 @@ class PyodideLockAddon(_BaseAddon):
         "pyodide-lock": (
             {"PyodideLockAddon": {"enabled": True}},
             "enable pyodide-lock features",
-        )
+        ),
     }
 
     # traits
@@ -84,7 +84,8 @@ class PyodideLockAddon(_BaseAddon):
     )
 
     specs: tuple[str] = TypedTuple(
-        Unicode(), help="raw pep508 requirements for pyodide dependencies"
+        Unicode(),
+        help="raw pep508 requirements for pyodide dependencies",
     ).tag(config=True)
 
     packages: tuple[str] = TypedTuple(
@@ -125,7 +126,7 @@ class PyodideLockAddon(_BaseAddon):
     # API methods
 
     def pre_status(self, manager):
-        """patch configuration of `PyodideAddon` if needed."""
+        """Patch configuration of `PyodideAddon` if needed."""
         if not self.enabled or self.pyodide_addon.pyodide_url:
             return
 
@@ -137,7 +138,7 @@ class PyodideLockAddon(_BaseAddon):
         )
 
     def status(self, manager):
-        """report on the status of pyodide"""
+        """Report on the status of pyodide"""
 
         def _status():
             from textwrap import indent
@@ -161,7 +162,7 @@ class PyodideLockAddon(_BaseAddon):
         yield self.task(name="lock", actions=[_status])
 
     def post_init(self, manager):
-        """handle downloading of packages to the package cache"""
+        """Handle downloading of packages to the package cache"""
         if not self.enabled:  # pragma: no cover
             return
 
@@ -170,11 +171,12 @@ class PyodideLockAddon(_BaseAddon):
             *map(str, list_packages(self.well_known_packages)),
         ]:
             yield from self.resolve_one_file_requirement(
-                path_or_url, self.package_cache
+                path_or_url,
+                self.package_cache,
             )
 
     def post_build(self, manager):
-        """collect all the packages and generate a `pyodide-lock.json` file
+        """Collect all the packages and generate a `pyodide-lock.json` file
 
         This includes those provided by federated labextensions (such as
         `jupyterlite-pyodide-kernel` iteself), copied during `build:federated_extensions`.
@@ -230,7 +232,7 @@ class PyodideLockAddon(_BaseAddon):
 
     # actions
     def lock(self, packages: list[Path], specs: list[str], lockfile: Path):
-        """generate the lockfile"""
+        """Generate the lockfile"""
         locker_ep: Type["BaseLocker"] = LOCKERS.get(self.locker)
 
         if locker_ep is None:  # pragma: no cover
@@ -244,7 +246,10 @@ class PyodideLockAddon(_BaseAddon):
 
         # build
         locker: "BaseLocker" = locker_class(
-            parent=self, specs=specs, packages=packages, lockfile=lockfile
+            parent=self,
+            specs=specs,
+            packages=packages,
+            lockfile=lockfile,
         )
 
         locker.resolve_sync()
@@ -266,7 +271,7 @@ class PyodideLockAddon(_BaseAddon):
             {
                 OPTION_LOCK_FILE_URL: f"./{rel}?sha256={lock_hash}",
                 OPTION_PACKAGES: sorted(set(preload)),
-            }
+            },
         )
 
         self.set_pyodide_settings(jupyterlite_json, settings)
@@ -274,7 +279,7 @@ class PyodideLockAddon(_BaseAddon):
     # derived properties
     @property
     def pyodide_addon(self) -> "PyodideAddon":
-        """the manager's pyodide addon, which will be reconfigured if needed."""
+        """The manager's pyodide addon, which will be reconfigured if needed."""
         return self.manager._addons[PYODIDE_ADDON]
 
     @property
@@ -310,7 +315,9 @@ class PyodideLockAddon(_BaseAddon):
                 wheel_path = pkg_json.parent / f"{wheel_dir}"
                 if not wheel_path.exists():  # pragma: no cover
                     self.log.warning(
-                        "`%s` in %s does not exist", PKG_JSON_WHEELDIR, pkg_json
+                        "`%s` in %s does not exist",
+                        PKG_JSON_WHEELDIR,
+                        pkg_json,
                     )
                 else:
                     wheel_paths += [wheel_path]
@@ -325,12 +332,12 @@ class PyodideLockAddon(_BaseAddon):
             configurable = ep.value.split(":")[-1]
             return self.config.get(configurable)
         except KeyError as err:  # pragma: no cover
-            self.log.warn("Failed to check %s locker config: %s", self.locker, err)
+            self.log.warning("Failed to check %s locker config: %s", self.locker, err)
             return None
 
     # task generators
     def resolve_one_file_requirement(self, path_or_url: str | Path, cache_root: Path):
-        """download a wheel, and copy to the cache"""
+        """Download a wheel, and copy to the cache"""
         if re.findall(r"^https?://", path_or_url):
             url = urllib.parse.urlparse(path_or_url)
             name = f"""{url.path.split("/")[-1]}"""
@@ -362,7 +369,7 @@ class PyodideLockAddon(_BaseAddon):
                 raise FileNotFoundError(path_or_url)
 
     def copy_wheel(self, wheel):
-        """copy one wheel to output"""
+        """Copy one wheel to output"""
         dest = self.lock_output_dir / wheel.name
         if dest == wheel:  # pragma: no cover
             return
@@ -394,5 +401,5 @@ class PyodideLockAddon(_BaseAddon):
 
 
 def list_packages(package_dir: Path):
-    """get all wheels we know how to handle in a directory"""
+    """Get all wheels we know how to handle in a directory"""
     return sorted(sum([[*package_dir.glob(f"*{pkg}")] for pkg in [*ALL_WHL]], []))

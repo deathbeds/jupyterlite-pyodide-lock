@@ -90,12 +90,75 @@ extend-include = ["*.ipynb"]
 
 [tool.ruff.lint]
 select = [
-  "A", "B", "C", "DTZ", "E", "EM", "F", "FBT", "I", "ICN", "N",
-  "PLC", "PLE", "PLR", "PLW", "Q", "RUF", "S", "SIM", "T", "TID", "UP",
-  "W", "YTT",
+
+  "A",
+  "ANN",
+  "ARG",
+  "B",
+  "BLE",
+  "C4",
+  "C90",
+  "COM",
+  "D",
+  "DJ",
+  "DTZ",
+  "E",
+  "EM",
+  "ERA",
+  "EXE",
+  "F",
+  "G",
+  "I",
+  "ICN",
+  "INP",
+  "ISC",
+  "N",
+  "NPY",
+  "PD",
+  "PGH",
+  "PIE",
+  "PL",
+  "PT",
+  "PTH",
+  "PYI",
+  "Q",
+  "RET",
+  "RSE",
+  "RUF",
+  "S",
+  "SIM",
+  "SLF",
+  "T10",
+  "T20",
+  "TCH",
+  "TID",
+  "UP",
+  "W",
+  "YTT",
 ]
-ignore = []
-exclude = []
+ignore = [
+  "D211",
+  "D203",
+  "D213",
+  # if it doesn't bother mypy...
+  "ANN101",
+  "ANN401",
+  "PGH003",
+  # harder to read
+  "RUF015",
+  # conflict with format
+  "COM812",
+  "ISC001",
+]
 
 [tool.ruff.lint.per-file-ignores]
-"_scripts/dodo.py" = ["A001", "C408", "N812", "RUF012", "RUF017", "UP006", "T201"]
+"_scripts/dodo.py" = [
+  "A001",
+  "C408",
+  "INP001",
+  "N812",
+  "RUF012",
+  "RUF017",
+  "T201",
+  "UP006",
+]

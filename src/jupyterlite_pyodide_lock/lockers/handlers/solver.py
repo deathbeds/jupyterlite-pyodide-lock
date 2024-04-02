@@ -20,7 +20,7 @@ class SolverHTML(RequestHandler):
         self.context = context
         self.log = log
         self.template = jinja2.Template(
-            (Path(__file__).parent / "lock.html.j2").read_text(**UTF8)
+            (Path(__file__).parent / "lock.html.j2").read_text(**UTF8),
         )
 
     async def get(self, *args, **kwargs):

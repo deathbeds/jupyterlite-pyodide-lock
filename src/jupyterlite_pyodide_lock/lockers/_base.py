@@ -22,7 +22,8 @@ class BaseLocker(LoggingConfigurable):
         help="remote URL for the version of a full pyodide distribution",
     ).tag(config=True)
     pypi_api_url = Unicode(
-        "https://pypi.org/pypi", help="remote URL for a Warehouse-compatible JSON API"
+        "https://pypi.org/pypi",
+        help="remote URL for a Warehouse-compatible JSON API",
     ).tag(config=True)
     pythonhosted_cdn_url = Unicode(
         FILES_PYTHON_HOSTED,
@@ -38,7 +39,7 @@ class BaseLocker(LoggingConfigurable):
 
     # runtime
     parent: "PyodideLockAddon" = Instance(
-        "jupyterlite_pyodide_lock.addons.lock.PyodideLockAddon"
+        "jupyterlite_pyodide_lock.addons.lock.PyodideLockAddon",
     )
     micropip_args = Dict()
 
@@ -71,7 +72,6 @@ class BaseLocker(LoggingConfigurable):
 
         An async locker may overload this.
         """
-        pass
 
     async def resolve(self) -> bool | None:  # pragma: no cover
         """Asynchronous solve.

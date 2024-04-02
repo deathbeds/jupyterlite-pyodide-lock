@@ -63,7 +63,7 @@ class BrowserLocker(BaseLocker):
     ).tag(config=True)
 
     browser = Unicode("firefox", help="an alias for a pre-configured browser").tag(
-        config=True
+        config=True,
     )
     headless = Bool(True, help="run the browser in headless mode").tag(config=True)
     private_mode = Bool(True, help="run the browser in private mode").tag(config=True)
@@ -81,7 +81,7 @@ class BrowserLocker(BaseLocker):
     host = Unicode("127.0.0.1", help="the host on which to bind").tag(config=True)
     protocol = Unicode("http", help="the protocol to serve").tag(config=True)
     tornado_settings = Dict(help="override settings used by the tornado server").tag(
-        config=True
+        config=True,
     )
 
     # runtime
@@ -94,7 +94,7 @@ class BrowserLocker(BaseLocker):
 
     # API methods
     async def resolve(self) -> bool | None:
-        """the main solve"""
+        """The main solve"""
         self.preflight()
         self.log.info("Starting server at:   %s", self.base_url)
 
@@ -124,23 +124,22 @@ class BrowserLocker(BaseLocker):
     # derived properties
     @property
     def cache_dir(self):
-        """the location of cached files discovered during the solve"""
+        """The location of cached files discovered during the solve"""
         return self.parent.manager.cache_dir / "browser-locker"
 
     @property
     def lockfile_cache(self):
-        """the location of the updated lockfile"""
+        """The location of the updated lockfile"""
         return self.cache_dir / PYODIDE_LOCK
 
     @property
     def base_url(self):
-        """the effective base URL"""
+        """The effective base URL"""
         return f"{self.protocol}://{self.host}:{self.port}"
 
     # helper functions
     def preflight(self):
-        """prepare the cache"""
-
+        """Prepare the cache"""
         # references for actual wheel URLs in PyPI API responses are rewritten
         # to include the random port on download
         pypi_cache = self.cache_dir / "pypi"
@@ -151,7 +150,7 @@ class BrowserLocker(BaseLocker):
             self.lockfile_cache.unlink()
 
     def collect(self) -> dict[str, Path]:
-        """copy all packages in the cached lockfile to `output_dir`, and fix lock"""
+        """Copy all packages in the cached lockfile to `output_dir`, and fix lock"""
         cached_lock = json.loads(self.lockfile_cache.read_text(**UTF8))
         packages = cached_lock["packages"]
 
@@ -268,7 +267,7 @@ class BrowserLocker(BaseLocker):
     # trait defaults
     @default("_web_app")
     def _default_web_app(self):
-        """build the web application"""
+        """Build the web application"""
         from tornado.web import Application
 
         return Application(self._handlers, **self.tornado_settings)
@@ -313,7 +312,7 @@ class BrowserLocker(BaseLocker):
 
             if self.profile:
                 self.ensure_temp_profile(
-                    (self.parent.manager.lite_dir / self.profile).resolve()
+                    (self.parent.manager.lite_dir / self.profile).resolve(),
                 )
             elif self.temp_profile:
                 self.ensure_temp_profile()
@@ -363,9 +362,10 @@ class BrowserLocker(BaseLocker):
 
     # utilities
     def ensure_temp_profile(
-        self, baseline: Path | None = None
+        self,
+        baseline: Path | None = None,
     ) -> str:  # pragma: no cover
-        """create a temporary browser profile."""
+        """Create a temporary browser profile."""
         if self._temp_profile_path is None:
             path = self.cache_dir / ".browser" / self.browser
             if baseline and baseline.is_dir():

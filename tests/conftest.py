@@ -32,19 +32,19 @@ WIDGETS_CONFIG = dict(
 )
 
 
-@fixture
+@fixture()
 def the_pyproject():
     return tomllib.loads(PPT.read_text(**UTF8))
 
 
-@fixture
+@fixture()
 def a_lite_dir(tmp_path: Path):
     lite_dir = tmp_path / "lite"
     lite_dir.mkdir()
     return lite_dir
 
 
-@fixture
+@fixture()
 def lite_cli(a_lite_dir: Path):
     def run(*args, **kwargs):
         kwargs["cwd"] = str(kwargs.get("cwd", a_lite_dir))
@@ -56,7 +56,7 @@ def lite_cli(a_lite_dir: Path):
     return run
 
 
-@fixture
+@fixture()
 def a_lite_config(a_lite_dir: Path) -> Path:
     conf = a_lite_dir / JUPYTER_LITE_CONFIG
     conf.write_text(
@@ -64,7 +64,7 @@ def a_lite_config(a_lite_dir: Path) -> Path:
             {
                 "PyodideLockAddon": {
                     "enabled": True,
-                }
+                },
             },
             **JSON_FMT,
         ),
@@ -100,7 +100,7 @@ def a_lite_config_with_widgets(request, a_lite_dir: Path, a_lite_config: Path) -
                     "enabled": True,
                     "extra_preload_packages": ["ipywidgets"],
                     **(approach or {}),
-                }
+                },
             },
             **JSON_FMT,
         ),

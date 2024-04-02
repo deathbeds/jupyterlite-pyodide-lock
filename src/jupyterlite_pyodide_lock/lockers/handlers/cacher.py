@@ -23,7 +23,7 @@ class CachingRemoteFiles(ExtraMimeFiles):
         self.rewrites = rewrites or {}
 
     async def get(self, path: str, include_body: bool = True) -> None:
-        """actually fetch a file"""
+        """Actually fetch a file"""
         cache_path = self.root / path
         if cache_path.exists():  # pragma: no cover
             pass
@@ -32,7 +32,7 @@ class CachingRemoteFiles(ExtraMimeFiles):
         return await super().get(path, include_body)
 
     async def cache_file(self, path: str, cache_path: Path):
-        """get the file, and rewrite it."""
+        """Get the file, and rewrite it."""
         url = f"{self.remote}/{path}"
         self.log.debug("fetching:    %s", url)
         res = await self.client.fetch(url)
