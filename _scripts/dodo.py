@@ -15,12 +15,13 @@ def task_build():
         pkg = ppt.parent
         license = pkg / P.LICENSE.name
 
-        yield dict(
-            name=f"license:{pkg.name}",
-            actions=[(U.copy, [P.LICENSE, license])],
-            file_dep=[P.LICENSE],
-            targets=[license],
-        )
+        if ppt != P.PPT:
+            yield dict(
+                name=f"license:{pkg.name}",
+                actions=[(U.copy, [P.LICENSE, license])],
+                file_dep=[P.LICENSE],
+                targets=[license],
+            )
 
         yield dict(
             name=f"flit:{pkg.name}",
@@ -133,10 +134,7 @@ class P:
 
     # per-package
     PY = ROOT / "py"
-    PY_SRC = {
-        ppt: [*(ppt.parent / "src").rglob("*.py")]
-        for ppt in PY.glob("*/pyproject.toml")
-    }
+    PY_SRC = {ppt: [*(ppt.parent / "src").rglob("*.py")] for ppt in [PPT]}
     PY_TEST = {ppt: [*(ppt.parent / "tests").rglob("*.py")] for ppt in PY_SRC}
     PY_SRC_ALL = sum(PY_SRC.values(), [])
     PY_TEST_ALL = sum(PY_TEST.values(), [])
