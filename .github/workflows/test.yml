@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: ["*"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+  # our stuff
+  CACHE_EPOCH: "6"
+
+jobs:
+  build:
+    name: build
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      matrix:
+        os: [ubuntu]
+        python-version: ["3.12"]
+    outputs:
+      wheel: ${{ steps.wheel.outputs.wheel }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # configure builtin providers
+      - name: setup (python)
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+
+      # restore caches
+      - name: cache (pip)
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: |
+            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-pip-build-${{ hashFiles('.github/requirements-build.txt') }}
+          restore-keys: |
+            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-pip-build-
+
+      - name: setup (pip)
+        run: pip install -U pip wheel setuptools
+
+      - name: setup (pip build)
+        run: pip install -U -v -r .github/requirements-build.txt --no-build-isolation
+
+      - name: lint
+        run: doit lint
+
+      - name: build
+        run: doit build
+
+      - name: upload (dist)
+        uses: actions/upload-artifact@v4
+        with:
+          name: jlpl-dist-${{ github.run_number }}
+          path: ./dist
+      - id: wheel
+        name: get wheel name
+        run: |
+          echo "wheel=$(ls dist/*.whl)" >> $GITHUB_OUTPUT
+
+  test:
+    name: test (${{ matrix.os }} ${{ matrix.python-version }})
+    needs: [build]
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu", "macos", "windows"]
+        python-version: ["3.9", "3.12"]
+    steps:
+      - name: configure line endings
+        run: |
+          git config --global core.autocrlf false
+
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: install (conda)
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          environment-file: .github/environment-test.yml
+          miniforge-variant: Mambaforge
+          use-mamba: true
+
+      - name: download (dist)
+        uses: actions/download-artifact@v4
+        with:
+          name: jlpl-dist-${{ github.run_number }}
+          path: ./dist
+
+      - name: test (unix)
+        if: matrix.os != 'windows'
+        shell: bash -l {0}
+        run: doit test
+
+      - name: test (windows)
+        if: matrix.os == 'windows'
+        shell: cmd /C CALL {0}
+        run: doit test
+
+      - name: upload (reports)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: |-
+            jlpl-test-${{ matrix.os }}-${{matrix.python-version }}-${{ github.run_number }}
+          path: ./build/reports
+
+      - name: Rename uncached conda packages
+        shell: bash
+        run: mv "${CONDA_PKGS_DIR}" "${CONDA_PKGS_DIR}_do_not_cache"

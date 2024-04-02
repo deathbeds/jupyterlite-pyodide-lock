@@ -1,6 +1,9 @@
 """Project automation for jupyterlite-pyodide-lock."""
 
+import json
+import os
 import shutil
+import sys
 from collections.abc import Generator
 from pathlib import Path
 from typing import Any
@@ -39,27 +42,28 @@ def task_build() -> TTaskGenerator:
 
 def task_dev() -> TTaskGenerator:
     """Prepare for development."""
-    yield dict(
-        name="env",
-        file_dep=[P.ENV_DEV],
-        targets=[B.ENV_DEV_HISTORY],
-        actions=[
-            ["mamba", "env", "update", "--file", P.ENV_DEV, "--prefix", B.ENV_DEV],
-        ],
-    )
+    if not E.CI:
+        yield dict(
+            name="env",
+            file_dep=[P.ENV_DEV],
+            targets=[B.ENV_DEV_HISTORY],
+            actions=[
+                ["mamba", "env", "update", "--file", P.ENV_DEV, "--prefix", B.ENV_DEV],
+            ],
+        )
 
     for ppt in P.PY_SRC:
         pkg = ppt.parent
-        yield dict(
-            name=pkg.name,
-            actions=[
-                U.do(
-                    [*C.PIP_E, "."],
-                    cwd=pkg,
-                ),
-            ],
-            file_dep=[ppt, B.ENV_DEV_HISTORY],
-        )
+
+        if E.CI:
+            wheel = [dist for dist in B.DIST[pkg] if dist.name.endswith(".whl")]
+            install = [*C.PIP, "install", "--no-deps", wheel]
+            file_dep = [wheel]
+        else:
+            install = [*C.PIP_E, "."]
+            file_dep = [ppt, B.ENV_DEV_HISTORY]
+
+        yield dict(name=pkg.name, actions=[U.do(install, cwd=pkg)], file_dep=file_dep)
 
 
 def task_fix() -> TTaskGenerator:
@@ -91,13 +95,17 @@ def task_test() -> TTaskGenerator:
     for ppt, src in P.PY_SRC.items():
         pkg = ppt.parent
         mod = pkg.name.replace("-", "_")
+        file_dep = [ppt, *src, *P.PY_TEST[ppt]]
+
+        if not E.CI:
+            file_dep += [B.ENV_DEV_HISTORY]
 
         yield dict(
             name=f"pytest:{pkg.name}",
             actions=[
                 U.do([*C.COV_RUN, "--source", mod, "-m", "pytest"], cwd=pkg),
             ],
-            file_dep=[ppt, *src, *P.PY_TEST[ppt], B.ENV_DEV_HISTORY],
+            file_dep=file_dep,
             task_dep=[f"dev:{pkg.name}"],
             targets=[
                 pkg / "build/reports/pytest.html",
@@ -106,11 +114,17 @@ def task_test() -> TTaskGenerator:
         )
 
 
+class E:
+    """Environment."""
+
+    CI = bool(json.loads(os.environ.get("CI", "0").lower()))
+
+
 class C:
     """Constants."""
 
     PY_NAME = "jupyterlite_pyodide_lock"
-    PY = ["python"]
+    PY = [sys.executable]
     PYM = [*PY, "-m"]
     PIP = [*PYM, "pip"]
     PIP_E = [
