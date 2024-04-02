@@ -11,20 +11,21 @@
     }
 
     function tee(pipe, message) {
-      console.log(pipe, message);
+      (pipe == "stderr" ? console.warn : console.log)(message);
       void post(`/log/${pipe}`, JSON.stringify({ message }, null, 2));
-      const pre = document.window.createElement("pre");
+      const pre = document.createElement("pre");
       pre.textContent = message;
       document.body.appendChild(pre);
     }
 
-    const pyodide = await loadPyodide({
-      stdout: tee.bind(this, "stdout"),
-      stderr: tee.bind(this, "stderr"),
-      packages: ["micropip"],
-    });
+    async function main() {
+      const pyodide = await loadPyodide({
+        stdout: tee.bind(this, "stdout"),
+        stderr: tee.bind(this, "stderr"),
+        packages: ["micropip"],
+      });
 
-    await pyodide.runPythonAsync(`
+      await pyodide.runPythonAsync(`
             try:
                 import micropip, js, json
                 await micropip.install(
@@ -39,10 +40,12 @@
                 js.window.PYODIDE_ERROR = str(err)
         `);
 
-    await post(
-      "./pyodide-lock.json",
-      window.PYODIDE_LOCK || JSON.stringify({ error: window.PYODIDE_ERROR })
-    );
-    window.close();
+      await post(
+        "./pyodide-lock.json",
+        window.PYODIDE_LOCK || JSON.stringify({ error: window.PYODIDE_ERROR })
+      );
+    }
+
+    main().then(window.close).catch(window.close);
   </script>
 </html>

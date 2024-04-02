@@ -49,6 +49,7 @@ test = [
 
 [tool.pytest.ini_options]
 cache_dir = "build/.cache/pytest"
+testpaths = ["tests"]
 addopts = [
   # for humans
   "--html=build/reports/pytest.html",
