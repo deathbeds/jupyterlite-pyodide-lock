@@ -391,11 +391,13 @@ class BrowserLocker(BaseLocker):
 
     def find_browser_binary(self, browser: str):
         """Resolve an absolute path to a browser binary."""
-        bin = Path(shutil.which(browser) or shutil.which(f"{browser}.exe"))
+        bin = shutil.which(browser) or shutil.which(f"{browser}.exe")
 
-        if not bin.exists():
+        if bin is None or not Path(bin).exists():  # pragma: no cover
             self.log.warning(
-                "Browser search PATH %s", sorted(os.environ["PATH"].split(os.pathsep))
+                "No '%s' on PATH: %s",
+                browser,
+                "\n".join(sorted(os.environ["PATH"].split(os.pathsep))),
             )
             raise ValueError("No browser found for alias '%s'", browser)
 
