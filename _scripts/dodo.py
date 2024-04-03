@@ -52,18 +52,22 @@ def task_dev() -> TTaskGenerator:
             ],
         )
 
+    pip_tasks = []
+
     for ppt in P.PY_SRC:
         pkg = ppt.parent
 
         if E.CI:
-            wheel = [dist for dist in B.DIST[pkg] if dist.name.endswith(".whl")]
+            wheel = [dist for dist in B.DIST[ppt] if dist.name.endswith(".whl")]
             install = [*C.PIP, "install", "--no-deps", wheel]
-            file_dep = [wheel]
+            file_dep = wheel
         else:
             install = [*C.PIP_E, "."]
             file_dep = [ppt, B.ENV_DEV_HISTORY]
-
+        pip_tasks += [f"dev:{pkg.name}"]
         yield dict(name=pkg.name, actions=[U.do(install, cwd=pkg)], file_dep=file_dep)
+
+    yield dict(name="check", actions=[[*C.PIP, "check"]], task_dep=pip_tasks)
 
 
 def task_fix() -> TTaskGenerator:
@@ -72,18 +76,16 @@ def task_fix() -> TTaskGenerator:
         name="env:dev",
         file_dep=[P.ENV_TEST, P.ENV_DOCS],
         targets=[P.ENV_DEV],
-        actions=[
-            (U.replace_between, [P.ENV_DEV, [P.ENV_TEST, P.ENV_DOCS]]),
-        ],
+        actions=[(U.replace_between, [P.ENV_DEV, [P.ENV_TEST, P.ENV_DOCS]])],
     )
+
     yield dict(
         name="env:docs",
         file_dep=[P.ENV_TEST],
         targets=[P.ENV_DOCS],
-        actions=[
-            (U.replace_between, [P.ENV_DOCS, [P.ENV_TEST]]),
-        ],
+        actions=[(U.replace_between, [P.ENV_DOCS, [P.ENV_TEST]])],
     )
+
     yield dict(
         name="ruff",
         actions=[
@@ -96,10 +98,15 @@ def task_fix() -> TTaskGenerator:
 
 def task_lint() -> TTaskGenerator:
     """Run style checks."""
+    file_dep = [*P.PPT_ALL, *P.PY_ALL]
+
+    if not E.CI:
+        file_dep += [B.ENV_DEV_HISTORY]
+
     yield dict(
         name="ruff",
         actions=[[*C.RUFF, "check"], [*C.RUFF, "format", "--check"]],
-        file_dep=[*P.PPT_ALL, *P.PY_ALL, B.ENV_DEV_HISTORY],
+        file_dep=file_dep,
     )
 
 

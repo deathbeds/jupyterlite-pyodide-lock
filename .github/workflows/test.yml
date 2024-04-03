@@ -1,4 +1,4 @@
-name: CI
+name: test
 
 on:
   push:
@@ -16,7 +16,7 @@ env:
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
 
   # our stuff
-  CACHE_EPOCH: "6"
+  CACHE_EPOCH: "0"
 
 jobs:
   build:
@@ -99,6 +99,16 @@ jobs:
         with:
           name: jlpl-dist-${{ github.run_number }}
           path: ./dist
+
+      - name: dev (unix)
+        if: matrix.os != 'windows'
+        shell: bash -l {0}
+        run: doit dev
+
+      - name: dev (windows)
+        if: matrix.os == 'windows'
+        shell: cmd /C CALL {0}
+        run: doit dev
 
       - name: test (unix)
         if: matrix.os != 'windows'
