@@ -20,7 +20,7 @@ dependencies:
   # run
   - jupyterlite-pyodide-kernel >=0.3.1,<0.4.0
   - jupyterlite-core >=0.3.0,<0.4.0
-  - pyodide-lock >=0.1.0a4,<0.1.0a6
+  - pyodide-lock-with-wheel >=0.1.0a4,<0.1.0a6
   - tornado
   - jinja2
   - python-libarchive-c
