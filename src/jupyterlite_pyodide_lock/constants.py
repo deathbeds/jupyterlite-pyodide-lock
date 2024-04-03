@@ -1,5 +1,7 @@
 """Contants for jupyterlite-pyodide-lock."""
 
+import os
+
 from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK, PYODIDE_VERSION
 
 __all__ = ["NAME", "LOCKER_ENTRYPOINT", "PYODIDE_LOCK_STEM", "PROXY", "LOCK_HTML"]
@@ -59,3 +61,17 @@ BROWSERS = {
         "profile": ["--user-data-dir={PROFILE_DIR}"],
     },
 }
+
+#: is this windows
+WIN = os.sys.platform[:3] == "win"
+
+#: default locations of Program Files on Windows
+WIN_PROGRAM_FILES_DIRS = {
+    "PROGRAMFILES(x86)": "C:\\Program Files (x86)",
+    "PROGRAMFILES": "C:\\Program Files",
+}
+
+#: locations in Program Files of browsers
+WIN_BROWSER_DIRS = [
+    "Mozilla Firefox",
+]

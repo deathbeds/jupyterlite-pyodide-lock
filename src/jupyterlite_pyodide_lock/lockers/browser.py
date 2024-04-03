@@ -18,7 +18,16 @@ from jupyterlite_core.constants import JSON_FMT, UTF8
 from jupyterlite_core.trait_types import TypedTuple
 from traitlets import Bool, Dict, Instance, Int, Tuple, Type, Unicode, default
 
-from ..constants import BROWSERS, LOCK_HTML, PROXY, PYODIDE_LOCK, PYODIDE_LOCK_STEM
+from ..constants import (
+    BROWSERS,
+    LOCK_HTML,
+    PROXY,
+    PYODIDE_LOCK,
+    PYODIDE_LOCK_STEM,
+    WIN,
+    WIN_BROWSER_DIRS,
+    WIN_PROGRAM_FILES_DIRS,
+)
 from ._base import BaseLocker
 from .handlers import make_handlers
 
@@ -391,9 +400,16 @@ class BrowserLocker(BaseLocker):
 
     def find_browser_binary(self, browser: str):
         """Resolve an absolute path to a browser binary."""
-        bin = shutil.which(browser) or shutil.which(f"{browser}.exe")
+        path_var = self.get_browser_search_path()
 
-        if bin is None or not Path(bin).exists():  # pragma: no cover
+        bin: None | str = None
+
+        for candidate in [browser, f"{browser}.exe"]:
+            bin = shutil.which(candidate, path=path_var)
+            if bin:
+                break
+
+        if bin is None:  # pragma: no cover
             self.log.warning(
                 "No '%s' on PATH: %s",
                 browser,
@@ -402,3 +418,17 @@ class BrowserLocker(BaseLocker):
             raise ValueError("No browser found for alias '%s'", browser)
 
         return bin
+
+    def get_browser_search_path(self):
+        """Append well-known browser locations to PATH."""
+        paths = [os.environ["PATH"]]
+
+        if WIN:  # pragma: no cover
+            for env_var, default in WIN_PROGRAM_FILES_DIRS.items():
+                program_files = os.environ.get(env_var, default)
+                for browser_dir in WIN_BROWSER_DIRS:
+                    path = (Path(program_files) / browser_dir).resolve()
+                    if path.exists():
+                        paths += [str(path)]
+
+        return os.pathsep.join(paths)
