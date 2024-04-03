@@ -1,3 +1,4 @@
+# full development environment
 channels:
   - conda-forge
   - nodefaults

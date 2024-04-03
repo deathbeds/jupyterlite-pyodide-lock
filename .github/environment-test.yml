@@ -1,3 +1,4 @@
+# minimal unit test environment
 channels:
   - conda-forge
   - nodefaults
