@@ -59,9 +59,9 @@ def task_dev() -> TTaskGenerator:
         pkg = ppt.parent
 
         if E.CI:
-            wheel = [dist for dist in B.DIST[ppt] if dist.name.endswith(".whl")]
+            wheel = [dist for dist in B.DIST[ppt] if dist.name.endswith(".whl")][0]
             install = [*C.PIP, "install", "--no-deps", wheel]
-            file_dep = wheel
+            file_dep = [wheel]
         else:
             install = [*C.PIP_E, "."]
             file_dep = [ppt, B.ENV_DEV_HISTORY]
