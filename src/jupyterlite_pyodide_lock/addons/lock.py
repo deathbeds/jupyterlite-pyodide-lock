@@ -311,16 +311,17 @@ class PyodideLockAddon(_BaseAddon):
         for pkg_json in sorted(pkg_jsons):
             pkg_data = json.loads(pkg_json.read_text(**UTF8))
             wheel_dir = pkg_data.get(PKG_JSON_PIPLITE, {}).get(PKG_JSON_WHEELDIR)
-            if wheel_dir:
-                wheel_path = pkg_json.parent / f"{wheel_dir}"
-                if not wheel_path.exists():  # pragma: no cover
-                    self.log.warning(
-                        "`%s` in %s does not exist",
-                        PKG_JSON_WHEELDIR,
-                        pkg_json,
-                    )
-                else:
-                    wheel_paths += [wheel_path]
+            if not wheel_dir:  # pragma: no cover
+                continue
+            wheel_path = pkg_json.parent / f"{wheel_dir}"
+            if not wheel_path.exists():  # pragma: no cover
+                self.log.warning(
+                    "`%s` in %s does not exist",
+                    PKG_JSON_WHEELDIR,
+                    pkg_json,
+                )
+            else:
+                wheel_paths += [wheel_path]
 
         return wheel_paths
 
