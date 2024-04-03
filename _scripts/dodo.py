@@ -216,7 +216,7 @@ class B:
     DIST = {
         ppt: [
             ppt.parent
-            / f"dist/{ppt.parent.name.replace("-", "_")}-{D.VERSION[ppt]}{ext}"
+            / f"dist/{ppt.parent.name.replace('-', '_')}-{D.VERSION[ppt]}{ext}"
             for ext in C.DIST_EXT
         ]
         for ppt in P.PY_SRC
