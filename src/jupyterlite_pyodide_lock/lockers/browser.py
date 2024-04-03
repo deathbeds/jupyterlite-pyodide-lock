@@ -404,7 +404,9 @@ class BrowserLocker(BaseLocker):
 
         bin: None | str = None
 
-        for candidate in [browser, f"{browser}.exe"]:
+        candidates = [browser, f"{browser}.exe", f"{browser}.bat"]
+
+        for candidate in candidates:  # pragma: no cover
             bin = shutil.which(candidate, path=path_var)
             if bin:
                 break
