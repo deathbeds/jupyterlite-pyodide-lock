@@ -1,5 +1,7 @@
 """Contants for jupyterlite-pyodide-lock."""
 
+import os
+
 from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK, PYODIDE_VERSION
 
 __all__ = ["NAME", "LOCKER_ENTRYPOINT", "PYODIDE_LOCK_STEM", "PROXY", "LOCK_HTML"]
@@ -7,8 +9,11 @@ __all__ = ["NAME", "LOCKER_ENTRYPOINT", "PYODIDE_LOCK_STEM", "PROXY", "LOCK_HTML
 #: this distribution name
 NAME = "jupyterlite-pyodide-lock"
 
+#: environment variable for setting the timeout
+ENV_VAR_TIMEOUT = "JUPYTERLITE_PYODIDE_LOCK_TIMEOUT"
+
 #: the entry point name for locker implementations
-LOCKER_ENTRYPOINT = f"{NAME}.locker.v0"
+LOCKER_ENTRYPOINT = f"{NAME.replace('-', '_')}.locker.v0"
 
 #: a base name for lock-related filesssss
 PYODIDE_LOCK_STEM = PYODIDE_LOCK.split(".")[0]
@@ -58,4 +63,25 @@ BROWSERS = {
         "private_mode": ["--incognito"],
         "profile": ["--user-data-dir={PROFILE_DIR}"],
     },
+}
+
+#: is this windows
+WIN = os.sys.platform[:3] == "win"
+
+#: default locations of Program Files on Windows
+WIN_PROGRAM_FILES_DIRS = {
+    "PROGRAMFILES(x86)": "C:\\Program Files (x86)",
+    "PROGRAMFILES": "C:\\Program Files",
+}
+
+#: locations in Program Files of browsers
+WIN_BROWSER_DIRS = [
+    "Mozilla Firefox",
+]
+
+#: known patterns for file types not present on all platforms/pythons
+FILE_EXT_MIME_MAP = {
+    r"\.mjs$": "text/javascript",
+    r"\.whl$": "application/x-zip",
+    r"\.wasm$": "application/wasm",
 }

@@ -26,7 +26,6 @@ def make_handlers(locker: "BrowserLocker"):
     fallback_kwargs = {
         "log": locker.log,
         "path": locker.parent.manager.output_dir,
-        "mime_map": {r"\.whl$": "application/x-zip"},
     }
 
     return (

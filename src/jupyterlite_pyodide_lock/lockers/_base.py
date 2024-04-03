@@ -1,12 +1,14 @@
 import asyncio
+import json
+import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from jupyterlite_pyodide_kernel.constants import PYODIDE_VERSION
-from traitlets import Dict, Instance, Int, List, Unicode
+from traitlets import Dict, Instance, Int, List, Unicode, default
 from traitlets.config import LoggingConfigurable
 
-from ..constants import FILES_PYTHON_HOSTED
+from ..constants import ENV_VAR_TIMEOUT, FILES_PYTHON_HOSTED
 
 if TYPE_CHECKING:  # pragma: no cover
     from ..addons.lock import PyodideLockAddon
@@ -30,7 +32,7 @@ class BaseLocker(LoggingConfigurable):
         help="remote URL for python packages (third-party not supported)",
     )
 
-    timeout = Int(120, help="seconds to wait for a solve").tag(config=True)
+    timeout = Int(help="seconds to wait for a solve").tag(config=True)
 
     # from parent
     specs = List(Unicode())
@@ -59,9 +61,9 @@ class BaseLocker(LoggingConfigurable):
         An async locker should _not_ overload this unless it has some other means
         of timing out.
         """
+        self.log.info("Resolving with %s second deadline", self.timeout)
         try:
-            async with asyncio.timeout(self.timeout):
-                return await self.resolve()
+            await asyncio.wait_for(self.resolve(), self.timeout)
         except TimeoutError:  # pragma: no cover
             self.log.error("Failed to lock within %s seconds", self.timeout)
         finally:
@@ -80,3 +82,7 @@ class BaseLocker(LoggingConfigurable):
         """
         msg = f"{self} cannot solve a `pyodide-lock.json`."
         raise NotImplementedError(msg)
+
+    @default("timeout")
+    def _default_timeout(self) -> int:
+        return int(json.loads(os.environ.get(ENV_VAR_TIMEOUT, "120")))

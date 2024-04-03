@@ -32,12 +32,13 @@ def task_build() -> TTaskGenerator:
                 targets=[license],
             )
 
-        yield dict(
-            name=f"flit:{pkg.name}",
-            actions=[["pyproject-build", pkg, "--no-isolation"]],
-            file_dep=[ppt, license, *src],
-            targets=B.DIST[ppt],
-        )
+        if not (E.CI and all(d.exists() for d in B.DIST[ppt])):
+            yield dict(
+                name=f"flit:{pkg.name}",
+                actions=[["pyproject-build", pkg, "--no-isolation"]],
+                file_dep=[ppt, license, *src],
+                targets=B.DIST[ppt],
+            )
 
 
 def task_dev() -> TTaskGenerator:
@@ -58,9 +59,9 @@ def task_dev() -> TTaskGenerator:
         pkg = ppt.parent
 
         if E.CI:
-            wheel = [dist for dist in B.DIST[ppt] if dist.name.endswith(".whl")]
+            wheel = [dist for dist in B.DIST[ppt] if dist.name.endswith(".whl")][0]
             install = [*C.PIP, "install", "--no-deps", wheel]
-            file_dep = wheel
+            file_dep = [wheel]
         else:
             install = [*C.PIP_E, "."]
             file_dep = [ppt, B.ENV_DEV_HISTORY]
@@ -242,7 +243,7 @@ class B:
     DIST = {
         ppt: [
             ppt.parent
-            / f"dist/{ppt.parent.name.replace("-", "_")}-{D.VERSION[ppt]}{ext}"
+            / f"dist/{ppt.parent.name.replace('-', '_')}-{D.VERSION[ppt]}{ext}"
             for ext in C.DIST_EXT
         ]
         for ppt in P.PY_SRC

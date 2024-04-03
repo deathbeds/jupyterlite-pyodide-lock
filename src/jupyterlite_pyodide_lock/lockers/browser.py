@@ -3,6 +3,7 @@
 import asyncio
 import atexit
 import json
+import os
 import shutil
 import socket
 import subprocess
@@ -17,7 +18,16 @@ from jupyterlite_core.constants import JSON_FMT, UTF8
 from jupyterlite_core.trait_types import TypedTuple
 from traitlets import Bool, Dict, Instance, Int, Tuple, Type, Unicode, default
 
-from ..constants import BROWSERS, LOCK_HTML, PROXY, PYODIDE_LOCK, PYODIDE_LOCK_STEM
+from ..constants import (
+    BROWSERS,
+    LOCK_HTML,
+    PROXY,
+    PYODIDE_LOCK,
+    PYODIDE_LOCK_STEM,
+    WIN,
+    WIN_BROWSER_DIRS,
+    WIN_PROGRAM_FILES_DIRS,
+)
 from ._base import BaseLocker
 from .handlers import make_handlers
 
@@ -241,28 +251,27 @@ class BrowserLocker(BaseLocker):
         package["file_name"] = new_file_name
 
     async def fetch(self):
-        with tempfile.TemporaryDirectory() as td:
-            args = [*self.browser_argv, f"{self.base_url}/{LOCK_HTML}"]
-            self.log.debug("browser args: %s", args)
-            browser = subprocess.Popen(args, cwd=td)
+        args = [*self.browser_argv, f"{self.base_url}/{LOCK_HTML}"]
+        self.log.debug("browser args: %s", args)
+        browser = subprocess.Popen(args)
 
-            def cleanup():
-                if browser.returncode is not None:  # pragma: no cover
-                    self.log.info("Browser is already closed")
-                    return
+        def cleanup():
+            if browser.returncode is not None:  # pragma: no cover
+                self.log.info("Browser is already closed")
+                return
 
-                self.log.info("Closing browser")
-                browser.terminate()
-                browser.kill()
+            self.log.info("Closing browser")
+            browser.terminate()
+            browser.kill()
 
-            atexit.register(cleanup)
+        atexit.register(cleanup)
 
-            try:
-                while not self._solve_halted and browser.returncode is None:
-                    await asyncio.sleep(1)
-                cleanup()
-            finally:
-                cleanup()
+        try:
+            while not self._solve_halted and browser.returncode is None:
+                await asyncio.sleep(1)
+            cleanup()
+        finally:
+            cleanup()
 
     # trait defaults
     @default("_web_app")
@@ -298,7 +307,7 @@ class BrowserLocker(BaseLocker):
     @default("browser_argv")
     def _default_browser_argv(self):
         argv = self.browser_cli_arg(self.browser, "launch")
-        argv[0] = shutil.which(argv[0]) or shutil.which(f"{argv[0]}.exe")
+        argv[0] = self.find_browser_binary(argv[0])
 
         if True:  # pragma: no cover
             if self.headless:
@@ -377,6 +386,7 @@ class BrowserLocker(BaseLocker):
         return str(self._temp_profile_path)
 
     def browser_cli_arg(self, browser: str, trait_name: str) -> list[str]:
+        """Find the CLI args for specific browser by trait name."""
         if trait_name not in BROWSERS[browser]:  # pragma: no cover
             self.log.warning(
                 "%s.%s does not work with %s",
@@ -386,3 +396,40 @@ class BrowserLocker(BaseLocker):
             )
             return []
         return BROWSERS[browser][trait_name]
+
+    def find_browser_binary(self, browser: str):
+        """Resolve an absolute path to a browser binary."""
+        path_var = self.get_browser_search_path()
+
+        bin: None | str = None
+
+        candidates = [browser, f"{browser}.exe", f"{browser}.bat"]
+
+        for candidate in candidates:  # pragma: no cover
+            bin = shutil.which(candidate, path=path_var)
+            if bin:
+                break
+
+        if bin is None:  # pragma: no cover
+            self.log.warning(
+                "No '%s' on PATH: %s",
+                browser,
+                "\n".join(sorted(os.environ["PATH"].split(os.pathsep))),
+            )
+            raise ValueError("No browser found for alias '%s'", browser)
+
+        return bin
+
+    def get_browser_search_path(self):
+        """Append well-known browser locations to PATH."""
+        paths = [os.environ["PATH"]]
+
+        if WIN:  # pragma: no cover
+            for env_var, default in WIN_PROGRAM_FILES_DIRS.items():
+                program_files = os.environ.get(env_var, default)
+                for browser_dir in WIN_BROWSER_DIRS:
+                    path = (Path(program_files) / browser_dir).resolve()
+                    if path.exists():
+                        paths += [str(path)]
+
+        return os.pathsep.join(paths)

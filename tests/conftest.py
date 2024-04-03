@@ -62,9 +62,7 @@ def a_lite_config(a_lite_dir: Path) -> Path:
     conf.write_text(
         json.dumps(
             {
-                "PyodideLockAddon": {
-                    "enabled": True,
-                },
+                "PyodideLockAddon": {"enabled": True, "temp_profile": True},
             },
             **JSON_FMT,
         ),
