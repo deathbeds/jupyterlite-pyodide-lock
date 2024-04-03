@@ -251,28 +251,27 @@ class BrowserLocker(BaseLocker):
         package["file_name"] = new_file_name
 
     async def fetch(self):
-        with tempfile.TemporaryDirectory() as td:
-            args = [*self.browser_argv, f"{self.base_url}/{LOCK_HTML}"]
-            self.log.debug("browser args: %s", args)
-            browser = subprocess.Popen(args, cwd=td)
+        args = [*self.browser_argv, f"{self.base_url}/{LOCK_HTML}"]
+        self.log.debug("browser args: %s", args)
+        browser = subprocess.Popen(args)
 
-            def cleanup():
-                if browser.returncode is not None:  # pragma: no cover
-                    self.log.info("Browser is already closed")
-                    return
+        def cleanup():
+            if browser.returncode is not None:  # pragma: no cover
+                self.log.info("Browser is already closed")
+                return
 
-                self.log.info("Closing browser")
-                browser.terminate()
-                browser.kill()
+            self.log.info("Closing browser")
+            browser.terminate()
+            browser.kill()
 
-            atexit.register(cleanup)
+        atexit.register(cleanup)
 
-            try:
-                while not self._solve_halted and browser.returncode is None:
-                    await asyncio.sleep(1)
-                cleanup()
-            finally:
-                cleanup()
+        try:
+            while not self._solve_halted and browser.returncode is None:
+                await asyncio.sleep(1)
+            cleanup()
+        finally:
+            cleanup()
 
     # trait defaults
     @default("_web_app")

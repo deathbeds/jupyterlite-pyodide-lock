@@ -9,6 +9,9 @@ __all__ = ["NAME", "LOCKER_ENTRYPOINT", "PYODIDE_LOCK_STEM", "PROXY", "LOCK_HTML
 #: this distribution name
 NAME = "jupyterlite-pyodide-lock"
 
+#: environment variable for setting the timeout
+ENV_VAR_TIMEOUT = "JUPYTERLITE_PYODIDE_LOCK_TIMEOUT"
+
 #: the entry point name for locker implementations
 LOCKER_ENTRYPOINT = f"{NAME.replace('-', '_')}.locker.v0"
 
