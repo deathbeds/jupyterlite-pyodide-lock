@@ -1,5 +1,6 @@
 import re
 from typing import TYPE_CHECKING
+from pathlib import Path
 
 from tornado.web import StaticFileHandler
 
@@ -23,8 +24,9 @@ class ExtraMimeFiles(StaticFileHandler):
         from_map = None
         if self.absolute_path is None:  # pragma: no cover
             return from_parent
+        as_posix = Path(self.absolute_path).as_posix()
         for pattern, mimetype in self.mime_map.items():
-            if not re.search(pattern, self.absolute_path):  # pragma: no cover
+            if not re.search(pattern, as_posix):  # pragma: no cover
                 continue
             from_map = mimetype
             break
