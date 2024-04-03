@@ -23,7 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "jinja2",
     "jupyterlite-pyodide-kernel >=0.3.1,<0.4.0",
@@ -84,7 +84,7 @@ par_type = "thread"
 dodoFile = "_scripts/dodo.py"
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 88
 extend-include = ["*.ipynb"]
 

@@ -5,7 +5,7 @@ import re
 import urllib.parse
 from hashlib import sha256
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Type
+from typing import TYPE_CHECKING, Any
 
 import pkginfo
 from doit.tools import config_changed
@@ -233,7 +233,7 @@ class PyodideLockAddon(_BaseAddon):
     # actions
     def lock(self, packages: list[Path], specs: list[str], lockfile: Path):
         """Generate the lockfile"""
-        locker_ep: Type["BaseLocker"] = LOCKERS.get(self.locker)
+        locker_ep: type["BaseLocker"] = LOCKERS.get(self.locker)
 
         if locker_ep is None:  # pragma: no cover
             return False
