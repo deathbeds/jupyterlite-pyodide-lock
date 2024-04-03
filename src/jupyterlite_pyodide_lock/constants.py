@@ -78,3 +78,10 @@ WIN_PROGRAM_FILES_DIRS = {
 WIN_BROWSER_DIRS = [
     "Mozilla Firefox",
 ]
+
+#: known patterns for file types not present on all platforms/pythons
+FILE_EXT_MIME_MAP = {
+    r"\.mjs$": "text/javascript",
+    r"\.whl$": "application/x-zip",
+    r"\.wasm$": "application/wasm",
+}

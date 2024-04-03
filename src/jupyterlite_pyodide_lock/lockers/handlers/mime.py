@@ -1,8 +1,10 @@
 import re
-from typing import TYPE_CHECKING
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from tornado.web import StaticFileHandler
+
+from ...constants import FILE_EXT_MIME_MAP
 
 if TYPE_CHECKING:  # pragma: no cover
     from logging import Logger
@@ -16,7 +18,8 @@ class ExtraMimeFiles(StaticFileHandler):
 
     def initialize(self, log, mime_map=None, **kwargs):
         super().initialize(**kwargs)
-        self.mime_map = mime_map or {}
+        self.mime_map = dict(FILE_EXT_MIME_MAP)
+        self.mime_map.update(mime_map or {})
         self.log = log
 
     def get_content_type(self) -> str:
