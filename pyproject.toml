@@ -34,7 +34,7 @@ dependencies = [
 [project.entry-points."jupyterlite.addon.v0"]
 pyodide-lock = "jupyterlite_pyodide_lock.addons.lock:PyodideLockAddon"
 
-[project.entry-points."jupyterlite-pyodide-lock.locker.v0"]
+[project.entry-points."jupyterlite_pyodide_lock.locker.v0"]
 browser = "jupyterlite_pyodide_lock.lockers.browser:BrowserLocker"
 
 [tool.flit.sdist]

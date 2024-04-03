@@ -8,7 +8,7 @@ __all__ = ["NAME", "LOCKER_ENTRYPOINT", "PYODIDE_LOCK_STEM", "PROXY", "LOCK_HTML
 NAME = "jupyterlite-pyodide-lock"
 
 #: the entry point name for locker implementations
-LOCKER_ENTRYPOINT = f"{NAME}.locker.v0"
+LOCKER_ENTRYPOINT = f"{NAME.replace('-', '_')}.locker.v0"
 
 #: a base name for lock-related filesssss
 PYODIDE_LOCK_STEM = PYODIDE_LOCK.split(".")[0]
