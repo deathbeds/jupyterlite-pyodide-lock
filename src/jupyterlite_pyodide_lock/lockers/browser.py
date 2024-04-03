@@ -119,7 +119,7 @@ class BrowserLocker(BaseLocker):
         if (
             self._temp_profile_path and self._temp_profile_path.exists()
         ):  # pragma: no cover
-            shutil.rmtree(self._temp_profile_path)
+            shutil.rmtree(self._temp_profile_path, ignore_errors=True)
 
     # derived properties
     @property

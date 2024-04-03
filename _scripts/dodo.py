@@ -134,6 +134,25 @@ def task_test() -> TTaskGenerator:
         )
 
 
+def task_docs() -> TTaskGenerator:
+    """Build documentation."""
+    dev_env = [] if E.CI else [B.ENV_DEV_HISTORY]
+    yield dict(
+        name="app",
+        actions=[
+            U.do([*C.PYM, "jupyter", "lite", "archive", "--debug"], cwd=P.EXAMPLES),
+        ],
+        file_dep=[*P.EXAMPLES_ALL, *dev_env],
+        targets=[B.DOCS_APP_SHA256SUMS],
+    )
+    yield dict(
+        name="html",
+        actions=[[*C.SPHINX, "-b", "html", P.DOCS, B.DOCS]],
+        file_dep=[*P.DOCS_ALL, B.DOCS_APP_SHA256SUMS, *dev_env],
+        targets=[B.DOCS_BUILDINFO],
+    )
+
+
 class E:
     """Environment."""
 
@@ -156,6 +175,7 @@ class C:
         "--no-build-isolation",
         "-e",
     ]
+    SPHINX = ["sphinx-build", "-W", "--color"]
     COV = ["coverage"]
     RUFF = ["ruff"]
     COV_RUN = [*COV, "run", "--branch"]
@@ -191,10 +211,17 @@ class P:
     PY_SRC_ALL = sum(PY_SRC.values(), [])
     PY_TEST_ALL = sum(PY_TEST.values(), [])
 
+    # examples
+    EXAMPLES = ROOT / "examples"
+    EXAMPLES_LITE_DOIT = EXAMPLES / ".jupyterlite.doit.db"
+    EXAMPLES_ALL = sorted({*EXAMPLES.rglob("*.*")} - {EXAMPLES_LITE_DOIT})
+
     # docs
     DOCS = ROOT / "docs"
     PY_DOCS = [*DOCS.rglob("*.py")]
     ENV_DOCS = DOCS / "environment-docs.yml"
+    MD_DOCS = [*DOCS.rglob("*.md")]
+    DOCS_ALL = [*MD_DOCS, *PY_DOCS, *PY_SRC_ALL]
 
     # linting
     PY_ALL = [*PY_DOCS, *PY_SCRIPTS, *PY_SRC_ALL, *PY_TEST_ALL]
@@ -222,6 +249,11 @@ class B:
     }
     ENV_DEV = P.ROOT / ".venv"
     ENV_DEV_HISTORY = ENV_DEV / "conda-meta/history"
+    DOCS = BUILD / "docs"
+    DOCS_BUILDINFO = DOCS / ".buildinfo"
+    DOCS_STATIC = DOCS / "_static"
+    DOCS_APP = BUILD / "docs-app"
+    DOCS_APP_SHA256SUMS = DOCS_STATIC / "SHA256SUMS"
 
 
 class U:

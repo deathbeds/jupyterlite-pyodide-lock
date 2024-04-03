@@ -31,11 +31,18 @@ dependencies = [
     "tornado >=6.1.0",
 ]
 
+[project.urls]
+"Bug Tracker" = "https://github.com/bollwyvl/jupyterlite-pyodide-lock/issues"
+"Changelog" = "https://github.com/bollwyvl/jupyterlite-pyodide-lock/blob/main/CHANGELOG.md"
+"PyPI" = "https://pypi.org/project/jupyterlite-pyodide-lock"
+"Source" = "https://github.com/bollwyvl/jupyterlite-pyodide-lock/tree/main"
+
 [project.entry-points."jupyterlite.addon.v0"]
 pyodide-lock = "jupyterlite_pyodide_lock.addons.lock:PyodideLockAddon"
 
 [project.entry-points."jupyterlite-pyodide-lock.locker.v0"]
 browser = "jupyterlite_pyodide_lock.lockers.browser:BrowserLocker"
+
 
 [tool.flit.sdist]
 include = ["tests/"]
@@ -87,10 +94,10 @@ dodoFile = "_scripts/dodo.py"
 target-version = "py39"
 line-length = 88
 extend-include = ["*.ipynb"]
+cache-dir = "build/.cache/ruff"
 
 [tool.ruff.lint]
 select = [
-
   "A",
   "ANN",
   "ARG",
