@@ -32,12 +32,13 @@ def task_build() -> TTaskGenerator:
                 targets=[license],
             )
 
-        yield dict(
-            name=f"flit:{pkg.name}",
-            actions=[["pyproject-build", pkg, "--no-isolation"]],
-            file_dep=[ppt, license, *src],
-            targets=B.DIST[ppt],
-        )
+        if not (E.CI and all(d.exists() for d in B.DIST[ppt])):
+            yield dict(
+                name=f"flit:{pkg.name}",
+                actions=[["pyproject-build", pkg, "--no-isolation"]],
+                file_dep=[ppt, license, *src],
+                targets=B.DIST[ppt],
+            )
 
 
 def task_dev() -> TTaskGenerator:
