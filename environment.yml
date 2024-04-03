@@ -2,21 +2,27 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
+  # lint
+  - ruff >=0.3.0
+
+  ### environment-test.yml ###
   # build
   - pip
-  - flit >=3.9.0,<4.0.0
-  - python-build
+  - doit
   # run
-  - python >=3.9
   - jupyterlite-pyodide-kernel >=0.3.1,<0.4.0
   - jupyterlite-core >=0.3.0,<0.4.0
   - pyodide-lock ==0.1.0a4
   - tornado
+  - jinja2
   - python-libarchive-c
-  # selenium
-  - selenium >=4.19.0,<5.0.0
-  - geckodriver
-  - firefox ==115.*
+  # test
+  - pytest >=8,<9
+  - pytest-cov
+  - pytest-html
+  ### environment-test.yml ###
+
+  ### environment-docs.yml ###
   # docs
   - sphinx
   - myst-parser
@@ -24,10 +30,4 @@ dependencies:
   # demo
   - jupyterlab >=4.1,<4.2
   - ipywidgets >=8.1,<8.2
-  # lint
-  - ruff >=0.3.0
-  - pyproject-fmt
-  # test
-  - pytest >=8,<9
-  - pytest-cov
-  - pytest-html
+  ### environment-docs.yml ###

@@ -2,6 +2,16 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
+  ### environment-docs.yml ###
+  # docs
+  - sphinx
+  - myst-parser
+  - pydata-sphinx-theme
+  # demo
+  - jupyterlab >=4.1,<4.2
+  - ipywidgets >=8.1,<8.2
+  ### environment-docs.yml ###
+
   ### environment-test.yml ###
   # build
   - pip

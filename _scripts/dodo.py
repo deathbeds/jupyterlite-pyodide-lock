@@ -69,6 +69,22 @@ def task_dev() -> TTaskGenerator:
 def task_fix() -> TTaskGenerator:
     """Fix code style."""
     yield dict(
+        name="env:dev",
+        file_dep=[P.ENV_TEST, P.ENV_DOCS],
+        targets=[P.ENV_DEV],
+        actions=[
+            (U.replace_between, [P.ENV_DEV, [P.ENV_TEST, P.ENV_DOCS]]),
+        ],
+    )
+    yield dict(
+        name="env:docs",
+        file_dep=[P.ENV_TEST],
+        targets=[P.ENV_DOCS],
+        actions=[
+            (U.replace_between, [P.ENV_DOCS, [P.ENV_TEST]]),
+        ],
+    )
+    yield dict(
         name="ruff",
         actions=[
             [*C.RUFF, "check", "--fix-only", *P.PY_ALL],
@@ -82,10 +98,7 @@ def task_lint() -> TTaskGenerator:
     """Run style checks."""
     yield dict(
         name="ruff",
-        actions=[
-            [*C.RUFF, "check"],
-            [*C.RUFF, "format", "--check"],
-        ],
+        actions=[[*C.RUFF, "check"], [*C.RUFF, "format", "--check"]],
         file_dep=[*P.PPT_ALL, *P.PY_ALL, B.ENV_DEV_HISTORY],
     )
 
@@ -160,6 +173,10 @@ class P:
     README = ROOT / "README.md"
     ENV_DEV = ROOT / "environment.yml"
 
+    # ci
+    CI = ROOT / ".github"
+    ENV_TEST = CI / "environment-test.yml"
+
     # per-package
     PY = ROOT / "py"
     PY_SRC = {ppt: [*(ppt.parent / "src").rglob("*.py")] for ppt in [PPT]}
@@ -167,9 +184,12 @@ class P:
     PY_SRC_ALL = sum(PY_SRC.values(), [])
     PY_TEST_ALL = sum(PY_TEST.values(), [])
 
+    # docs
     DOCS = ROOT / "docs"
     PY_DOCS = [*DOCS.rglob("*.py")]
+    ENV_DOCS = DOCS / "environment-docs.yml"
 
+    # linting
     PY_ALL = [*PY_DOCS, *PY_SCRIPTS, *PY_SRC_ALL, *PY_TEST_ALL]
     PPT_ALL = [PPT, *PY_SRC]
 
@@ -217,3 +237,17 @@ class U:
     def do(cmd: list[str], cwd: None | Path = None, **kwargs: Any) -> CmdAction:
         """Wrap a command line with extra options."""
         return CmdAction(cmd, shell=False, cwd=str(cwd) if cwd else None, **kwargs)
+
+    @staticmethod
+    def replace_between(dest: Path, srcs: Path) -> None:
+        """Replace text between matching markers in files."""
+        for src in srcs:
+            src_text = src.read_text(**C.UTF8)
+            dest_text = dest.read_text(**C.UTF8)
+            marker = f"### {src.name} ###"
+            src_chunks = src_text.split(marker)
+            dest_chunks = dest_text.split(marker)
+            dest_text = "".join(
+                [dest_chunks[0], marker, src_chunks[1], marker, dest_chunks[2]]
+            )
+            dest.write_text(dest_text, encoding="utf-8")
