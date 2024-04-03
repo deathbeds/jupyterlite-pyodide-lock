@@ -23,18 +23,18 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "jinja2",
     "jupyterlite-pyodide-kernel >=0.3.1,<0.4.0",
-    "pyodide-lock[wheel] ==0.1.0a4",
+    "pyodide-lock[wheel] >=0.1.0a4,<0.1.0a6",
     "tornado >=6.1.0",
 ]
 
 [project.entry-points."jupyterlite.addon.v0"]
 pyodide-lock = "jupyterlite_pyodide_lock.addons.lock:PyodideLockAddon"
 
-[project.entry-points."jupyterlite-pyodide-lock.locker.v0"]
+[project.entry-points."jupyterlite_pyodide_lock.locker.v0"]
 browser = "jupyterlite_pyodide_lock.lockers.browser:BrowserLocker"
 
 [tool.flit.sdist]
@@ -84,7 +84,7 @@ par_type = "thread"
 dodoFile = "_scripts/dodo.py"
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 88
 extend-include = ["*.ipynb"]
 
