@@ -3,6 +3,7 @@
 import asyncio
 import atexit
 import json
+import os
 import shutil
 import socket
 import subprocess
@@ -298,7 +299,7 @@ class BrowserLocker(BaseLocker):
     @default("browser_argv")
     def _default_browser_argv(self):
         argv = self.browser_cli_arg(self.browser, "launch")
-        argv[0] = shutil.which(argv[0]) or shutil.which(f"{argv[0]}.exe")
+        argv[0] = self.find_browser_binary(argv[0])
 
         if True:  # pragma: no cover
             if self.headless:
@@ -377,6 +378,7 @@ class BrowserLocker(BaseLocker):
         return str(self._temp_profile_path)
 
     def browser_cli_arg(self, browser: str, trait_name: str) -> list[str]:
+        """Find the CLI args for specific browser by trait name."""
         if trait_name not in BROWSERS[browser]:  # pragma: no cover
             self.log.warning(
                 "%s.%s does not work with %s",
@@ -386,3 +388,15 @@ class BrowserLocker(BaseLocker):
             )
             return []
         return BROWSERS[browser][trait_name]
+
+    def find_browser_binary(self, browser: str):
+        """Resolve an absolute path to a browser binary."""
+        bin = Path(shutil.which(browser) or shutil.which(f"{browser}.exe"))
+
+        if not bin.exists():
+            self.log.warning(
+                "Browser search PATH %s", sorted(os.environ["PATH"].split(os.pathsep))
+            )
+            raise ValueError("No browser found for alias '%s'", browser)
+
+        return bin
