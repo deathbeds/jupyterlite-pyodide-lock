@@ -3,7 +3,7 @@
 import datetime
 import re
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 try:
     import tomllib
@@ -93,7 +93,7 @@ html_theme_options = {
     "navigation_with_keys": False,
 }
 
-html_sidebars: Dict[str, Any] = {"demo": []}
+html_sidebars: dict[str, Any] = {"demo": []}
 
 if REPO_INFO is not None:
     html_context = {**REPO_INFO.groupdict(), "doc_path": "docs"}
