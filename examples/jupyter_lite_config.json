@@ -1,10 +1,7 @@
 {
   "LiteBuildConfig": {
     "cache_dir": "../build/.cache/lite",
-    "output_dir": "../build/docs-app",
-    "contents": [
-      "README.ipynb"
-    ]
+    "output_dir": "../build/docs-app"
   },
   "PyodideLockAddon": {
     "enabled": true,
