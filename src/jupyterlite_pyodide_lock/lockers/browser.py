@@ -1,7 +1,6 @@
 """Solve `pyodide-lock` with the browser."""
 
 import asyncio
-import atexit
 import json
 import os
 import shutil
@@ -101,6 +100,7 @@ class BrowserLocker(BaseLocker):
     _handlers: tuple[THandler, ...] = TypedTuple(Tuple(Unicode(), Type(), Dict()))
     _solve_halted: bool = Bool(False)
     _temp_profile_path: Path = Instance(Path, allow_none=True)
+    _browser_process: subprocess.Popen = Instance(subprocess.Popen, allow_none=True)
 
     # API methods
     async def resolve(self) -> bool | None:
@@ -126,10 +126,17 @@ class BrowserLocker(BaseLocker):
         return True
 
     async def cleanup(self) -> None:
-        if (
-            self._temp_profile_path and self._temp_profile_path.exists()
-        ):  # pragma: no cover
-            shutil.rmtree(self._temp_profile_path, ignore_errors=True)
+        proc, path = self._browser_process, self._temp_profile_path
+
+        if proc and proc.returncode is None:
+            self.log.info("Stopping browser")
+            proc.kill()
+            self._browser_process = None
+
+        if path and path.exists():  # pragma: no cover
+            self.log.info("Clearing temporary profile path")
+            shutil.rmtree(path, ignore_errors=True)
+            self._temp_profile_path = None
 
     # derived properties
     @property
@@ -253,25 +260,24 @@ class BrowserLocker(BaseLocker):
     async def fetch(self):
         args = [*self.browser_argv, f"{self.base_url}/{LOCK_HTML}"]
         self.log.debug("browser args: %s", args)
-        browser = subprocess.Popen(args)
-
-        def cleanup():
-            if browser.returncode is not None:  # pragma: no cover
-                self.log.info("Browser is already closed")
-                return
-
-            self.log.info("Closing browser")
-            browser.terminate()
-            browser.kill()
-
-        atexit.register(cleanup)
+        self._browser_process = subprocess.Popen(args)
 
         try:
-            while not self._solve_halted and browser.returncode is None:
+            while True:
+                if self._solve_halted:
+                    self.log.info("Lock is finished")
+                    break
+
+                if self._browser_process.returncode is not None:  # pragma: no cover
+                    self.log.info(
+                        "Browser is closed with code: %s",
+                        self._browser_process.returncode,
+                    )
+                    break
+
                 await asyncio.sleep(1)
-            cleanup()
         finally:
-            cleanup()
+            await self.cleanup()
 
     # trait defaults
     @default("_web_app")

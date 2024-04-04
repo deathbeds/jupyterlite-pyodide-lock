@@ -14,6 +14,7 @@
 ```{toctree}
 :maxdepth: 2
 
-demo.md
-contributing.md
+demo
+api
+contributing
 ```

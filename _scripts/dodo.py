@@ -3,6 +3,7 @@
 import json
 import os
 import shutil
+import subprocess
 import sys
 from collections.abc import Generator
 from pathlib import Path
@@ -138,11 +139,21 @@ def task_test() -> TTaskGenerator:
 def task_docs() -> TTaskGenerator:
     """Build documentation."""
     dev_env = [] if E.CI else [B.ENV_DEV_HISTORY]
+
+    def lite() -> bool:
+        args = [
+            "jupyter-lite",
+            "doit",
+            "--debug",
+            "--",
+            "pre_archive:report:SHA256SUMS",
+        ]
+        rc = subprocess.call(args, cwd=str(P.EXAMPLES))
+        return rc == 0
+
     yield dict(
         name="app",
-        actions=[
-            U.do([*C.PYM, "jupyter", "lite", "archive", "--debug"], cwd=P.EXAMPLES),
-        ],
+        actions=[lite],
         file_dep=[*P.EXAMPLES_ALL, *dev_env],
         targets=[B.DOCS_APP_SHA256SUMS],
     )
@@ -253,8 +264,9 @@ class B:
     DOCS = BUILD / "docs"
     DOCS_BUILDINFO = DOCS / ".buildinfo"
     DOCS_STATIC = DOCS / "_static"
+
     DOCS_APP = BUILD / "docs-app"
-    DOCS_APP_SHA256SUMS = DOCS_STATIC / "SHA256SUMS"
+    DOCS_APP_SHA256SUMS = DOCS_APP / "SHA256SUMS"
 
 
 class U:

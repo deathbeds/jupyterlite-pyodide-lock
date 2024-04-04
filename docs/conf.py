@@ -61,8 +61,13 @@ autodoc_default_options = {
 autosectionlabel_prefix_document = True
 myst_heading_anchors = 3
 
+on_rtd = lambda pkg, proj: {pkg: (f"https://{proj}.readthedocs.io/en/stable", None)}
+
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
+    **on_rtd("jupyterlite_core", "jupyterlite"),
+    **on_rtd("traitlets", "traitlets"),
+    **on_rtd("jupyterlite_pyodide_kernel", "jupyterlite-pyodide-kernel"),
 }
 
 
