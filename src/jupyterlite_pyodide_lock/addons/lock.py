@@ -256,6 +256,8 @@ class PyodideLockAddon(_BaseAddon):
         return self.lockfile.exists()
 
     def patch_lite_config(self, jupyterlite_json: Path):
+        print(f"Patching {jupyterlite_json} for pyodide-lock", flush=True)
+
         settings = self.get_pyodide_settings(jupyterlite_json)
         rel = self.lockfile.relative_to(self.manager.output_dir).as_posix()
         lock_hash = sha256(self.lockfile.read_bytes()).hexdigest()
@@ -275,6 +277,7 @@ class PyodideLockAddon(_BaseAddon):
         )
 
         self.set_pyodide_settings(jupyterlite_json, settings)
+        print(f"Patched {jupyterlite_json} for pyodide-lock", flush=True)
 
     # derived properties
     @property

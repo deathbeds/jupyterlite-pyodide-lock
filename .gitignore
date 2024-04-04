@@ -1,5 +1,6 @@
 __pycache__/
 .*_cache/
+.ipynb_checkpoints/
 .venv/
 *.doit.*
 build/

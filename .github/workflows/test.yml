@@ -96,8 +96,8 @@ jobs:
         with:
           environment-file: .github/environment-test.yml
           miniforge-variant: Mambaforge
+          python-version: "${{ matrix.python-version }}.*"
           use-mamba: true
-          python-version: ${{ matrix.python-version }}.*
 
       - name: download (dist)
         uses: actions/download-artifact@v4
@@ -138,3 +138,52 @@ jobs:
       - name: Rename uncached conda packages
         shell: bash
         run: mv "${CONDA_PKGS_DIR}" "${CONDA_PKGS_DIR}_do_not_cache"
+
+  docs:
+    name: docs (${{ matrix.os }} ${{ matrix.python-version }})
+    needs: [build]
+    runs-on: ${{ matrix.os }}-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu"]
+        python-version: ["3.12"]
+    steps:
+      - name: configure line endings
+        run: |
+          git config --global core.autocrlf false
+
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: install (conda)
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          environment-file: docs/environment-docs.yml
+          miniforge-variant: Mambaforge
+          use-mamba: true
+
+      - name: download (dist)
+        uses: actions/download-artifact@v4
+        with:
+          name: jlpl-${{ github.run_number }}-dist
+          path: ./dist
+
+      - name: dev
+        run: doit dev
+
+      - name: app
+        run: doit docs:app
+
+      - name: html
+        run: doit docs:html
+
+      - name: upload (docs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: |-
+            jlpl-docs-${{ github.run_number }}
+          path: ./build/reports

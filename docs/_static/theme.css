@@ -1,0 +1,37 @@
+:root {
+  --jlpl-header-height: 64px;
+}
+
+/** pst, bs, etc. overrides */
+.bd-header__inner {
+  max-height: var(--jlpl-header-height) !important;
+}
+
+/** theme customizations */
+.jlpl-demo {
+  position: fixed;
+  top: var(--jlpl-header-height);
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: row;
+}
+.jlpl-demo iframe {
+  flex: 1;
+}
+
+.jlpl-hero {
+  font-size: 150%;
+  border: solid 0.125em var(--pst-color-primary);
+  padding: 1em;
+  margin: 1em;
+  border-radius: 1.5em;
+  text-align: center;
+}
+
+.jlpl-hero p {
+  margin: 0;
+  padding: 0;
+}
