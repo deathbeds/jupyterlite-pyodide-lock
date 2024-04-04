@@ -166,6 +166,12 @@ jobs:
           miniforge-variant: Mambaforge
           use-mamba: true
 
+      - name: download (dist)
+        uses: actions/download-artifact@v4
+        with:
+          name: jlpl-${{ github.run_number }}-dist
+          path: ./dist
+
       - name: dev
         run: doit dev
 

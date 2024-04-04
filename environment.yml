@@ -10,6 +10,8 @@ dependencies:
   # build
   - pip
   - doit
+  - python-build
+  - flit-core >=3.9,<4
   # run
   - jupyterlite-pyodide-kernel >=0.3.1,<0.4.0
   - jupyterlite-core >=0.3.0,<0.4.0
