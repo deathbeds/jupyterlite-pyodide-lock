@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from jupyterlite_pyodide_kernel.constants import PYODIDE_VERSION
+from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK, PYODIDE_VERSION
 from traitlets import Dict, Instance, Int, List, Unicode, default
 from traitlets.config import LoggingConfigurable
 
@@ -15,10 +15,10 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 class BaseLocker(LoggingConfigurable):
-    """Common traits and methods for `pyodide-lock.json` resolving strategies."""
+    """Common traits and methods for 'pyodide-lock.json' resolving strategies."""
 
     # configurables
-    extra_micropip_args = Dict(help="options for `micropip.install`").tag(config=True)
+    extra_micropip_args = Dict(help="options for 'micropip.install'").tag(config=True)
     pyodide_cdn_url = Unicode(
         f"https://cdn.jsdelivr.net/pyodide/v{PYODIDE_VERSION}/full",
         help="remote URL for the version of a full pyodide distribution",
@@ -47,7 +47,7 @@ class BaseLocker(LoggingConfigurable):
 
     # API methods
     def resolve_sync(self) -> bool | None:
-        """A synchronous facade for doing async solves, called by `PyodideLockAddon`.
+        """A synchronous facade for doing async solves, called by ``PyodideLockAddon``.
 
         If a locker is entirely synchronous, it can overload this.
         """
@@ -72,7 +72,7 @@ class BaseLocker(LoggingConfigurable):
 
         An async locker should overload this.
         """
-        msg = f"{self} cannot solve a `pyodide-lock.json`."
+        msg = f"{self} cannot solve a ``{PYODIDE_LOCK}``."
         raise NotImplementedError(msg)
 
     @default("timeout")

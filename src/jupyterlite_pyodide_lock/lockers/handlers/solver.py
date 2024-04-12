@@ -25,5 +25,5 @@ class SolverHTML(RequestHandler):
 
     async def get(self, *args, **kwargs):
         rendered = self.template.generate(**self.context)
-        self.log.debug("Serving HTML\n%s", rendered)
+        self.log.debug("[tornado] lock HTML\n%s", rendered)
         await self.finish(rendered)

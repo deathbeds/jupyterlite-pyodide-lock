@@ -1,6 +1,6 @@
-"""test configuration and fixtures for ``jupyterlite-pyodide-lock``"""
+"""test configuration and fixtures for ``jupyterlite-pyodide-lock-webdriver``"""
 
-#### the below is copied to ``contrib`` packages
+#### the below is copied from ``jupyterlite-pyodide-lock``'s ``conftest.py``
 ### shared fixtures ###
 
 import json
@@ -97,7 +97,7 @@ def fetch(url: str, dest: Path):
 
 
 ### shared fixtures ###
-#### the above is copied to ``contrib`` packages
+#### the above is copied from ``jupyterlite-pyodide-lock``'s ``conftest.py``
 
 
 @fixture()
@@ -106,8 +106,7 @@ def a_lite_config(a_lite_dir: Path) -> Path:
     conf.write_text(
         json.dumps(
             {
-                "PyodideLockAddon": {"enabled": True},
-                "BrowserLocker": {"temp_profile": True},
+                "PyodideLockAddon": {"enabled": True, "locker": "webdriver"},
             },
             **JSON_FMT,
         ),

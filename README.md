@@ -4,15 +4,17 @@
 
 ## Installing
 
-```
-pip install jupyterlite-pyodide-lock
-```
-
-or mamba/conda:
-
-```bash
-mamba install -c conda-forge jupyterlite-pyodide-lock
-```
+> This package is not yet released. See `CONTRIBUTING.md` for development.
+>
+> ```
+> pip install jupyterlite-pyodide-lock
+> ```
+>
+> or mamba/conda:
+>
+> ```bash
+> mamba install -c conda-forge jupyterlite-pyodide-lock
+> ```
 
 ## Why Use This?
 

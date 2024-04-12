@@ -34,7 +34,7 @@ class CachingRemoteFiles(ExtraMimeFiles):
     async def cache_file(self, path: str, cache_path: Path):
         """Get the file, and rewrite it."""
         url = f"{self.remote}/{path}"
-        self.log.debug("fetching:    %s", url)
+        self.log.debug("[cache] fetching:    %s", url)
         res = await self.client.fetch(url)
         cache_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -42,13 +42,13 @@ class CachingRemoteFiles(ExtraMimeFiles):
 
         for url_pattern, replacements in self.rewrites.items():
             if re.search(url_pattern, path) is None:  # pragma: no cover
-                self.log.debug("%s is not %s", url, url_pattern)
+                self.log.debug("[cache] %s is not %s", url, url_pattern)
                 continue
             for marker, replacement in replacements:
                 if marker not in body:  # pragma: no cover
-                    self.log.debug("%s does not contain %s", url, marker)
+                    self.log.debug("[cache] %s does not contain %s", url, marker)
                 else:
-                    self.log.debug("found:     %s contains %s", url, marker)
+                    self.log.debug("cache] %s contains %s", url, marker)
                     body = body.replace(marker, replacement)
 
         cache_path.write_bytes(body)

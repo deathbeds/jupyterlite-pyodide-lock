@@ -1,23 +1,16 @@
-# docs environment
+# web browser intergration test environment
 channels:
   - conda-forge
   - nodefaults
 dependencies:
+  ### environment-test-browser.yml ###
+  - firefox
+  - geckodriver
+  ### environment-test-browser.yml ###
+
   ### environment-test-webdriver.yml ###
   - selenium >=4.19.0,<4.20
   ### environment-test-webdriver.yml ###
-
-  ### environment-docs.yml ###
-  # docs
-  - myst-nb
-  - pydata-sphinx-theme
-  - sphinx
-  - sphinx-autodoc-typehints
-  - sphinx-copybutton
-  # demo
-  - jupyterlab >=4.1,<4.2
-  - ipywidgets >=8.1,<8.2
-  ### environment-docs.yml ###
 
   ### environment-test.yml ###
   # build

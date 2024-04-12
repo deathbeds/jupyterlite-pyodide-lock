@@ -5,6 +5,8 @@ channels:
 dependencies:
   # lint
   - ruff >=0.3.0
+  - taplo >=0.9.1
+  - tomli-w
 
   ### environment-test.yml ###
   # build
@@ -24,6 +26,15 @@ dependencies:
   - pytest-cov
   - pytest-html
   ### environment-test.yml ###
+
+  ### environment-test-webdriver.yml ###
+  - selenium >=4.19.0,<4.20
+  ### environment-test-webdriver.yml ###
+
+  ### environment-test-browser.yml ###
+  - firefox
+  - geckodriver
+  ### environment-test-browser.yml ###
 
   ### environment-docs.yml ###
   # docs
