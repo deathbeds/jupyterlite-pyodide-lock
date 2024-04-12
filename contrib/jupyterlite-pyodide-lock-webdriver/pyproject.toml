@@ -5,9 +5,9 @@ requires = [
 build-backend = "flit_core.buildapi"
 
 [project]
-name = "jupyterlite-pyodide-lock"
+name = "jupyterlite-pyodide-lock-webdriver"
 version = "0.1.0a0"
-description = "Create pre-solved environments for jupyterlite-pyodide-kernel with pyodide-lock"
+description = "A WebDriver strategy for jupyterlite-pyodide-kernel-lock"
 authors = [
   {name = "JupyterLite Contributors"},
 ]
@@ -25,10 +25,8 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-  "jupyterlite-core >=0.3.0,<0.4.0",
-  "jupyterlite-pyodide-kernel >=0.3.1,<0.4.0 ; platform_machine != \"wasm32\"",
-  "pyodide-lock[wheel] >=0.1.0a4,<0.1.0a6",
-  "tornado >=6.1.0 ; platform_machine != \"wasm32\"",
+  "jupyterlite-pyodide-lock ==0.1.0a0",
+  "selenium >=4.19,<4.20",
 ]
 
 [project.license]
@@ -40,11 +38,8 @@ Changelog = "https://github.com/bollwyvl/jupyterlite-pyodide-lock/blob/main/CHAN
 PyPI = "https://pypi.org/project/jupyterlite-pyodide-lock"
 Source = "https://github.com/bollwyvl/jupyterlite-pyodide-lock/tree/main"
 
-[project.entry-points."jupyterlite.addon.v0"]
-pyodide-lock = "jupyterlite_pyodide_lock.addons.lock:PyodideLockAddon"
-
 [project.entry-points."jupyterlite_pyodide_lock.locker.v0"]
-browser = "jupyterlite_pyodide_lock.lockers.browser:BrowserLocker"
+webdriver = "jupyterlite_pyodide_lock_webdriver.locker:WebDriverLocker"
 
 [project.optional-dependencies]
 test = [
@@ -69,7 +64,7 @@ addopts = [
   "--cov-report=html:build/reports/htmlcov",
   "--cov-report=term-missing:skip-covered",
   "--color=yes",
-  "--cov=jupyterlite_pyodide_lock",
+  "--cov=jupyterlite_pyodide_lock_webdriver",
   "--cov-branch",
   "--cov-context=test",
   "--no-cov-on-fail",
@@ -88,89 +83,3 @@ disable_warnings = [
 
 [tool.coverage.html]
 show_contexts = true
-
-[tool.doit]
-backend = "sqlite3"
-verbosity = 2
-par_type = "thread"
-dodoFile = "_scripts/dodo.py"
-
-[tool.ruff]
-target-version = "py310"
-line-length = 88
-extend-include = [
-  "*.ipynb",
-]
-cache-dir = "build/.cache/ruff"
-
-[tool.ruff.lint]
-select = [
-  "A",
-  "ANN",
-  "ARG",
-  "B",
-  "BLE",
-  "C4",
-  "C90",
-  "COM",
-  "D",
-  "DJ",
-  "DTZ",
-  "E",
-  "EM",
-  "ERA",
-  "EXE",
-  "F",
-  "G",
-  "I",
-  "ICN",
-  "INP",
-  "ISC",
-  "N",
-  "NPY",
-  "PD",
-  "PGH",
-  "PIE",
-  "PL",
-  "PT",
-  "PTH",
-  "PYI",
-  "Q",
-  "RET",
-  "RSE",
-  "RUF",
-  "S",
-  "SIM",
-  "SLF",
-  "T10",
-  "T20",
-  "TCH",
-  "TID",
-  "UP",
-  "W",
-  "YTT",
-]
-ignore = [
-  "D211",
-  "D203",
-  "D213",
-  "ANN101",
-  "ANN401",
-  "PGH003",
-  "RUF015",
-  "COM812",
-  "ISC001",
-]
-
-[tool.ruff.lint.per-file-ignores]
-"_scripts/dodo.py" = [
-  "A001",
-  "C408",
-  "INP001",
-  "N812",
-  "RUF012",
-  "RUF017",
-  "T201",
-  "UP006",
-  "S603",
-]

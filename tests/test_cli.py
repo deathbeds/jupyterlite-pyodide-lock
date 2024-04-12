@@ -1,4 +1,4 @@
-"""Tests of the `jupyter-lite` CLI with `jupyterlite-pyodide-lock`."""
+"""Tests of the ``jupyter-lite`` CLI with ``jupyterlite-pyodide-lock``."""
 
 import difflib
 import json
@@ -14,7 +14,6 @@ from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK
 MESSAGES = {
     "not-a-locker": (
         "The 'locker' trait of a PyodideLockAddon instance expected any of"
-        " ['browser'], not the str 'not-a-locker'."
     ),
 }
 

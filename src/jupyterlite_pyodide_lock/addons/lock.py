@@ -1,4 +1,4 @@
-"""a JupyterLite addon for patching pyodide-lock.json files"""
+"""a JupyterLite addon for patching ``pyodide-lock.json`` files"""
 
 import json
 import re
@@ -41,11 +41,11 @@ LOCKERS = get_locker_entry_points()
 
 
 class PyodideLockAddon(_BaseAddon):
-    """Patches a `pyodide` distribution to include `pyodide-kernel` and custom packages.
+    """Patches a ``pyodide`` distribution to include ``pyodide-kernel`` and custom packages.
 
     Can handle PEP508 specs, wheels, and their dependencies.
 
-    Special `pyodide`-specific `.zip` packages are _not_ supported.
+    Special ``pyodide``-specific ``.zip`` packages are `not` supported.
     """
 
     __all__ = ["pre_status", "status", "post_init", "post_build"]
@@ -75,12 +75,12 @@ class PyodideLockAddon(_BaseAddon):
 
     pyodide_url: str = Unicode(
         default_value=PYODIDE_CORE_URL,
-        help="a URL, folder, or path to a pyodide distribution, patched into `PyodideAddon.pyodide_url`",
+        help="a URL, folder, or path to a pyodide distribution, patched into ``PyodideAddon.pyodide_url``",
     )
 
     pyodide_cdn_url: str = Unicode(
         default_value=PYODIDE_CDN_URL,
-        help="the URL prefix for all packages not managed by `pyodide-lock`",
+        help="the URL prefix for all packages not managed by ``pyodide-lock``",
     )
 
     specs: tuple[str] = TypedTuple(
@@ -126,7 +126,7 @@ class PyodideLockAddon(_BaseAddon):
     # API methods
 
     def pre_status(self, manager):
-        """Patch configuration of `PyodideAddon` if needed."""
+        """Patch configuration of ``PyodideAddon`` if needed."""
         if not self.enabled or self.pyodide_addon.pyodide_url:
             return
 
@@ -176,10 +176,10 @@ class PyodideLockAddon(_BaseAddon):
             )
 
     def post_build(self, manager):
-        """Collect all the packages and generate a `pyodide-lock.json` file
+        """Collect all the packages and generate a ``pyodide-lock.json`` file
 
         This includes those provided by federated labextensions (such as
-        `jupyterlite-pyodide-kernel` iteself), copied during `build:federated_extensions`.
+        ``jupyterlite-pyodide-kernel`` iteself), copied during ``build:federated_extensions``.
         """
         if not self.enabled:  # pragma: no cover
             return
@@ -295,7 +295,7 @@ class PyodideLockAddon(_BaseAddon):
 
     @property
     def lock_output_dir(self) -> Path:
-        """The folder where the `pyodide-lock.json` and packages will be stored."""
+        """The folder where the ``pyodide-lock.json`` and packages will be stored."""
         return self.manager.output_dir / "static" / PYODIDE_LOCK_STEM
 
     @property
@@ -336,7 +336,7 @@ class PyodideLockAddon(_BaseAddon):
             configurable = ep.value.split(":")[-1]
             return self.config.get(configurable)
         except KeyError as err:  # pragma: no cover
-            self.log.warning("Failed to check %s locker config: %s", self.locker, err)
+            self.log.warning("[lock] failed to check %s locker config: %s", self.locker, err)
             return None
 
     # task generators
@@ -365,7 +365,7 @@ class PyodideLockAddon(_BaseAddon):
                 suffix = local_path.suffix
 
                 if suffix not in [".whl"]:  # pragma: no cover
-                    self.log.warning("%s is not a wheel, ignoring", local_path)
+                    self.log.warning("[lock] %s is not a wheel, ignoring", local_path)
                 else:
                     yield from self.copy_wheel(local_path)
 

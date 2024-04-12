@@ -12,7 +12,7 @@ from ..constants import LOCKER_ENTRYPOINT, NAME
 def get_locker_entry_points(force=None):
     """Discover (and cache) modern entrypoints as a ``dict`` with sorted keys.
 
-    Pass some noise (like `date.date`) to the ``force`` argument to reload.
+    Pass some noise (like ``date.date``) to the ``force`` argument to reload.
     """
     all_entry_points = {}
     for entry_point in entry_points(group=LOCKER_ENTRYPOINT):

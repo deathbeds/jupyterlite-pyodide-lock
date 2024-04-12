@@ -5,6 +5,7 @@
   },
   "PyodideLockAddon": {
     "enabled": true,
+    "locker": "browser",
     "specs": [
       "ipywidgets >=8.1,<8.2"
     ]
@@ -12,5 +13,9 @@
   "BrowserLocker": {
     "private_mode": true,
     "temp_profile": true
+  },
+  "WebDriverLocker": {
+    "webdriver_log_path": "../build/geckodriver.log",
+    "webdriver_service_args": ["--log", "trace"]
   }
 }

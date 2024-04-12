@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -61,10 +62,10 @@ def task_dev() -> TTaskGenerator:
 
         if E.CI:
             wheel = [dist for dist in B.DIST[ppt] if dist.name.endswith(".whl")][0]
-            install = [*C.PIP, "install", "--no-deps", wheel]
+            install = [*C.PIP_INSTALL, wheel]
             file_dep = [wheel]
         else:
-            install = [*C.PIP_E, "."]
+            install = [*C.PIP_INSTALL, "-e", "."]
             file_dep = [ppt, B.ENV_DEV_HISTORY]
         pip_tasks += [f"dev:{pkg.name}"]
         yield dict(name=pkg.name, actions=[U.do(install, cwd=pkg)], file_dep=file_dep)
@@ -74,19 +75,47 @@ def task_dev() -> TTaskGenerator:
 
 def task_fix() -> TTaskGenerator:
     """Fix code style."""
-    yield dict(
-        name="env:dev",
-        file_dep=[P.ENV_TEST, P.ENV_DOCS],
-        targets=[P.ENV_DEV],
-        actions=[(U.replace_between, [P.ENV_DEV, [P.ENV_TEST, P.ENV_DOCS]])],
-    )
+    core_name = D.PPT[P.PPT]["project"]["name"]
+    core_version = D.PPT[P.PPT]["project"]["version"]
+    for ppt in P.PPT_CONTRIB:
+        yield dict(
+            name=f"""version:{D.PPT[ppt]["project"]["name"]}""",
+            file_dep=[P.PPT, ppt],
+            actions=[
+                (
+                    U.replace_in_toml,
+                    [
+                        ppt,
+                        ["project", "dependencies"],
+                        core_name,
+                        f"""{core_name} =={core_version}""",
+                    ],
+                )
+            ],
+        )
 
-    yield dict(
-        name="env:docs",
-        file_dep=[P.ENV_TEST],
-        targets=[P.ENV_DOCS],
-        actions=[(U.replace_between, [P.ENV_DOCS, [P.ENV_TEST]])],
-    )
+    for dest, [srcs, src_names] in D.COPY_PASTA.items():
+        yield dict(
+            name=f"""copy-pasta:{dest.relative_to(P.ROOT)}""",
+            file_dep=srcs,
+            targets=[dest],
+            actions=[(U.replace_between, [dest, srcs, src_names])],
+        )
+
+    for ppt, ppt_data in D.PPT.items():
+        yield dict(
+            name=f"""taplo:{ppt_data["project"]["name"]}""",
+            file_dep=[ppt, B.ENV_DEV_HISTORY],
+            actions=[(U.normalize_toml, [ppt]), [*C.TAPLO_FORMAT, ppt]],
+        )
+
+    for env, stack in P.ENV_STACKS.items():
+        yield dict(
+            name=f"""env:{env.stem}""",
+            file_dep=stack,
+            targets=[env],
+            actions=[(U.replace_between, [env, stack])],
+        )
 
     yield dict(
         name="ruff",
@@ -174,18 +203,19 @@ class E:
 class C:
     """Constants."""
 
-    PY_NAME = "jupyterlite_pyodide_lock"
+    PPT = "pyproject.toml"
+    CONFTEST_PY = "tests/conftest.py"
     PY = [sys.executable]
     PYM = [*PY, "-m"]
     PIP = [*PYM, "pip"]
-    PIP_E = [
+    PIP_INSTALL = [
         *PIP,
         "install",
         "-vv",
         "--no-deps",
         "--ignore-installed",
         "--no-build-isolation",
-        "-e",
+        "--disable-pip-version-check",
     ]
     SPHINX = ["sphinx-build", "-W", "--color"]
     COV = ["coverage"]
@@ -196,6 +226,14 @@ class C:
     COV_COMBINE = [*COV, "combine"]
     DIST_EXT = [".tar.gz", "-py3-none-any.whl"]
     UTF8 = dict(encoding="utf-8")
+    TAPLO = ["taplo"]
+    TAPLO_OPTS = [
+        "--option=array_auto_collapse=false",
+        "--option=array_auto_expand=true",
+        "--option=compact_inline_tables=true",
+        "--option=column_width=88",
+    ]
+    TAPLO_FORMAT = [*TAPLO, "fmt", *TAPLO_OPTS]
 
 
 class P:
@@ -207,7 +245,8 @@ class P:
 
     # top-level
     ROOT = SCRIPTS.parent
-    PPT = ROOT / "pyproject.toml"
+    PPT = ROOT / C.PPT
+    CONTRIB = ROOT / "contrib"
     LICENSE = ROOT / "LICENSE"
     README = ROOT / "README.md"
     ENV_DEV = ROOT / "environment.yml"
@@ -215,10 +254,13 @@ class P:
     # ci
     CI = ROOT / ".github"
     ENV_TEST = CI / "environment-test.yml"
+    ENV_TEST_WD = CI / "environment-test-webdriver.yml"
+    ENV_TEST_BROWSER = CI / "environment-test-browser.yml"
 
     # per-package
+    PPT_CONTRIB = [*CONTRIB.glob(f"*/{C.PPT}")]
     PY = ROOT / "py"
-    PY_SRC = {ppt: [*(ppt.parent / "src").rglob("*.py")] for ppt in [PPT]}
+    PY_SRC = {ppt: [*(ppt.parent / "src").rglob("*.py")] for ppt in [PPT, *PPT_CONTRIB]}
     PY_TEST = {ppt: [*(ppt.parent / "tests").rglob("*.py")] for ppt in PY_SRC}
     PY_SRC_ALL = sum(PY_SRC.values(), [])
     PY_TEST_ALL = sum(PY_TEST.values(), [])
@@ -239,12 +281,23 @@ class P:
     PY_ALL = [*PY_DOCS, *PY_SCRIPTS, *PY_SRC_ALL, *PY_TEST_ALL]
     PPT_ALL = [PPT, *PY_SRC]
 
+    # envs
+    ENV_STACKS = {
+        ENV_DEV: [ENV_DOCS, ENV_TEST, ENV_TEST_WD, ENV_TEST_BROWSER],
+        ENV_DOCS: [ENV_TEST, ENV_TEST_WD],
+        ENV_TEST_WD: [ENV_TEST],
+    }
+
 
 class D:
     """Data."""
 
     PPT = {ppt: tomllib.loads(ppt.read_text(**C.UTF8)) for ppt in P.PY_SRC}
     VERSION = {ppt: pptd["project"]["version"] for ppt, pptd in PPT.items()}
+    COPY_PASTA = {
+        ppt.parent / C.CONFTEST_PY: [[P.ROOT / C.CONFTEST_PY], ["shared fixtures"]]
+        for ppt in P.PPT_CONTRIB
+    }
 
 
 class B:
@@ -291,15 +344,70 @@ class U:
         return CmdAction(cmd, shell=False, cwd=str(cwd) if cwd else None, **kwargs)
 
     @staticmethod
-    def replace_between(dest: Path, srcs: Path) -> None:
+    def replace_between(
+        dest: Path, srcs: Path, src_names: list[str] | None = None
+    ) -> bool:
         """Replace text between matching markers in files."""
-        for src in srcs:
+        src_names = src_names or [src.name for src in srcs]
+        for src, src_name in zip(srcs, src_names, strict=False):
+            marker = f"### {src_name} ###"
             src_text = src.read_text(**C.UTF8)
             dest_text = dest.read_text(**C.UTF8)
-            marker = f"### {src.name} ###"
+            if marker not in dest_text:
+                print(f"'{marker}' not in {dest}")
+                return False
+            if marker not in src_text:
+                print(f"'{marker}' not in {src}")
+                return False
             src_chunks = src_text.split(marker)
             dest_chunks = dest_text.split(marker)
             dest_text = "".join(
                 [dest_chunks[0], marker, src_chunks[1], marker, dest_chunks[2]]
             )
             dest.write_text(dest_text, encoding="utf-8")
+        return True
+
+    @staticmethod
+    def replace_in_toml(
+        toml_path: Path, attr_path: list[str], pattern: str, new_value: str
+    ) -> bool:
+        """Replace a TOML list item by pattern."""
+        import tomli_w
+
+        prefix = f"""{"/".join(attr_path)}[{new_value}]"""
+        rel = toml_path.relative_to(P.ROOT)
+
+        root = tomllib.loads(toml_path.read_text(**C.UTF8))
+        current = root
+        for attr in attr_path:
+            current = current[attr]
+
+        for i, old_value in enumerate(current):
+            if re.findall(pattern, old_value):
+                if old_value != new_value:
+                    print(f"   ... {prefix} changed (was '{old_value}') {rel}")
+                    current[i] = new_value
+                    toml_path.write_text(tomli_w.dumps(root))
+                    return True
+
+                print(f"""   ... {prefix} already in {rel}""")
+                return True
+
+        print(f"   !!!'{pattern}' not in {rel}")
+        return False
+
+    @staticmethod
+    def normalize_toml(toml_path: Path) -> bool:
+        """Round trip a TOML file."""
+        import tomli_w
+
+        rel = toml_path.relative_to(P.ROOT)
+        old_text = toml_path.read_text(**C.UTF8).strip()
+        new_text = tomli_w.dumps(tomllib.loads(old_text)).strip()
+        if old_text == new_text:
+            print(f"   ... ok TOML {rel}")
+            return True
+
+        print(f"   ... writing TOML {rel}")
+        toml_path.write_text(new_text + "\n")
+        return True

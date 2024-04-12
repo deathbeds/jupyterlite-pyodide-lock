@@ -1,4 +1,5 @@
-import json
+"""A handler that accepts log messages from the browser."""
+
 from typing import TYPE_CHECKING
 
 from tornado.web import RequestHandler
@@ -16,4 +17,4 @@ class Log(RequestHandler):
 
     def post(self, pipe):
         """Accept a log message as the POST body."""
-        self.log.debug("pyodide %s: %s", pipe, json.loads(self.request.body))
+        self.log.debug("[pyodidejs] [%s] %s", pipe, self.request.body.decode("utf-8"))

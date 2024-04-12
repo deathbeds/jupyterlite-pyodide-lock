@@ -38,7 +38,7 @@ def make_handlers(locker: "BrowserLocker"):
         # remote proxies
         make_proxy(locker, "pythonhosted", locker.pythonhosted_cdn_url),
         make_proxy(locker, "pypi", locker.pypi_api_url, **pypi_kwargs),
-        # fallback to `output_dir`
+        # fallback to ``output_dir``
         (r"^/(.*)$", ExtraMimeFiles, fallback_kwargs),
     )
 

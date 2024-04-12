@@ -26,8 +26,6 @@ jobs:
       matrix:
         os: [ubuntu]
         python-version: ["3.12"]
-    outputs:
-      wheel: ${{ steps.wheel.outputs.wheel }}
     steps:
       - uses: actions/checkout@v4
 
@@ -65,10 +63,6 @@ jobs:
         with:
           name: jlpl-${{ github.run_number }}-dist
           path: ./dist
-      - id: wheel
-        name: get wheel name
-        run: |
-          echo "wheel=$(ls dist/*.whl)" >> $GITHUB_OUTPUT
 
   test:
     name: test (${{ matrix.os }} ${{ matrix.python-version }})
@@ -94,7 +88,7 @@ jobs:
       - name: install (conda)
         uses: conda-incubator/setup-miniconda@v3
         with:
-          environment-file: .github/environment-test.yml
+          environment-file: .github/environment-test-webdriver.yml
           miniforge-variant: Mambaforge
           python-version: "${{ matrix.python-version }}.*"
           use-mamba: true
@@ -115,12 +109,24 @@ jobs:
         shell: cmd /C CALL {0}
         run: doit dev
 
-      - name: test (unix)
+      - name: test core (unix)
+        if: matrix.os != 'windows'
+        shell: bash -l {0}
+        run: doit test:pytest:jupyterlite-pyodide-lock
+
+      - name: test core (windows)
+        if: matrix.os == 'windows'
+        shell: cmd /C CALL {0}
+        env:
+          PYTEST_ADDOPTS: -x
+        run: doit test:pytest:jupyterlite-pyodide-lock
+
+      - name: test contrib (unix)
         if: matrix.os != 'windows'
         shell: bash -l {0}
         run: doit test
 
-      - name: test (windows)
+      - name: test contrib (windows)
         if: matrix.os == 'windows'
         shell: cmd /C CALL {0}
         env:
@@ -133,7 +139,9 @@ jobs:
         with:
           name: |-
             jlpl-${{ github.run_number }}-test-${{ matrix.os }}-${{matrix.python-version }}
-          path: ./build/reports
+          path: |
+            ./build/reports
+            ./contrib/*/build/reports
 
       - name: Rename uncached conda packages
         shell: bash

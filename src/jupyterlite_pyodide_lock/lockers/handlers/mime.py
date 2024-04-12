@@ -35,7 +35,7 @@ class ExtraMimeFiles(StaticFileHandler):
             break
 
         self.log.debug(
-            "serving %s as %s (of %s %s)",
+            "[tornado] serving %s as %s (of %s %s)",
             self.absolute_path,
             from_map or from_parent,
             from_parent,
