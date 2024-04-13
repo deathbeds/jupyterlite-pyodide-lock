@@ -1,5 +1,6 @@
 """Host a tornado web application to solve``pyodide-lock.json`` ."""
 
+import atexit
 import json
 import os
 import shutil
@@ -79,7 +80,9 @@ class TornadoLocker(BaseLocker):
     # runtime
     _context: dict[str, Any] = Dict()
     _web_app: "Application" = Instance("tornado.web.Application")
-    _http_server: "HTTPServer" = Instance("tornado.httpserver.HTTPServer")
+    _http_server: "HTTPServer" = Instance(
+        "tornado.httpserver.HTTPServer", allow_none=True
+    )
     _handlers: tuple[THandler, ...] = TypedTuple(Tuple(Unicode(), Type(), Dict()))
     _solve_halted: bool = Bool(False)
 
@@ -91,11 +94,13 @@ class TornadoLocker(BaseLocker):
 
         server = self._http_server
 
+        atexit.register(self.cleanup)
+
         try:
             server.listen(self.port, self.host)
             await self.fetch()
         finally:
-            server.stop()
+            self.cleanup()
 
         if not self.lockfile_cache.exists():
             self.log.error("No lockfile was created at %s", self.lockfile)
@@ -106,8 +111,14 @@ class TornadoLocker(BaseLocker):
 
         return True
 
-    async def cleanup(self) -> None:
+    def cleanup(self) -> None:
         """Handle any cleanup tasks, as needed by specific implementations."""
+        if self._http_server:
+            self.log.debug("[tornado] stopping http server")
+            self._http_server.stop()
+            self._http_server = None
+            return
+        self.log.debug("[tornado] already cleaned up")
 
     # derived properties
     @property
@@ -127,15 +138,20 @@ class TornadoLocker(BaseLocker):
 
     @property
     def lock_html_url(self):
+        """The as-served URL for the lock HTML page."""
         return f"{self.base_url}/{LOCK_HTML}"
 
     # helper functions
     def preflight(self):
-        """Prepare the cache"""
-        # references for actual wheel URLs in PyPI API responses are rewritten
-        # to include the random port on download
+        """Prepare the cache.
+
+        The PyPI cache is removed before each build, as the JSON cache is
+        invalidated by both references to the temporary ``files.pythonhosted.org``
+        proxy and a potential change to ``lock_date_epoch``.
+        """
         pypi_cache = self.cache_dir / "pypi"
         if pypi_cache.exists():
+            self.log.debug("[tornado] clearing pypi cache %s", pypi_cache)
             shutil.rmtree(pypi_cache)
 
         if self.lockfile_cache.exists():
@@ -194,13 +210,19 @@ class TornadoLocker(BaseLocker):
         lock_dir.mkdir(parents=True, exist_ok=True)
         root_path = self.parent.manager.output_dir.as_posix()
 
+        prune = {path.name: path for path in lock_dir.glob("*.whl")}
         for package in lock_json["packages"].values():
+            prune.pop(package["file_name"], None)
             self.fix_one_package(
                 root_path,
                 lock_dir,
                 package,
                 found.get(package["file_name"].split("/")[-1]),
             )
+
+        for filename, path in prune.items():
+            self.log.warning("[tornado] [fix] pruning unlocked %s", filename)
+            path.unlink()
 
         lockfile.write_text(json.dumps(lock_json, **JSON_FMT), **UTF8)
 

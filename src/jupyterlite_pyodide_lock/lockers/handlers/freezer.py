@@ -25,9 +25,11 @@ class MicropipFreeze(RequestHandler):
             lockfile = self.locker.lockfile_cache
             lockfile.parent.mkdir(parents=True, exist_ok=True)
             lockfile.write_text(json.dumps(lock_json, **JSON_FMT), **UTF8)
-            self.locker.log.info("Wrote 'micropip.freeze' output to %s", lockfile)
+            self.locker.log.info("[micropip] wrote 'freeze' output to %s", lockfile)
         else:
-            self.locker.log.error("Unexpected 'micropip.freeze' response %s", lock_json)
+            self.locker.log.error(
+                "[micropip] unexpected 'freeze' response %s", lock_json
+            )
 
         self.locker._solve_halted = True
 

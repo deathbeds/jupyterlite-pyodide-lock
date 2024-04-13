@@ -23,7 +23,10 @@
 {
   "PyodideLockAddon": {
     "enabled": true,
-    "locker": "webdriver"
+    "locker": "WebDriverLocker"
+  },
+  "WebDriverLocker": {
+    "browser": "firefox"
   }
 }
 ```

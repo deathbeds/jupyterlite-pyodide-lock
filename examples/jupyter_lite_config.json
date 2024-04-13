@@ -5,9 +5,9 @@
   },
   "PyodideLockAddon": {
     "enabled": true,
-    "locker": "browser",
+    "locker": "BrowserLocker",
     "specs": [
-      "ipywidgets >=8.1,<8.2"
+      "ipywidgets >=8.1.2,<8.2"
     ]
   },
   "BrowserLocker": {

@@ -39,7 +39,7 @@ PyPI = "https://pypi.org/project/jupyterlite-pyodide-lock"
 Source = "https://github.com/bollwyvl/jupyterlite-pyodide-lock/tree/main"
 
 [project.entry-points."jupyterlite_pyodide_lock.locker.v0"]
-webdriver = "jupyterlite_pyodide_lock_webdriver.locker:WebDriverLocker"
+WebDriverLocker = "jupyterlite_pyodide_lock_webdriver.locker:WebDriverLocker"
 
 [project.optional-dependencies]
 test = [
@@ -71,6 +71,7 @@ addopts = [
   "--cov-fail-under=100",
   "-Werror",
   "--tb=long",
+  "--durations=3",
   "-vv",
 ]
 

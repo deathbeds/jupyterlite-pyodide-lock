@@ -62,20 +62,25 @@ class BrowserLocker(TornadoLocker):
     _temp_profile_path: Path = Instance(Path, allow_none=True)
     _browser_process: subprocess.Popen = Instance(subprocess.Popen, allow_none=True)
 
-    async def cleanup(self) -> None:
+    def cleanup(self) -> None:
         proc, path = self._browser_process, self._temp_profile_path
+        self.log.debug("[browser] cleanup process: %s", proc)
+        self.log.debug("[browser] cleanup path: %s", path)
 
         if proc and proc.returncode is None:
-            self.log.info("Stopping browser")
+            self.log.info("[browser] stopping browser")
             proc.kill()
-            self._browser_process = None
+        self._browser_process = None
 
         if path and path.exists():  # pragma: no cover
-            self.log.info("Clearing temporary profile path")
+            self.log.info("[browser] clearing temporary profile path")
             shutil.rmtree(path, ignore_errors=True)
-            self._temp_profile_path = None
+        self._temp_profile_path = None
 
-        await super().cleanup()
+        self.log.debug("[browser] cleanup process: %s", proc)
+        self.log.debug("[browser] cleanup path: %s", path)
+
+        super().cleanup()
 
     async def fetch(self):
         args = [*self.browser_argv, self.lock_html_url]
@@ -97,7 +102,7 @@ class BrowserLocker(TornadoLocker):
 
                 await asyncio.sleep(1)
         finally:
-            await self.cleanup()
+            self.cleanup()
 
     # trait defaults
     @default("browser_argv")

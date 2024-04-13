@@ -1,8 +1,11 @@
 """a JupyterLite addon for patching ``pyodide-lock.json`` files"""
 
 import json
+import os
+import pprint
 import re
 import urllib.parse
+from datetime import datetime
 from hashlib import sha256
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -18,21 +21,25 @@ from jupyterlite_pyodide_kernel.constants import (
     PKG_JSON_WHEELDIR,
     PYODIDE_LOCK,
 )
-from traitlets import Bool, Enum, Unicode
+from traitlets import Bool, CInt, Enum, Unicode, default
 
 from .. import __version__
 from ..constants import (
     LOAD_PYODIDE_OPTIONS,
+    LOCK_DATE_EPOCH,
     OPTION_LOCK_FILE_URL,
     OPTION_PACKAGES,
     PYODIDE_ADDON,
     PYODIDE_CDN_URL,
     PYODIDE_CORE_URL,
     PYODIDE_LOCK_STEM,
+    WAREHOUSE_UPLOAD_FORMAT,
 )
 from ..lockers import get_locker_entry_points
 
 if TYPE_CHECKING:  # pragma: no cover
+    from logging import Logger
+
     from jupyterlite_pyodide_kernel.addons.pyodide import PyodideAddon
 
     from ..lockers._base import BaseLocker
@@ -50,26 +57,33 @@ class PyodideLockAddon(_BaseAddon):
 
     __all__ = ["pre_status", "status", "post_init", "post_build"]
 
+    log: "Logger"
+
     # cli
     flags = {
         "pyodide-lock": (
             {"PyodideLockAddon": {"enabled": True}},
-            "enable pyodide-lock features",
+            "enable 'pyodide-lock' features",
         ),
+    }
+
+    aliases = {
+        "pyodide-lock-date-epoch": "PyodideLockAddon.lock_date_epoch",
     }
 
     # traits
     enabled: bool = Bool(
         default_value=False,
-        help="whether experimental pyodide-lock integration is enabled",
+        help="whether experimental 'pyodide-lock' integration is enabled",
     ).tag(config=True)
 
     locker = Enum(
-        default_value="browser",
+        default_value="BrowserLocker",
         values=[*LOCKERS.keys()],
         help=(
-            "approach to use for running pyodide and solving the lock: "
-            "these will have further configuration options"
+            "approach to use for running 'pyodide' and solving the lock: "
+            "these will have further configuration options under the same-named"
+            "configurable"
         ),
     ).tag(config=True)
 
@@ -123,6 +137,15 @@ class PyodideLockAddon(_BaseAddon):
         help="packages names from the lockfile to ensure before attempting a lock",
     ).tag(config=True)
 
+    lock_date_epoch: int = CInt(
+        allow_none=True,
+        min=1,
+        help=(
+            "Trigger reproducible locks, clamping available "
+            "package timestamps to this value"
+        ),
+    ).tag(config=True)
+
     # API methods
 
     def pre_status(self, manager):
@@ -147,7 +170,15 @@ class PyodideLockAddon(_BaseAddon):
                 f"""version:      {__version__}""",
                 f"""enabled:      {self.enabled}""",
                 f"""all lockers:  {", ".join(LOCKERS.keys())}""",
+                f"""lock date:    {self.lock_date_epoch}""",
             ]
+
+            if self.lock_date_epoch:
+                lde_ts = datetime.fromtimestamp(self.lock_date_epoch)
+                lines += [
+                    """              """
+                    f"""(iso8601: {lde_ts.strftime(WAREHOUSE_UPLOAD_FORMAT)})""",
+                ]
 
             if self.enabled:
                 lines += [
@@ -208,7 +239,12 @@ class PyodideLockAddon(_BaseAddon):
             "lockfile": self.lockfile,
         }
 
-        config_str = f"""{args} {self.locker} {self.locker_config}"""
+        config_str = f"""
+            lock date:     {self.lock_date_epoch}
+            locker:        {self.locker}
+            locker_config: {self.locker_config}
+            args:          {pprint.pformat(args)}
+        """
 
         yield self.task(
             name="lock",
@@ -219,14 +255,14 @@ class PyodideLockAddon(_BaseAddon):
                 *lock_dep_wheels,
                 self.pyodide_addon.output_pyodide / PYODIDE_LOCK,
             ],
-            targets=[args["lockfile"]],
+            targets=[self.lockfile],
         )
 
         jupyterlite_json = self.manager.output_dir / JUPYTERLITE_JSON
 
         yield self.task(
             name="patch",
-            actions=[(self.patch_lite_config, [jupyterlite_json])],
+            actions=[(self.patch_config, [jupyterlite_json])],
             file_dep=[jupyterlite_json, self.lockfile],
         )
 
@@ -241,7 +277,7 @@ class PyodideLockAddon(_BaseAddon):
         try:
             locker_class = locker_ep.load()
         except Exception as err:  # pragma: no cover
-            self.log.error("Failed to load locker %s: %s", self.locker, err)
+            self.log.error("[lock] failed to load locker %s: %s", self.locker, err)
             return False
 
         # build
@@ -252,11 +288,13 @@ class PyodideLockAddon(_BaseAddon):
             lockfile=lockfile,
         )
 
+        if self.lockfile.exists():
+            self.lockfile.unlink()
         locker.resolve_sync()
         return self.lockfile.exists()
 
-    def patch_lite_config(self, jupyterlite_json: Path):
-        print(f"Patching {jupyterlite_json} for pyodide-lock", flush=True)
+    def patch_config(self, jupyterlite_json: Path):
+        self.log.debug("[lock] patching %s for pyodide-lock", jupyterlite_json)
 
         settings = self.get_pyodide_settings(jupyterlite_json)
         rel = self.lockfile.relative_to(self.manager.output_dir).as_posix()
@@ -277,7 +315,14 @@ class PyodideLockAddon(_BaseAddon):
         )
 
         self.set_pyodide_settings(jupyterlite_json, settings)
-        print(f"Patched {jupyterlite_json} for pyodide-lock", flush=True)
+        self.log.info("[lock] patched %s for pyodide-lock", jupyterlite_json)
+
+    # traitlets
+    @default("lock_date_epoch")
+    def _default_lock_date_epoch(self) -> int | None:
+        if LOCK_DATE_EPOCH not in os.environ:
+            return None
+        return int(json.loads(os.environ[LOCK_DATE_EPOCH]))
 
     # derived properties
     @property
@@ -336,7 +381,9 @@ class PyodideLockAddon(_BaseAddon):
             configurable = ep.value.split(":")[-1]
             return self.config.get(configurable)
         except KeyError as err:  # pragma: no cover
-            self.log.warning("[lock] failed to check %s locker config: %s", self.locker, err)
+            self.log.warning(
+                "[lock] failed to check %s locker config: %s", self.locker, err
+            )
             return None
 
     # task generators
@@ -386,7 +433,6 @@ class PyodideLockAddon(_BaseAddon):
 
     def get_packages(self) -> dict[str, Path]:
         package_dirs = [
-            self.lock_output_dir,
             *self.federated_wheel_dirs,
         ]
 

@@ -35,7 +35,11 @@ class WebDriverLocker(TornadoLocker):
     _webdriver: "WebDriver" = Instance(
         "selenium.webdriver.remote.webdriver.WebDriver", allow_none=True
     )
-    _webdriver_task = Instance(asyncio.Task)
+    _webdriver_task = Instance(
+        asyncio.Task,
+        help="a handle for the webdriver task to avoid gc",
+        allow_none=True,
+    )
 
     async def fetch(self) -> None:
         webdriver = self._webdriver
@@ -52,9 +56,9 @@ class WebDriverLocker(TornadoLocker):
 
                 await asyncio.sleep(1)
         finally:
-            await self.cleanup()
+            self.cleanup()
 
-    async def cleanup(self) -> None:
+    def cleanup(self) -> None:
         if self._webdriver:  # pragma: no cover
             for method in [self._webdriver.close, self._webdriver.quit]:
                 try:
@@ -62,7 +66,7 @@ class WebDriverLocker(TornadoLocker):
                 except Exception as err:
                     self.log.debug("[webdriver] cleanup error: %s", err)
             self._webdriver = None
-        return await super().cleanup()
+        return super().cleanup()
 
     async def _webdriver_get_async(self):
         await asyncio.get_event_loop().run_in_executor(None, self._webdriver_get)
