@@ -85,13 +85,33 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: install (conda)
+      - name: cached lock (conda)
+        id: lock
+        uses: actions/cache@v4
+        with:
+          path: build/test-${{ matrix.os }}-${{ matrix.python-version }}.conda.lock
+          key: |-
+            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('.github/environment-test-webdriver.yml') }}
+
+      - name: install (conda, from lock)
+        if: steps.lock.outputs.cache-hit == 'true'
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          environment-file: build/test-${{ matrix.os }}-${{ matrix.python-version }}.conda.lock
+
+      - name: install (conda, from env)
+        if: steps.lock.outputs.cache-hit != 'true'
         uses: conda-incubator/setup-miniconda@v3
         with:
           environment-file: .github/environment-test-webdriver.yml
           miniforge-variant: Mambaforge
           python-version: "${{ matrix.python-version }}.*"
           use-mamba: true
+
+      - name: conda list
+        shell: bash -l {0}
+        run: |-
+          mkdir -p build && conda list --explicit | tee "build/test-${{ matrix.os }}-${{ matrix.python-version }}.conda.lock"
 
       - name: download (dist)
         uses: actions/download-artifact@v4
@@ -140,6 +160,7 @@ jobs:
           name: |-
             jlpl-${{ github.run_number }}-test-${{ matrix.os }}-${{matrix.python-version }}
           path: |
+            ./build/*.conda.lock
             ./build/reports
             ./contrib/*/build/reports
 

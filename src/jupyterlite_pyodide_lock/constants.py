@@ -18,6 +18,8 @@ ENV_VAR_LOCK_DATE_EPOCH = "JLPL_LOCK_DATE_EPOCH"
 #: environment variable for setting the timeout
 ENV_VAR_TIMEOUT = "JLPL_TIMEOUT"
 
+ENV_VAR_ALL = [ENV_VAR_BROWSER, ENV_VAR_LOCK_DATE_EPOCH, ENV_VAR_TIMEOUT]
+
 #: the entry point name for locker implementations
 LOCKER_ENTRYPOINT = f"{NAME.replace('-', '_')}.locker.v0"
 
@@ -54,20 +56,6 @@ PYODIDE_CORE_URL = f"{PYODIDE_GH}/releases/download/{PYODIDE_VERSION}/pyodide-co
 #: the default URL for python wheels
 FILES_PYTHON_HOSTED = "https://files.pythonhosted.org"
 
-#: is this windows
-WIN = os.sys.platform[:3] == "win"
-
-#: default locations of Program Files on Windows
-WIN_PROGRAM_FILES_DIRS = {
-    "PROGRAMFILES(x86)": "C:\\Program Files (x86)",
-    "PROGRAMFILES": "C:\\Program Files",
-}
-
-#: locations in Program Files of browsers
-WIN_BROWSER_DIRS = [
-    "Mozilla Firefox",
-]
-
 #: known patterns for file types not present on all platforms/pythons
 FILE_EXT_MIME_MAP = {
     r"\.mjs$": "text/javascript",
@@ -86,14 +74,57 @@ WAREHOUSE_UPLOAD_FORMAT_ANY = [
     WAREHOUSE_UPLOAD_FORMAT_SHORT,
 ]
 
+### browsers ###
+
 #: browser alias for firefox
-FIREFOX = FIREFOX_BINARY = "firefox"
+FIREFOX = "firefox"
 
 #: browser alias for chromium
-CHROMIUM = CHROMIUM_BINARY = "chromium"
+CHROMIUM = "chromium"
 
 #: browser alias for chrome
 CHROME = "chrome"
-CHROME_BINARY = "google-chrome"
 
-CHROMIUM_LIKE = [CHROME, CHROMIUM]
+BROWSERS = [FIREFOX, CHROMIUM, CHROME]
+BROWSER_BIN = {
+    CHROMIUM: "chromium-browser",
+    FIREFOX: "firefox",
+    CHROME: "google-chrome",
+}
+
+BROWSER_BIN_ALIASES = {BROWSER_BIN[CHROME]: ["chrome", "Google Chrome"]}
+
+ENV_VARS_BROWSER_BINS = {BROWSER_BIN[CHROME]: ["CHROME_BIN"]}
+
+
+#: is this windows
+WIN = os.sys.platform[:3] == "win"
+
+#: default locations of Program Files on Windows
+WIN_PROGRAM_FILES_DIRS = {
+    "PROGRAMFILES(x86)": "C:\\Program Files (x86)",
+    "PROGRAMFILES": "C:\\Program Files",
+}
+
+#: locations in Program Files of browsers
+WIN_BROWSER_DIRS = [
+    "Mozilla Firefox",
+    "Google\\Chrome\\Application",
+]
+
+WIN_BROWSER_REG_KEYS = {
+    BROWSER_BIN[CHROME]: [
+        r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe"
+    ]
+}
+
+#: is this osx
+OSX = os.sys.platform[:3] == "dar"
+
+
+#: locations in Applications of browsers
+OSX_APP_DIRS = [
+    "Applications/Firefox.app",
+    "Applications/Firefox.app/Contents/MacOS",
+    "Applications/Google Chrome.app/Contents/MacOS",
+]

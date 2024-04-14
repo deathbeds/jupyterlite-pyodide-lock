@@ -6,15 +6,14 @@ import shutil
 from typing import TYPE_CHECKING
 
 from jupyterlite_pyodide_lock.constants import (
+    BROWSER_BIN,
     CHROME,
-    CHROME_BINARY,
     CHROMIUM,
-    CHROMIUM_BINARY,
     ENV_VAR_BROWSER,
     FIREFOX,
-    FIREFOX_BINARY,
 )
 from jupyterlite_pyodide_lock.lockers.tornado import TornadoLocker
+from jupyterlite_pyodide_lock.utils import find_browser_binary
 from selenium.webdriver import (
     Chrome,
     ChromeOptions,
@@ -43,12 +42,12 @@ BROWSERS = {
         "webdriver_class": Firefox,
         "options_class": FirefoxOptions,
         "service_class": FirefoxService,
-        "browser_binary": FIREFOX_BINARY,
+        "browser_binary": BROWSER_BIN[FIREFOX],
         "webdriver_path": "geckodriver",
         "log_output": "geckodriver.log",
     },
-    CHROMIUM: {"browser_binary": CHROMIUM_BINARY, **BROWSER_CHROMIUM_BASE},
-    CHROME: {"browser_binary": CHROME_BINARY, **BROWSER_CHROMIUM_BASE},
+    CHROMIUM: {"browser_binary": BROWSER_BIN[CHROMIUM], **BROWSER_CHROMIUM_BASE},
+    CHROME: {"browser_binary": BROWSER_BIN[CHROME], **BROWSER_CHROMIUM_BASE},
 }
 
 
@@ -139,7 +138,7 @@ class WebDriverLocker(TornadoLocker):
 
     @default("browser_path")
     def _default_browser_path(self):  # pragma: no cover
-        return self.find_browser_binary(BROWSERS[self.browser]["browser_binary"])
+        return find_browser_binary(BROWSERS[self.browser]["browser_binary"], self.log)
 
     @default("webdriver_path")
     def _default_webdriver_path(self):  # pragma: no cover

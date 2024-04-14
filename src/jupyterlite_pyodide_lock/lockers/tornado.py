@@ -2,7 +2,6 @@
 
 import atexit
 import json
-import os
 import shutil
 import socket
 import tempfile
@@ -21,9 +20,6 @@ from ..constants import (
     PROXY,
     PYODIDE_LOCK,
     PYODIDE_LOCK_STEM,
-    WIN,
-    WIN_BROWSER_DIRS,
-    WIN_PROGRAM_FILES_DIRS,
 )
 from ._base import BaseLocker
 from .handlers import make_handlers
@@ -318,41 +314,3 @@ class TornadoLocker(BaseLocker):
     @default("extra_micropip_args")
     def _default_extra_micropip_args(self):
         return {}
-
-    # utilities
-    def find_browser_binary(self, browser: str):
-        """Resolve an absolute path to a browser binary."""
-        path_var = self.get_browser_search_path()
-
-        bin: None | str = None
-
-        candidates = [browser, f"{browser}.exe", f"{browser}.bat"]
-
-        for candidate in candidates:  # pragma: no cover
-            bin = shutil.which(candidate, path=path_var)
-            if bin:
-                break
-
-        if bin is None:  # pragma: no cover
-            self.log.warning(
-                "[tornado] no '%s' on PATH: %s",
-                browser,
-                "\n".join(sorted(os.environ["PATH"].split(os.pathsep))),
-            )
-            raise ValueError("No browser found for alias '%s'", browser)
-
-        return bin
-
-    def get_browser_search_path(self):
-        """Append well-known browser locations to PATH."""
-        paths = [os.environ["PATH"]]
-
-        if WIN:  # pragma: no cover
-            for env_var, default in WIN_PROGRAM_FILES_DIRS.items():
-                program_files = os.environ.get(env_var, default)
-                for browser_dir in WIN_BROWSER_DIRS:
-                    path = (Path(program_files) / browser_dir).resolve()
-                    if path.exists():
-                        paths += [str(path)]
-
-        return os.pathsep.join(paths)

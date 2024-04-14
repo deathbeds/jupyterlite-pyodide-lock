@@ -1,5 +1,6 @@
 """Tests of the ``jupyter-lite`` CLI with ``jupyterlite-pyodide-lock``."""
 
+import subprocess
 from pathlib import Path
 
 import pyodide_lock
@@ -16,6 +17,11 @@ MESSAGES = {
     ),
     "cant-find-wheel": "Can't find a pure python wheel",
 }
+
+
+@pytest.mark.parametrize("args", [["--json"], []])
+def test_cli_self_browsers(args) -> None:
+    subprocess.check_call(["jupyter-pyodide-lock", "browsers", *args])
 
 
 @pytest.mark.parametrize("args", [["--pyodide-lock"], []])

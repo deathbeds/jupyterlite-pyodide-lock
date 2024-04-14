@@ -3,6 +3,7 @@
 import json
 import os
 import platform
+import pprint
 import re
 import shutil
 import subprocess
@@ -71,7 +72,13 @@ def task_dev() -> TTaskGenerator:
         pip_tasks += [f"dev:{pkg.name}"]
         yield dict(name=pkg.name, actions=[U.do(install, cwd=pkg)], file_dep=file_dep)
 
-    yield dict(name="check", actions=[[*C.PIP, "check"]], task_dep=pip_tasks)
+    yield dict(name="check:pip", actions=[[*C.PIP, "check"]], task_dep=pip_tasks)
+
+    yield dict(
+        name="check:browsers",
+        actions=[["jupyter", "pyodide-lock", "browsers"]],
+        task_dep=["dev:check:pip"],
+    )
 
 
 def task_fix() -> TTaskGenerator:
@@ -148,20 +155,17 @@ def task_test() -> TTaskGenerator:
         pkg = ppt.parent
         mod = pkg.name.replace("-", "_")
         file_dep = [ppt, *src, *P.PY_TEST[ppt]]
-        env = dict(os.environ)
+        env = None
 
         if E.CI:
-            env.update(
-                C.CI_ENV.get((E.PLATFORM, E.PY_MAJOR))
-                or C.CI_ENV.get((E.PY_MAJOR,))
-                or {}
-            )
+            env = C.CI_ENV.get(E.PY_PLATFORM, C.CI_ENV.get(E.PY))
         else:
             file_dep += [B.ENV_DEV_HISTORY]
 
         yield dict(
             name=f"pytest:{pkg.name}",
             actions=[
+                *([(pprint.pprint, [env])] if env else []),
                 U.do([*C.COV_RUN, "--source", mod, "-m", "pytest"], cwd=pkg, env=env),
             ],
             file_dep=file_dep,
@@ -206,8 +210,9 @@ class E:
     """Environment."""
 
     CI = bool(json.loads(os.environ.get("CI", "0").lower()))
-    PY_MAJOR = ".".join(map(str, sys.version_info[:1]))
+    PY = ".".join(map(str, sys.version_info[:2]))
     PLATFORM = platform.system().lower()
+    PY_PLATFORM = (PY, PLATFORM)
 
 
 class C:
@@ -245,8 +250,8 @@ class C:
     ]
     TAPLO_FORMAT = [*TAPLO, "fmt", *TAPLO_OPTS]
     CI_ENV = {
-        ("3.10"): dict(JLPL_BROWSER="chromium"),
-        ("windows", "3.12"): dict(JLPL_BROWSER="chrome"),
+        "3.10": dict(JLPL_BROWSER="chrome"),
+        ("3.10", "linux"): dict(JLPL_BROWSER="chromium"),
     }
 
 
@@ -355,7 +360,14 @@ class U:
     @staticmethod
     def do(cmd: list[str], cwd: None | Path = None, **kwargs: Any) -> CmdAction:
         """Wrap a command line with extra options."""
-        return CmdAction(cmd, shell=False, cwd=str(cwd) if cwd else None, **kwargs)
+        env = None
+        _env = kwargs.pop("env", None)
+        if _env:
+            env = dict(os.environ)
+            env.update(_env)
+        return CmdAction(
+            cmd, shell=False, cwd=str(cwd) if cwd else None, env=env, **kwargs
+        )
 
     @staticmethod
     def replace_between(

@@ -77,6 +77,12 @@ and `micropip.freeze` to try to get a viable lock file solution.
 }
 ```
 
+A convenience CLI options will show some information about detected browsers:
+
+```bash
+jupyter pyodide-lock browsers
+```
+
 #### Reproducible Locks
 
 By configuring the _lock date_ to a UNIX epoch timestamp, artifacts from a PyPI

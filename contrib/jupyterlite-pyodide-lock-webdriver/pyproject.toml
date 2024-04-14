@@ -55,6 +55,7 @@ include = [
 
 [tool.pytest.ini_options]
 cache_dir = "build/.cache/pytest"
+generate_report_on_test = true
 testpaths = [
   "tests",
 ]

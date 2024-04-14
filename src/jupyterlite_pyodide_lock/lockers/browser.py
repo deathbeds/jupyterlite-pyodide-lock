@@ -10,14 +10,13 @@ from jupyterlite_core.trait_types import TypedTuple
 from traitlets import Bool, Instance, Unicode, default
 
 from ..constants import (
+    BROWSER_BIN,
     CHROME,
-    CHROME_BINARY,
     CHROMIUM,
-    CHROMIUM_BINARY,
     ENV_VAR_BROWSER,
     FIREFOX,
-    FIREFOX_BINARY,
 )
+from ..utils import find_browser_binary
 from .tornado import TornadoLocker
 
 #: chromium base args
@@ -30,17 +29,17 @@ BROWSER_CHROMIUM_BASE = {
 #: browser CLI args, keyed by configurable
 BROWSERS = {
     FIREFOX: {
-        "launch": [FIREFOX_BINARY],
+        "launch": [BROWSER_BIN[FIREFOX]],
         "headless": ["--headless"],
         "private_mode": ["--private-window"],
         "profile": ["--new-instance", "--profile", "{PROFILE_DIR}"],
     },
     CHROMIUM: {
-        "launch": [CHROMIUM_BINARY, "--new-window"],
+        "launch": [BROWSER_BIN[CHROMIUM], "--new-window"],
         **BROWSER_CHROMIUM_BASE,
     },
     CHROME: {
-        "launch": [CHROME_BINARY, "--new-window"],
+        "launch": [BROWSER_BIN[CHROME], "--new-window"],
         **BROWSER_CHROMIUM_BASE,
     },
 }
@@ -130,7 +129,7 @@ class BrowserLocker(TornadoLocker):
     @default("browser_argv")
     def _default_browser_argv(self):
         argv = self.browser_cli_arg(self.browser, "launch")
-        argv[0] = self.find_browser_binary(argv[0])
+        argv[0] = find_browser_binary(argv[0], self.log)
 
         if True:  # pragma: no cover
             if self.headless:

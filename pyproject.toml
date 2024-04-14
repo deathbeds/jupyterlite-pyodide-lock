@@ -40,6 +40,9 @@ Changelog = "https://github.com/bollwyvl/jupyterlite-pyodide-lock/blob/main/CHAN
 PyPI = "https://pypi.org/project/jupyterlite-pyodide-lock"
 Source = "https://github.com/bollwyvl/jupyterlite-pyodide-lock/tree/main"
 
+[project.scripts]
+jupyter-pyodide-lock = "jupyterlite_pyodide_lock.app:main"
+
 [project.entry-points."jupyterlite.addon.v0"]
 pyodide-lock = "jupyterlite_pyodide_lock.addons.lock:PyodideLockAddon"
 
@@ -60,6 +63,7 @@ include = [
 
 [tool.pytest.ini_options]
 cache_dir = "build/.cache/pytest"
+generate_report_on_test = true
 testpaths = [
   "tests",
 ]
