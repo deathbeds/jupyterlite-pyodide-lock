@@ -1,45 +1,30 @@
-"""Tests of the ``jupyter-lite`` CLI with ``jupyterlite-pyodide-lock``."""
+"""Tests of the ``jupyter-lite`` CLI with ``jupyterlite-pyodide-lock-webdriver``."""
 
-import difflib
 from pathlib import Path
 
 import pyodide_lock
 from jupyterlite_core.constants import UTF8
 from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK
 
+from .conftest import expect_no_diff
 
-def test_cli_good_build(
-    lite_cli,
-    a_lite_dir: Path,
-    a_lite_config_with_widgets: Path,
-) -> None:
+
+def test_cli_good_build(lite_cli, a_lite_config_with_widgets: Path) -> None:
     """Verify a build works, twice."""
     from jupyterlite_pyodide_lock.constants import PYODIDE_LOCK_STEM
 
-    assert "webdriver" in a_lite_config_with_widgets.read_text(**UTF8)
-
-    build, stdout, stderr = lite_cli("build", "--debug")
-    assert build == 0
-
+    a_lite_dir = a_lite_config_with_widgets.parent
     out = a_lite_dir / "_output"
-    assert out.exists()
     lock_dir = out / "static" / PYODIDE_LOCK_STEM
-    assert lock_dir.exists()
     lock = lock_dir / PYODIDE_LOCK
+
+    lite_cli("build", "--debug")
     lock_text = lock.read_text(**UTF8)
+
+    # this would fail pydantic
     pyodide_lock.PyodideLockSpec.from_json(lock)
 
-    rebuild, stdout, stderr = lite_cli("build", "--debug")
-    assert rebuild == 0
-
+    lite_cli("build", "--debug")
     relock_text = lock.read_text(**UTF8)
-    diff = [
-        *difflib.unified_diff(
-            lock_text.splitlines(),
-            relock_text.splitlines(),
-            "build",
-            "rebuild",
-        ),
-    ]
-    print("\n".join(diff))
-    assert not diff, "didn't see same lockfile on rebuild"
+
+    expect_no_diff(lock_text, relock_text, "build", "rebuild")

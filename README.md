@@ -23,18 +23,23 @@
     while `pyodide` is starting, skpping `micropip.install` and its requests to
     the PyPI API
   - doesn't require `%pip install` for locked packages and their dependencies
+    - notebooks and scripts still need to be well-formed, e.g. `import my_package`
     - once shipped, package versions loaded in the browser won't change over time
 - during a build
   - doesn't require rebuilding a full custom `pyodide` distribution
     - but will patch an custom deployed `pyodide`
     - all downloaded wheels can be optionally shipped along with the application
-  - optionally uses `SOURCE_DATE_EPOCH` to ensure newer packages aren't
-    found during a solve
+  - optionally clamp PyPI packages to a known timestamp to ensure newer packages
+    aren't found during a future solve
   - supports multiple sources of custom wheels and dependencies
 
 ## Usage
 
 ### Configure
+
+#### Requirements
+
+A number of `requirements` specifications are supported:
 
 ```yaml
 # examples/jupyter_lite_config.json
@@ -52,19 +57,76 @@
 }
 ```
 
-### Build
+#### Lockers
 
-Running `jupyter lite build` with the above example will:
+The _Locker_ is responsible for starting a browser, executing `micopip.install`
+and `micropip.freeze` to try to get a viable lock file solution.
 
-- find all the referenced wheels, including `pyodide-kernel` dependencies
-- start a web server
-  - start a browser
-    - load a page with pyodide
-    - run `micropip.install`
-    - run `micropip.freeze`
-    - POST the results back
-    - close the browser
-  - stop the web server
-- normalize the paths in the lockfile
-- deploy `{output_dir}/static/pyodide-lock/pyodide-lock.json` and all new wheels
-- configure `jupyter-lite.json` to reference the lockfile
+```yaml
+{
+  "PyodideLockAddon": {
+    "enabled": true,
+    "locker": "browser"     # the default locker: uses `subprocess`
+  },
+  "BrowserLocker": {
+    "browser": "firefox",   # requires `firefox` or `firefox.exe` on PATH
+    "headless": true,
+    "private_mode": true,
+    "temp_profile": true
+  }
+}
+```
+
+#### Reproducible Locks
+
+By configuring the _lock date_ to a UNIX epoch timestamp, artifacts from a PyPI
+index newer than that date will be filtered out before a lock is attempted.
+
+Combined with a fixed `pyodide_url` archive, this should prevent known packages
+and their dependencies from "drifting."
+
+```yaml
+{
+  "PyodideAddon": {
+    "pyodide_url": f"https://github.com/pyodide/pyodide/releases/download/0.25.0/pyodide-core-0.25.0.tar.bz2"
+  },
+  "PyodideLockAddon": {
+    "enabled": true,
+    "lock_date_epoch": 1712980201
+  }
+}
+```
+
+Alternately, this can be provided by environemnt variable:
+
+```bash
+JLPL_LOCK_DATE_EPOCH=$(date -u +%s) jupyter lite build
+```
+
+<details>
+
+<summary>Getting a <code>lock_date_epoch</code></summary>
+
+As shown in the example above, `date` can provide this:
+
+```bash
+date -u +%s
+```
+
+Or `python`:
+
+```py
+>>> from datetime import datetime, timezone
+>>> int(datetime.now(tz=timezone.utc).timestamp())
+```
+
+...or `git`, for the last commit time of a file:
+
+```bash
+git log -1 --format=%ct requirements.txt
+```
+
+The latter approch, using version control metadata, is recommended, as it
+shifts the burden of bookkeeping to a verifiable source.
+
+</details>

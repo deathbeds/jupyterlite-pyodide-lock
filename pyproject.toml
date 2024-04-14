@@ -44,7 +44,7 @@ Source = "https://github.com/bollwyvl/jupyterlite-pyodide-lock/tree/main"
 pyodide-lock = "jupyterlite_pyodide_lock.addons.lock:PyodideLockAddon"
 
 [project.entry-points."jupyterlite_pyodide_lock.locker.v0"]
-browser = "jupyterlite_pyodide_lock.lockers.browser:BrowserLocker"
+BrowserLocker = "jupyterlite_pyodide_lock.lockers.browser:BrowserLocker"
 
 [project.optional-dependencies]
 test = [
@@ -76,6 +76,7 @@ addopts = [
   "--cov-fail-under=100",
   "-Werror",
   "--tb=long",
+  "--durations=3",
   "-vv",
 ]
 

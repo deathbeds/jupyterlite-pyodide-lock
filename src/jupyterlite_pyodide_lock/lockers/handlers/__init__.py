@@ -1,8 +1,17 @@
 """web handlers for BrowserLocker"""
 
+import json
 from typing import TYPE_CHECKING
 
-from ...constants import LOCK_HTML, PROXY, PYODIDE_LOCK
+from jupyterlite_core.constants import JSON_FMT
+
+from ...constants import (
+    LOCK_HTML,
+    PROXY,
+    PYODIDE_LOCK,
+    WAREHOUSE_UPLOAD_DATE,
+)
+from ...utils import epoch_to_warehouse_date, warehouse_date_to_epoch
 from .cacher import CachingRemoteFiles
 from .freezer import MicropipFreeze
 from .logger import Log
@@ -11,6 +20,39 @@ from .solver import SolverHTML
 
 if TYPE_CHECKING:  # pragma: no cover
     from ..browser import BrowserLocker
+
+
+def make_lock_date_epoch_replacer(locker: "BrowserLocker"):
+    lock_date_epoch = locker.parent.lock_date_epoch
+    lock_date_iso8601 = epoch_to_warehouse_date(lock_date_epoch)
+
+    def _clamp_to_lock_date_epoch(json_str: bytes) -> bytes:
+        release_data = json.loads(json_str.decode("utf-8"))
+        release_data["releases"] = {
+            release: artifacts
+            for release, artifacts in release_data["releases"].items()
+            if artifacts and all(map(_uploaded_before, artifacts))
+        }
+        return json.dumps(release_data, **JSON_FMT).encode("utf-8")
+
+    def _uploaded_before(artifact) -> bool:
+        upload_iso8601 = artifact[WAREHOUSE_UPLOAD_DATE]
+        upload_epoch = warehouse_date_to_epoch(upload_iso8601)
+
+        if upload_epoch <= lock_date_epoch:
+            return True
+
+        locker.log.warning(
+            "[tornado] [lock-date] %s uploaded %s (%s), newer than %s (%s)",
+            artifact["filename"],
+            upload_iso8601,
+            upload_epoch,
+            lock_date_iso8601,
+            lock_date_epoch,
+        )
+        return False
+
+    return _clamp_to_lock_date_epoch
 
 
 def make_handlers(locker: "BrowserLocker"):
@@ -22,6 +64,13 @@ def make_handlers(locker: "BrowserLocker"):
         "rewrites": {"/json$": [(files_cdn, files_local)]},
         "mime_map": {r"/json$": "application/json"},
     }
+
+    if locker.parent.lock_date_epoch:
+        replacer = make_lock_date_epoch_replacer(locker)
+        pypi_kwargs["rewrites"]["/json$"] += [
+            (WAREHOUSE_UPLOAD_DATE.encode("utf-8"), replacer)
+        ]
+
     solver_kwargs = {"context": locker._context, "log": locker.log}
     fallback_kwargs = {
         "log": locker.log,

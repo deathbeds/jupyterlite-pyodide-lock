@@ -68,3 +68,17 @@ FILE_EXT_MIME_MAP = {
     r"\.whl$": "application/x-zip",
     r"\.wasm$": "application/wasm",
 }
+
+#: environment variable name for setting the lock date
+LOCK_DATE_EPOCH = "JLPL_LOCK_DATE_EPOCH"
+
+#: the failed in the warehouse API used for release dates
+WAREHOUSE_UPLOAD_DATE = "upload_time_iso_8601"
+
+#: a string template for the warehouse iso8601 timestamp
+WAREHOUSE_UPLOAD_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
+WAREHOUSE_UPLOAD_FORMAT_SHORT = "%Y-%m-%dT%H:%M:%SZ"
+WAREHOUSE_UPLOAD_FORMAT_ANY = [
+    WAREHOUSE_UPLOAD_FORMAT,
+    WAREHOUSE_UPLOAD_FORMAT_SHORT,
+]

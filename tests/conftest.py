@@ -3,7 +3,9 @@
 #### the below is copied to ``contrib`` packages
 ### shared fixtures ###
 
+import difflib
 import json
+import os
 import shutil
 import subprocess
 import urllib.request
@@ -11,6 +13,7 @@ from pathlib import Path
 
 from jupyterlite_core.constants import JSON_FMT, JUPYTER_LITE_CONFIG, UTF8
 from jupyterlite_pyodide_lock.constants import FILES_PYTHON_HOSTED, PYODIDE_LOCK_STEM
+from jupyterlite_pyodide_lock.utils import warehouse_date_to_epoch
 
 try:
     import tomllib
@@ -25,9 +28,14 @@ PPT = ROOT / "pyproject.toml"
 
 WIDGETS_WHEEL = "ipywidgets-8.1.2-py3-none-any.whl"
 WIDGETS_URL = f"{FILES_PYTHON_HOSTED}/packages/py3/i/ipywidgets/{WIDGETS_WHEEL}"
+WIDGET_ISO8601 = dict(
+    before="2024-02-08T15:31:28Z",
+    actual="2024-02-08T15:31:29.801655Z",
+    after_="2024-02-08T15:31:31Z",
+)
 
 WIDGETS_CONFIG = dict(
-    specs_pep508={"specs": ["ipywidgets >=8.1,<8.2"]},
+    specs_pep508={"specs": ["ipywidgets >=8.1.2,<8.1.3"]},
     packages_url={"packages": [WIDGETS_URL]},
     packages_local_wheel={"packages": [WIDGETS_WHEEL]},
     packages_local_folder={"packages": ["../dist"]},
@@ -48,20 +56,68 @@ def a_lite_dir(tmp_path: Path):
 
 
 @fixture()
+def a_bad_widget_lock_date_epoch() -> int:
+    return warehouse_date_to_epoch(WIDGET_ISO8601["before"])
+
+
+@fixture()
+def a_good_widget_lock_date_epoch() -> int:
+    return warehouse_date_to_epoch(WIDGET_ISO8601["after_"])
+
+
+@fixture()
 def lite_cli(a_lite_dir: Path):
-    def run(*args, **kwargs):
-        kwargs["cwd"] = str(kwargs.get("cwd", a_lite_dir))
-        kwargs["encoding"] = "utf-8"
+    def run(*args, expect_rc=0, expect_stderr=None, expect_stdout=None, **popen_kwargs):
+        a_lite_config = a_lite_dir / JUPYTER_LITE_CONFIG
+        env = None
+
+        if "env" in popen_kwargs:
+            env = dict(os.environ)
+            env.update(popen_kwargs.pop("env"))
+
+        kwargs = dict(
+            cwd=str(popen_kwargs.get("cwd", a_lite_dir)),
+            stdout=subprocess.PIPE if expect_stdout else None,
+            stderr=subprocess.PIPE if expect_stderr else None,
+            env=env,
+            **UTF8,
+        )
+        kwargs.update(**popen_kwargs)
+
+        a_lite_config.exists() and print(
+            a_lite_config,
+            a_lite_config.read_text(**UTF8),
+            flush=True,
+        )
+
         proc = subprocess.Popen(["jupyter-lite", *args], **kwargs)
         stdout, stderr = proc.communicate()
+
+        if expect_rc is not None:
+            print("rc", proc.returncode)
+            assert proc.returncode == expect_rc
+        if expect_stdout:
+            print("stdout", stdout)
+            assert expect_stdout in stdout
+        if expect_stderr:
+            print("stderr", stderr)
+            assert expect_stderr in stderr
+
         return proc.returncode, stdout, stderr
 
     return run
 
 
 @fixture(params=sorted(WIDGETS_CONFIG))
-def a_lite_config_with_widgets(request, a_lite_dir: Path, a_lite_config: Path) -> Path:
-    approach = WIDGETS_CONFIG[request.param]
+def a_widget_approach(request):
+    return request.param
+
+
+@fixture()
+def a_lite_config_with_widgets(
+    a_lite_dir: Path, a_lite_config: Path, a_widget_approach: str
+) -> Path:
+    approach = WIDGETS_CONFIG[a_widget_approach]
 
     packages = approach.get("packages")
 
@@ -79,14 +135,25 @@ def a_lite_config_with_widgets(request, a_lite_dir: Path, a_lite_config: Path) -
     if fetch_dest:
         fetch(WIDGETS_URL, fetch_dest)
 
-    conf = json.loads(a_lite_config.read_text(**UTF8))
-    conf["PyodideLockAddon"].update(
-        extra_preload_packages=["ipywidgets"],
-        **(approach or {}),
+    patch_config(
+        a_lite_config,
+        PyodideLockAddon=dict(
+            extra_preload_packages=["ipywidgets"],
+            **(approach or {}),
+        ),
     )
 
-    a_lite_config.write_text(json.dumps(conf, **JSON_FMT), **UTF8)
     return a_lite_config
+
+
+def patch_config(config_path: Path, **configurables):
+    config = {}
+    if config_path.exists():
+        config = json.loads(config_path.read_text(**UTF8))
+    for cls_name, values in configurables.items():
+        config.setdefault(cls_name, {}).update(values)
+    config_path.write_text(json.dumps(config, **JSON_FMT), **UTF8)
+    return config_path
 
 
 def fetch(url: str, dest: Path):
@@ -96,21 +163,31 @@ def fetch(url: str, dest: Path):
             shutil.copyfileobj(response, fd)
 
 
+def expect_no_diff(left_text: Path, right_text: Path, left: str, right: str):
+    diff = [
+        *difflib.unified_diff(
+            left_text.strip().splitlines(),
+            right_text.strip().splitlines(),
+            left,
+            right,
+        ),
+    ]
+    print("\n".join(diff))
+    assert not diff
+
+
 ### shared fixtures ###
 #### the above is copied to ``contrib`` packages
 
 
 @fixture()
 def a_lite_config(a_lite_dir: Path) -> Path:
-    conf = a_lite_dir / JUPYTER_LITE_CONFIG
-    conf.write_text(
-        json.dumps(
-            {
-                "PyodideLockAddon": {"enabled": True},
-                "BrowserLocker": {"temp_profile": True},
-            },
-            **JSON_FMT,
-        ),
-        **UTF8,
+    return patch_config(
+        a_lite_dir / JUPYTER_LITE_CONFIG,
+        PyodideLockAddon=dict(enabled=True),
+        BrowserLocker=dict(temp_profile=True),
     )
-    return conf
+
+
+def pytest_html_report_title(report):
+    report.title = "jupyterlite-pyodide-lock"
