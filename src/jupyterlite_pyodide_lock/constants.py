@@ -9,8 +9,14 @@ __all__ = ["NAME", "LOCKER_ENTRYPOINT", "PYODIDE_LOCK_STEM", "PROXY", "LOCK_HTML
 #: this distribution name
 NAME = "jupyterlite-pyodide-lock"
 
+#: environment variable name for setting the browser
+ENV_VAR_BROWSER = "JLPL_BROWSER"
+
+#: environment variable name for setting the lock date
+ENV_VAR_LOCK_DATE_EPOCH = "JLPL_LOCK_DATE_EPOCH"
+
 #: environment variable for setting the timeout
-ENV_VAR_TIMEOUT = "JUPYTERLITE_PYODIDE_LOCK_TIMEOUT"
+ENV_VAR_TIMEOUT = "JLPL_TIMEOUT"
 
 #: the entry point name for locker implementations
 LOCKER_ENTRYPOINT = f"{NAME.replace('-', '_')}.locker.v0"
@@ -69,9 +75,6 @@ FILE_EXT_MIME_MAP = {
     r"\.wasm$": "application/wasm",
 }
 
-#: environment variable name for setting the lock date
-LOCK_DATE_EPOCH = "JLPL_LOCK_DATE_EPOCH"
-
 #: the failed in the warehouse API used for release dates
 WAREHOUSE_UPLOAD_DATE = "upload_time_iso_8601"
 
@@ -82,3 +85,15 @@ WAREHOUSE_UPLOAD_FORMAT_ANY = [
     WAREHOUSE_UPLOAD_FORMAT,
     WAREHOUSE_UPLOAD_FORMAT_SHORT,
 ]
+
+#: browser alias for firefox
+FIREFOX = FIREFOX_BINARY = "firefox"
+
+#: browser alias for chromium
+CHROMIUM = CHROMIUM_BINARY = "chromium"
+
+#: browser alias for chrome
+CHROME = "chrome"
+CHROME_BINARY = "google-chrome"
+
+CHROMIUM_LIKE = [CHROME, CHROMIUM]

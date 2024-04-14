@@ -5,15 +5,55 @@ import os
 import shutil
 from typing import TYPE_CHECKING
 
+from jupyterlite_pyodide_lock.constants import (
+    CHROME,
+    CHROME_BINARY,
+    CHROMIUM,
+    CHROMIUM_BINARY,
+    ENV_VAR_BROWSER,
+    FIREFOX,
+    FIREFOX_BINARY,
+)
 from jupyterlite_pyodide_lock.lockers.tornado import TornadoLocker
+from selenium.webdriver import (
+    Chrome,
+    ChromeOptions,
+    ChromeService,
+    Firefox,
+    FirefoxOptions,
+    FirefoxService,
+)
 from traitlets import Bool, Dict, Instance, List, Unicode, default
 
 if TYPE_CHECKING:  # pragma: no cover
-    from selenium.webdriver.remote.webdriver import WebDriver
+    TAnyService = FirefoxService | ChromeService
+    TAnyOptions = FirefoxOptions | ChromeOptions
+    TAnyWebDriver = Firefox | Chrome
+
+BROWSER_CHROMIUM_BASE = {
+    "webdriver_class": Chrome,
+    "options_class": ChromeOptions,
+    "service_class": ChromeService,
+    "log_output": "chromedriver.log",
+    "webdriver_path": "chromedriver",
+}
+
+BROWSERS = {
+    FIREFOX: {
+        "webdriver_class": Firefox,
+        "options_class": FirefoxOptions,
+        "service_class": FirefoxService,
+        "browser_binary": FIREFOX_BINARY,
+        "webdriver_path": "geckodriver",
+        "log_output": "geckodriver.log",
+    },
+    CHROMIUM: {"browser_binary": CHROMIUM_BINARY, **BROWSER_CHROMIUM_BASE},
+    CHROME: {"browser_binary": CHROME_BINARY, **BROWSER_CHROMIUM_BASE},
+}
 
 
 class WebDriverLocker(TornadoLocker):
-    browser = Unicode("firefox", help="an alias for a pre-configured browser").tag(
+    browser = Unicode(help="an alias for a pre-configured browser").tag(
         config=True,
     )
     headless = Bool(True, help="run the browser in headless mode").tag(config=True)
@@ -26,13 +66,19 @@ class WebDriverLocker(TornadoLocker):
     webdriver_service_args = List(
         Unicode(), help="arguments for the webdriver binary"
     ).tag(config=True)
-    webdriver_log_path = Unicode(help="a path to the webdriver log").tag(config=True)
-    webdriver_env_vars = Dict(Unicode(), help="a path to the webdriver log").tag(
+    webdriver_log_output = Unicode(help="a path to the webdriver log").tag(config=True)
+    webdriver_env = Dict(Unicode(), help="custom enviroment variable overrides").tag(
         config=True
     )
 
     # runtime
-    _webdriver: "WebDriver" = Instance(
+    _webdriver_options: "TAnyOptions" = Instance(
+        "selenium.webdriver.common.options.ArgOptions", allow_none=True
+    )
+    _webdriver_service: "TAnyService" = Instance(
+        "selenium.webdriver.common.service.Service", allow_none=True
+    )
+    _webdriver: "TAnyWebDriver" = Instance(
         "selenium.webdriver.remote.webdriver.WebDriver", allow_none=True
     )
     _webdriver_task = Instance(
@@ -79,69 +125,70 @@ class WebDriverLocker(TornadoLocker):
             self._solve_halted = True
 
     # defaults
+    @default("browser")
+    def _default_browser(self):
+        return os.environ.get(ENV_VAR_BROWSER, FIREFOX)
+
     @default("_webdriver")
-    def _default_webdriver(self):  # pragma: no cover
-        if self.browser == "firefox":
-            return self._make_webdriver_firefox()
-        raise NotImplementedError(f"{self.browser} is not yet supported")
+    def _default_webdriver(self) -> "TAnyWebDriver":  # pragma: no cover
+        WebDriverClass = BROWSERS[self.browser]["webdriver_class"]
+        options = self._webdriver_options
+        service = self._webdriver_service
+
+        return WebDriverClass(options=options, service=service)
 
     @default("browser_path")
     def _default_browser_path(self):  # pragma: no cover
-        if self.browser == "firefox":
-            return self.find_browser_binary("firefox")
-        raise NotImplementedError(f"{self.browser} is not yet supported")
+        return self.find_browser_binary(BROWSERS[self.browser]["browser_binary"])
 
     @default("webdriver_path")
     def _default_webdriver_path(self):  # pragma: no cover
-        if self.browser == "firefox":
-            return shutil.which("geckodriver")
-        raise NotImplementedError(f"{self.browser} is not yet supported")
+        bin = BROWSERS[self.browser]["webdriver_path"]
+        if bin:
+            return shutil.which(bin) or shutil.which(f"{bin}.exe")
+        return None
 
-    @default("webdriver_log_path")
-    def _default_webdriver_log_path(self):  # pragma: no cover
-        if self.browser == "firefox":
-            return str(self.parent.manager.lite_dir / "geckodriver.log")
-        raise NotImplementedError(f"{self.browser} is not yet supported")
+    @default("webdriver_log_output")
+    def _default_webdriver_log_output(self):  # pragma: no cover
+        return BROWSERS[self.browser]["log_output"]
 
-    @default("webdriver_env_vars")
-    def _default_webdriver_env_vars(self):  # pragma: no cover
-        if self.browser == "firefox" and self.headless:
+    @default("webdriver_env")
+    def _default_webdriver_env(self):  # pragma: no cover
+        if self.browser == FIREFOX and self.headless:
             return {"MOZ_HEADLESS": "1"}
         return {}
 
-    # utilities
-    def _make_webdriver_firefox(self):
-        """Build a firefox driver"""
-        from selenium.webdriver import Firefox, FirefoxOptions, FirefoxService
-
-        options = FirefoxOptions()
-        if self.headless:  # pragma: no cover
-            options.headless = self.headless
+    @default("_webdriver_options")
+    def _default_webdriver_options(self) -> "TAnyOptions":
+        browser = self.browser
+        OptionsClass: "type[TAnyOptions]" = BROWSERS[browser]["options_class"]
+        options = OptionsClass()
 
         if self.browser_path:  # pragma: no cover
-            self.log.debug("[webdriver] firefox path %s", self.browser_path)
-
+            self.log.debug("[webdriver] %s path %s", browser, self.browser_path)
             options.binary_location = self.browser_path
 
+        return options
+
+    @default("_webdriver_service")
+    def _default_webdriver_service(self) -> "TAnyService":
+        browser = self.browser
+        ServiceClass: "type[TAnyService]" = BROWSERS[browser]["service_class"]
         service_kwargs = dict(
             executable_path=self.webdriver_path,
             service_args=self.webdriver_service_args,
-            env=self.webdriver_env_vars,
+            env=self.webdriver_env,
         )
 
-        if self.webdriver_log_path:  # pragma: no cover
-            path = self.parent.manager.lite_dir / self.webdriver_log_path
+        if self.webdriver_log_output:  # pragma: no cover
+            path = self.parent.manager.lite_dir / self.webdriver_log_output
             path.parent.mkdir(parents=True, exist_ok=True)
             service_kwargs.update(log_output=str(path.resolve()))
 
-        self.log.debug("[webdriver] geckodriver options: %s", service_kwargs)
+        self.log.debug("[webdriver] %s service options: %s", browser, service_kwargs)
 
         _env = dict(os.environ)
         _env.update(service_kwargs["env"])
         service_kwargs["env"] = _env
 
-        service = FirefoxService(**service_kwargs)
-
-        self.log.debug("[webdriver] firefox options %s", options.__dict__)
-
-        return Firefox(options=options, service=service)
+        return ServiceClass(**service_kwargs)

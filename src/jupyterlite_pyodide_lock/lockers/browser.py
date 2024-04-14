@@ -1,6 +1,7 @@
 """Solve ``pyodide-lock`` with the browser manged as a naive subprocess."""
 
 import asyncio
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -8,22 +9,39 @@ from pathlib import Path
 from jupyterlite_core.trait_types import TypedTuple
 from traitlets import Bool, Instance, Unicode, default
 
+from ..constants import (
+    CHROME,
+    CHROME_BINARY,
+    CHROMIUM,
+    CHROMIUM_BINARY,
+    ENV_VAR_BROWSER,
+    FIREFOX,
+    FIREFOX_BINARY,
+)
 from .tornado import TornadoLocker
+
+#: chromium base args
+BROWSER_CHROMIUM_BASE = {
+    "private_mode": ["--incognito"],
+    "profile": ["--user-data-dir={PROFILE_DIR}"],
+}
+
 
 #: browser CLI args, keyed by configurable
 BROWSERS = {
-    "firefox": {
-        "launch": ["firefox"],
+    FIREFOX: {
+        "launch": [FIREFOX_BINARY],
         "headless": ["--headless"],
         "private_mode": ["--private-window"],
         "profile": ["--new-instance", "--profile", "{PROFILE_DIR}"],
     },
-    "chromium": {
-        "launch": ["chromium-browser", "--new-window"],
-        # doesn't appear to work
-        # "headless": ["--headless"],
-        "private_mode": ["--incognito"],
-        "profile": ["--user-data-dir={PROFILE_DIR}"],
+    CHROMIUM: {
+        "launch": [CHROMIUM_BINARY, "--new-window"],
+        **BROWSER_CHROMIUM_BASE,
+    },
+    CHROME: {
+        "launch": [CHROME_BINARY, "--new-window"],
+        **BROWSER_CHROMIUM_BASE,
     },
 }
 
@@ -43,7 +61,7 @@ class BrowserLocker(TornadoLocker):
         ),
     ).tag(config=True)
 
-    browser = Unicode("firefox", help="an alias for a pre-configured browser").tag(
+    browser = Unicode(help="an alias for a pre-configured browser").tag(
         config=True,
     )
     headless = Bool(True, help="run the browser in headless mode").tag(config=True)
@@ -105,6 +123,10 @@ class BrowserLocker(TornadoLocker):
             self.cleanup()
 
     # trait defaults
+    @default("browser")
+    def _default_browser(self):
+        return os.environ.get(ENV_VAR_BROWSER, FIREFOX)
+
     @default("browser_argv")
     def _default_browser_argv(self):
         argv = self.browser_cli_arg(self.browser, "launch")

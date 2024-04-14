@@ -2,6 +2,7 @@
 
 import json
 import os
+import platform
 import re
 import shutil
 import subprocess
@@ -147,14 +148,21 @@ def task_test() -> TTaskGenerator:
         pkg = ppt.parent
         mod = pkg.name.replace("-", "_")
         file_dep = [ppt, *src, *P.PY_TEST[ppt]]
+        env = dict(os.environ)
 
-        if not E.CI:
+        if E.CI:
+            env.update(
+                C.CI_ENV.get((E.PLATFORM, E.PY_MAJOR))
+                or C.CI_ENV.get((E.PY_MAJOR,))
+                or {}
+            )
+        else:
             file_dep += [B.ENV_DEV_HISTORY]
 
         yield dict(
             name=f"pytest:{pkg.name}",
             actions=[
-                U.do([*C.COV_RUN, "--source", mod, "-m", "pytest"], cwd=pkg),
+                U.do([*C.COV_RUN, "--source", mod, "-m", "pytest"], cwd=pkg, env=env),
             ],
             file_dep=file_dep,
             task_dep=[f"dev:{pkg.name}"],
@@ -198,6 +206,8 @@ class E:
     """Environment."""
 
     CI = bool(json.loads(os.environ.get("CI", "0").lower()))
+    PY_MAJOR = ".".join(map(str, sys.version_info[:1]))
+    PLATFORM = platform.system().lower()
 
 
 class C:
@@ -234,6 +244,10 @@ class C:
         "--option=column_width=88",
     ]
     TAPLO_FORMAT = [*TAPLO, "fmt", *TAPLO_OPTS]
+    CI_ENV = {
+        ("3.10"): dict(JLPL_BROWSER="chromium"),
+        ("windows", "3.12"): dict(JLPL_BROWSER="chrome"),
+    }
 
 
 class P:

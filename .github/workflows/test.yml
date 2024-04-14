@@ -76,7 +76,7 @@ jobs:
     env:
       JUPYTERLITE_NO_JUPYTER_SERVER: 1
       JUPYTERLITE_NO_JUPYTERLAB_SERVER: 1
-      JUPYTERLITE_PYODIDE_LOCK_TIMEOUT: 500
+      JLPL_TIMEOUT: 500
     steps:
       - name: configure line endings
         run: |
