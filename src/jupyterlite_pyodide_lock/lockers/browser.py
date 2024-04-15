@@ -23,6 +23,7 @@ from .tornado import TornadoLocker
 BROWSER_CHROMIUM_BASE = {
     "private_mode": ["--incognito"],
     "profile": ["--user-data-dir={PROFILE_DIR}"],
+    "headless": ["--headless=new"],
 }
 
 
