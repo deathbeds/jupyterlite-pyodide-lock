@@ -12,7 +12,11 @@ import urllib.request
 from pathlib import Path
 
 from jupyterlite_core.constants import JSON_FMT, JUPYTER_LITE_CONFIG, UTF8
-from jupyterlite_pyodide_lock.constants import FILES_PYTHON_HOSTED, PYODIDE_LOCK_STEM
+from jupyterlite_pyodide_lock.constants import (
+    ENV_VAR_ALL,
+    FILES_PYTHON_HOSTED,
+    PYODIDE_LOCK_STEM,
+)
 from jupyterlite_pyodide_lock.utils import warehouse_date_to_epoch
 
 try:
@@ -43,6 +47,16 @@ WIDGETS_CONFIG = dict(
 )
 
 
+def pytest_configure(config):
+    from pytest_metadata.plugin import metadata_key
+
+    config.stash[metadata_key].pop("JAVA_HOME", None)
+
+    for k in sorted([*os.environ, *ENV_VAR_ALL]):
+        if k.startswith("JLPL_") or k.startswith("JUPYTERLITE_"):
+            config.stash[metadata_key][k] = os.environ.get(k)
+
+
 @fixture()
 def the_pyproject():
     return tomllib.loads(PPT.read_text(**UTF8))
@@ -71,7 +85,17 @@ def lite_cli(a_lite_dir: Path):
         a_lite_config = a_lite_dir / JUPYTER_LITE_CONFIG
         env = None
 
+        print(
+            "[env] well-known:",
+            {
+                k: v
+                for k, v in sorted(os.environ.items())
+                if k.startswith("JLPL_") or k.startswith("JUPYTERLITE_")
+            },
+        )
+
         if "env" in popen_kwargs:
+            print("[env] custom:", env)
             env = dict(os.environ)
             env.update(popen_kwargs.pop("env"))
 
@@ -85,6 +109,7 @@ def lite_cli(a_lite_dir: Path):
         kwargs.update(**popen_kwargs)
 
         a_lite_config.exists() and print(
+            "[config]",
             a_lite_config,
             a_lite_config.read_text(**UTF8),
             flush=True,
@@ -94,13 +119,13 @@ def lite_cli(a_lite_dir: Path):
         stdout, stderr = proc.communicate()
 
         if expect_rc is not None:
-            print("rc", proc.returncode)
+            print("[rc]", proc.returncode)
             assert proc.returncode == expect_rc
         if expect_stdout:
-            print("stdout", stdout)
+            print("[stdout]", stdout)
             assert expect_stdout in stdout
         if expect_stderr:
-            print("stderr", stderr)
+            print("[stderr]", stderr)
             assert expect_stderr in stderr
 
         return proc.returncode, stdout, stderr

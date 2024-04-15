@@ -2,6 +2,8 @@
 
 import json
 import os
+import platform
+import pprint
 import re
 import shutil
 import subprocess
@@ -70,7 +72,13 @@ def task_dev() -> TTaskGenerator:
         pip_tasks += [f"dev:{pkg.name}"]
         yield dict(name=pkg.name, actions=[U.do(install, cwd=pkg)], file_dep=file_dep)
 
-    yield dict(name="check", actions=[[*C.PIP, "check"]], task_dep=pip_tasks)
+    yield dict(name="check:pip", actions=[[*C.PIP, "check"]], task_dep=pip_tasks)
+
+    yield dict(
+        name="check:browsers",
+        actions=[["jupyter", "pyodide-lock", "browsers"]],
+        task_dep=["dev:check:pip"],
+    )
 
 
 def task_fix() -> TTaskGenerator:
@@ -147,14 +155,23 @@ def task_test() -> TTaskGenerator:
         pkg = ppt.parent
         mod = pkg.name.replace("-", "_")
         file_dep = [ppt, *src, *P.PY_TEST[ppt]]
+        env = None
+        pkg_py_platform = [pkg.name, *E.PY_PLATFORM]
 
-        if not E.CI:
+        if E.CI:
+            env = (
+                C.CI_ENV.get(tuple(pkg_py_platform))
+                or C.CI_ENV.get(E.PY_PLATFORM)
+                or C.CI_ENV.get(E.PY)
+            )
+        else:
             file_dep += [B.ENV_DEV_HISTORY]
 
         yield dict(
             name=f"pytest:{pkg.name}",
             actions=[
-                U.do([*C.COV_RUN, "--source", mod, "-m", "pytest"], cwd=pkg),
+                *([(pprint.pprint, [env])] if env else []),
+                U.do([*C.COV_RUN, "--source", mod, "-m", "pytest"], cwd=pkg, env=env),
             ],
             file_dep=file_dep,
             task_dep=[f"dev:{pkg.name}"],
@@ -198,11 +215,16 @@ class E:
     """Environment."""
 
     CI = bool(json.loads(os.environ.get("CI", "0").lower()))
+    PY = ".".join(map(str, sys.version_info[:2]))
+    PLATFORM = platform.system().lower()
+    PY_PLATFORM = (PY, PLATFORM)
 
 
 class C:
     """Constants."""
 
+    CORE_NAME = "jupyterlite-pyodide-lock"
+    WD_NAME = "jupyterlite-pyodide-lock-webdriver"
     PPT = "pyproject.toml"
     CONFTEST_PY = "tests/conftest.py"
     PY = [sys.executable]
@@ -234,6 +256,12 @@ class C:
         "--option=column_width=88",
     ]
     TAPLO_FORMAT = [*TAPLO, "fmt", *TAPLO_OPTS]
+    CI_ENV = {
+        "3.10": dict(JLPL_BROWSER="chrome"),
+        (CORE_NAME, "3.10", "linux"): dict(JLPL_BROWSER="chromium"),
+        # chromedriver doesn't work with chromium on CI, so just use firefox
+        (WD_NAME, "3.10", "linux"): dict(JLPL_BROWSER="firefox"),
+    }
 
 
 class P:
@@ -341,7 +369,14 @@ class U:
     @staticmethod
     def do(cmd: list[str], cwd: None | Path = None, **kwargs: Any) -> CmdAction:
         """Wrap a command line with extra options."""
-        return CmdAction(cmd, shell=False, cwd=str(cwd) if cwd else None, **kwargs)
+        env = None
+        _env = kwargs.pop("env", None)
+        if _env:
+            env = dict(os.environ)
+            env.update(_env)
+        return CmdAction(
+            cmd, shell=False, cwd=str(cwd) if cwd else None, env=env, **kwargs
+        )
 
     @staticmethod
     def replace_between(

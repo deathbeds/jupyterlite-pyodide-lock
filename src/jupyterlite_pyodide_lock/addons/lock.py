@@ -25,8 +25,8 @@ from traitlets import Bool, CInt, Enum, Unicode, default
 
 from .. import __version__
 from ..constants import (
+    ENV_VAR_LOCK_DATE_EPOCH,
     LOAD_PYODIDE_OPTIONS,
-    LOCK_DATE_EPOCH,
     OPTION_LOCK_FILE_URL,
     OPTION_PACKAGES,
     PYODIDE_ADDON,
@@ -320,9 +320,9 @@ class PyodideLockAddon(_BaseAddon):
     # traitlets
     @default("lock_date_epoch")
     def _default_lock_date_epoch(self) -> int | None:
-        if LOCK_DATE_EPOCH not in os.environ:
+        if ENV_VAR_LOCK_DATE_EPOCH not in os.environ:
             return None
-        return int(json.loads(os.environ[LOCK_DATE_EPOCH]))
+        return int(json.loads(os.environ[ENV_VAR_LOCK_DATE_EPOCH]))
 
     # derived properties
     @property

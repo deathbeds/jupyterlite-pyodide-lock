@@ -9,8 +9,16 @@ __all__ = ["NAME", "LOCKER_ENTRYPOINT", "PYODIDE_LOCK_STEM", "PROXY", "LOCK_HTML
 #: this distribution name
 NAME = "jupyterlite-pyodide-lock"
 
+#: environment variable name for setting the browser
+ENV_VAR_BROWSER = "JLPL_BROWSER"
+
+#: environment variable name for setting the lock date
+ENV_VAR_LOCK_DATE_EPOCH = "JLPL_LOCK_DATE_EPOCH"
+
 #: environment variable for setting the timeout
-ENV_VAR_TIMEOUT = "JUPYTERLITE_PYODIDE_LOCK_TIMEOUT"
+ENV_VAR_TIMEOUT = "JLPL_TIMEOUT"
+
+ENV_VAR_ALL = [ENV_VAR_BROWSER, ENV_VAR_LOCK_DATE_EPOCH, ENV_VAR_TIMEOUT]
 
 #: the entry point name for locker implementations
 LOCKER_ENTRYPOINT = f"{NAME.replace('-', '_')}.locker.v0"
@@ -48,6 +56,47 @@ PYODIDE_CORE_URL = f"{PYODIDE_GH}/releases/download/{PYODIDE_VERSION}/pyodide-co
 #: the default URL for python wheels
 FILES_PYTHON_HOSTED = "https://files.pythonhosted.org"
 
+#: known patterns for file types not present on all platforms/pythons
+FILE_EXT_MIME_MAP = {
+    r"\.mjs$": "text/javascript",
+    r"\.whl$": "application/x-zip",
+    r"\.wasm$": "application/wasm",
+}
+
+#: the failed in the warehouse API used for release dates
+WAREHOUSE_UPLOAD_DATE = "upload_time_iso_8601"
+
+#: a string template for the warehouse iso8601 timestamp
+WAREHOUSE_UPLOAD_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
+WAREHOUSE_UPLOAD_FORMAT_SHORT = "%Y-%m-%dT%H:%M:%SZ"
+WAREHOUSE_UPLOAD_FORMAT_ANY = [
+    WAREHOUSE_UPLOAD_FORMAT,
+    WAREHOUSE_UPLOAD_FORMAT_SHORT,
+]
+
+### browsers ###
+
+#: browser alias for firefox
+FIREFOX = "firefox"
+
+#: browser alias for chromium
+CHROMIUM = "chromium"
+
+#: browser alias for chrome
+CHROME = "chrome"
+
+BROWSERS = [FIREFOX, CHROMIUM, CHROME]
+BROWSER_BIN = {
+    CHROMIUM: "chromium-browser",
+    FIREFOX: "firefox",
+    CHROME: "google-chrome",
+}
+
+BROWSER_BIN_ALIASES = {BROWSER_BIN[CHROME]: ["chrome", "Google Chrome"]}
+
+ENV_VARS_BROWSER_BINS = {BROWSER_BIN[CHROME]: ["CHROME_BIN"]}
+
+
 #: is this windows
 WIN = os.sys.platform[:3] == "win"
 
@@ -60,25 +109,22 @@ WIN_PROGRAM_FILES_DIRS = {
 #: locations in Program Files of browsers
 WIN_BROWSER_DIRS = [
     "Mozilla Firefox",
+    "Google\\Chrome\\Application",
 ]
 
-#: known patterns for file types not present on all platforms/pythons
-FILE_EXT_MIME_MAP = {
-    r"\.mjs$": "text/javascript",
-    r"\.whl$": "application/x-zip",
-    r"\.wasm$": "application/wasm",
+WIN_BROWSER_REG_KEYS = {
+    BROWSER_BIN[CHROME]: [
+        r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe"
+    ]
 }
 
-#: environment variable name for setting the lock date
-LOCK_DATE_EPOCH = "JLPL_LOCK_DATE_EPOCH"
+#: is this osx
+OSX = os.sys.platform[:3] == "dar"
 
-#: the failed in the warehouse API used for release dates
-WAREHOUSE_UPLOAD_DATE = "upload_time_iso_8601"
 
-#: a string template for the warehouse iso8601 timestamp
-WAREHOUSE_UPLOAD_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
-WAREHOUSE_UPLOAD_FORMAT_SHORT = "%Y-%m-%dT%H:%M:%SZ"
-WAREHOUSE_UPLOAD_FORMAT_ANY = [
-    WAREHOUSE_UPLOAD_FORMAT,
-    WAREHOUSE_UPLOAD_FORMAT_SHORT,
+#: locations in Applications of browsers
+OSX_APP_DIRS = [
+    "Applications/Firefox.app",
+    "Applications/Firefox.app/Contents/MacOS",
+    "Applications/Google Chrome.app/Contents/MacOS",
 ]

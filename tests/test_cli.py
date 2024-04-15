@@ -1,12 +1,13 @@
 """Tests of the ``jupyter-lite`` CLI with ``jupyterlite-pyodide-lock``."""
 
+import subprocess
 from pathlib import Path
 
 import pyodide_lock
 import pytest
 from jupyterlite_core.constants import UTF8
 from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK
-from jupyterlite_pyodide_lock.constants import LOCK_DATE_EPOCH
+from jupyterlite_pyodide_lock.constants import ENV_VAR_LOCK_DATE_EPOCH
 
 from .conftest import expect_no_diff, patch_config
 
@@ -16,6 +17,11 @@ MESSAGES = {
     ),
     "cant-find-wheel": "Can't find a pure python wheel",
 }
+
+
+@pytest.mark.parametrize("args", [["--json"], []])
+def test_cli_self_browsers(args) -> None:
+    subprocess.check_call(["jupyter-pyodide-lock", "browsers", *args])
 
 
 @pytest.mark.parametrize("args", [["--pyodide-lock"], []])
@@ -76,9 +82,11 @@ def test_cli_lock_date_epoch(
 ) -> None:
     """Verify a lock clamped by good environment variable, failed by bad config."""
     if a_widget_approach != "specs_pep508":
-        return pytest.skip(f"LOCK_DATE_EPOCH does not affect {a_widget_approach}")
+        return pytest.skip(
+            f"{ENV_VAR_LOCK_DATE_EPOCH} does not affect {a_widget_approach}"
+        )
 
-    good_env = {LOCK_DATE_EPOCH: str(a_good_widget_lock_date_epoch)}
+    good_env = {ENV_VAR_LOCK_DATE_EPOCH: str(a_good_widget_lock_date_epoch)}
     lite_cli("build", "--debug", env=good_env)
 
     patch_config(
