@@ -158,7 +158,11 @@ def task_test() -> TTaskGenerator:
         env = None
 
         if E.CI:
-            env = C.CI_ENV.get(E.PY_PLATFORM, C.CI_ENV.get(E.PY))
+            env = (
+                C.CI_ENV.get(tuple(pkg.name, *E.PY_PLATFORM))
+                or C.CI_ENV.get(E.PY_PLATFORM)
+                or C.CI_ENV.get(E.PY)
+            )
         else:
             file_dep += [B.ENV_DEV_HISTORY]
 
@@ -218,6 +222,7 @@ class E:
 class C:
     """Constants."""
 
+    CORE_NAME = "jupyterlite-pyodide-lock"
     PPT = "pyproject.toml"
     CONFTEST_PY = "tests/conftest.py"
     PY = [sys.executable]
@@ -251,6 +256,8 @@ class C:
     TAPLO_FORMAT = [*TAPLO, "fmt", *TAPLO_OPTS]
     CI_ENV = {
         "3.10": dict(JLPL_BROWSER="chrome"),
+        # apparently chromedriver doesn't work with chromium on CI
+        (CORE_NAME, "3.10", "linux"): dict(JLPL_BROWSER="chromium"),
     }
 
 
