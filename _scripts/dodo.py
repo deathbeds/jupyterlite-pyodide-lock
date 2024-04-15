@@ -251,7 +251,6 @@ class C:
     TAPLO_FORMAT = [*TAPLO, "fmt", *TAPLO_OPTS]
     CI_ENV = {
         "3.10": dict(JLPL_BROWSER="chrome"),
-        ("3.10", "linux"): dict(JLPL_BROWSER="chromium"),
     }
 
 
