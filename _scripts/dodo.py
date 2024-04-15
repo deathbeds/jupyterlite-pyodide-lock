@@ -156,10 +156,11 @@ def task_test() -> TTaskGenerator:
         mod = pkg.name.replace("-", "_")
         file_dep = [ppt, *src, *P.PY_TEST[ppt]]
         env = None
+        pkg_py_platform = [pkg.name, *E.PY_PLATFORM]
 
         if E.CI:
             env = (
-                C.CI_ENV.get(tuple(pkg.name, *E.PY_PLATFORM))
+                C.CI_ENV.get(tuple(pkg_py_platform))
                 or C.CI_ENV.get(E.PY_PLATFORM)
                 or C.CI_ENV.get(E.PY)
             )
@@ -223,6 +224,7 @@ class C:
     """Constants."""
 
     CORE_NAME = "jupyterlite-pyodide-lock"
+    WD_NAME = "jupyterlite-pyodide-lock-webdriver"
     PPT = "pyproject.toml"
     CONFTEST_PY = "tests/conftest.py"
     PY = [sys.executable]
@@ -256,8 +258,9 @@ class C:
     TAPLO_FORMAT = [*TAPLO, "fmt", *TAPLO_OPTS]
     CI_ENV = {
         "3.10": dict(JLPL_BROWSER="chrome"),
-        # apparently chromedriver doesn't work with chromium on CI
         (CORE_NAME, "3.10", "linux"): dict(JLPL_BROWSER="chromium"),
+        # chromedriver doesn't work with chromium on CI, so just use firefox
+        (WD_NAME, "3.10", "linux"): dict(JLPL_BROWSER="firefox"),
     }
 
 
