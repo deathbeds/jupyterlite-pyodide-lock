@@ -125,7 +125,7 @@ class BrowserLocker(TornadoLocker):
     # trait defaults
     @default("browser")
     def _default_browser(self):
-        return os.environ.get(ENV_VAR_BROWSER, FIREFOX)
+        return os.environ.get(ENV_VAR_BROWSER, "").strip() or FIREFOX
 
     @default("browser_argv")
     def _default_browser_argv(self):

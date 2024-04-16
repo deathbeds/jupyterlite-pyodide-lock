@@ -77,4 +77,4 @@ class BaseLocker(LoggingConfigurable):
 
     @default("timeout")
     def _default_timeout(self) -> int:
-        return int(json.loads(os.environ.get(ENV_VAR_TIMEOUT, "120")))
+        return int(json.loads(os.environ.get(ENV_VAR_TIMEOUT, "").strip() or "120"))

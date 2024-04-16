@@ -106,6 +106,13 @@ line-length = 88
 extend-include = [
   "*.ipynb",
 ]
+include = [
+  "_scripts/*.py",
+  "contrib/*/src/**/*.py",
+  "docs/**/*.py",
+  "examples/**/*.ipynb",
+  "src/**/*.py",
+]
 cache-dir = "build/.cache/ruff"
 
 [tool.ruff.lint]

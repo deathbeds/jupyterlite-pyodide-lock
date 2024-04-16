@@ -126,7 +126,7 @@ class WebDriverLocker(TornadoLocker):
     # defaults
     @default("browser")
     def _default_browser(self):
-        return os.environ.get(ENV_VAR_BROWSER, FIREFOX)
+        return os.environ.get(ENV_VAR_BROWSER, "").strip() or FIREFOX
 
     @default("_webdriver")
     def _default_webdriver(self) -> "TAnyWebDriver":  # pragma: no cover

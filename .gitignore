@@ -1,6 +1,7 @@
 __pycache__/
 .*_cache/
 .ipynb_checkpoints/
+.pixi/
 .venv/
 *.doit.*
 build/

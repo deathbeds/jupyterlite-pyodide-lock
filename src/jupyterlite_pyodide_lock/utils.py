@@ -91,7 +91,7 @@ def get_browser_search_path() -> str:  # pragma: no cover
 
     if WIN:
         for env_var, default in WIN_PROGRAM_FILES_DIRS.items():
-            program_files = os.environ.get(env_var, default)
+            program_files = os.environ.get(env_var, "").strip() or default
             for browser_dir in WIN_BROWSER_DIRS:
                 path = (Path(program_files) / browser_dir).resolve()
                 if path.exists():
