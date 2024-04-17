@@ -14,204 +14,97 @@ concurrency:
 env:
   PYTHONUNBUFFERED: "1"
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
-
-  # our stuff
-  CACHE_EPOCH: "0"
+  JUPYTERLITE_NO_JUPYTER_SERVER: 1
+  JUPYTERLITE_NO_JUPYTERLAB_SERVER: 1
+  JLPL_TIMEOUT: 500
 
 jobs:
   build:
-    name: build
-    runs-on: ${{ matrix.os }}-latest
-    strategy:
-      matrix:
-        os: [ubuntu]
-        python-version: ["3.12"]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      # configure builtin providers
-      - name: setup (python)
-        uses: actions/setup-python@v5
+      - uses: prefix-dev/setup-pixi@v0.6.0
         with:
-          python-version: ${{ matrix.python-version }}
-          architecture: x64
-
-      # restore caches
-      - name: cache (pip)
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: |
-            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-pip-build-${{ hashFiles('.github/requirements-build.txt') }}
-          restore-keys: |
-            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-pip-build-
-
-      - name: setup (pip)
-        run: pip install -U pip wheel setuptools
-
-      - name: setup (pip build)
-        run: pip install -U -v -r .github/requirements-build.txt --no-build-isolation
-
-      - name: lint
-        run: doit lint
-
-      - name: build
-        run: doit build
-
-      - name: upload (dist)
-        uses: actions/upload-artifact@v4
+          pixi-version: v0.19.1
+          cache: true
+          environments: build
+      - run: pixi run build
+      - uses: actions/upload-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-dist
           path: ./dist
 
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: prefix-dev/setup-pixi@v0.6.0
+        with:
+          pixi-version: v0.19.1
+          cache: true
+          environments: lint
+      - run: pixi run lint
+
   test:
-    name: test (${{ matrix.os }} ${{ matrix.python-version }})
+    name: ${{ matrix.test-env }} (${{ matrix.os }} ${{ matrix.browser }})
     needs: [build]
     runs-on: ${{ matrix.os }}-latest
     strategy:
       fail-fast: false
       matrix:
         os: ["ubuntu", "macos", "windows"]
-        python-version: ["3.10", "3.12"]
+        test-env: ["test", "test-oldest"]
+        include:
+          - test-env: test-oldest
+            browser: chrome
+          - test-env: test-oldest
+            os: ubuntu
+            browser: firefox
     env:
-      JUPYTERLITE_NO_JUPYTER_SERVER: 1
-      JUPYTERLITE_NO_JUPYTERLAB_SERVER: 1
-      JLPL_TIMEOUT: 500
+      JLPL_BROWSER: ${{ matrix.browser }}
     steps:
-      - name: configure line endings
-        run: |
-          git config --global core.autocrlf false
-
-      - name: checkout
-        uses: actions/checkout@v4
-
-      - name: cached lock (conda)
-        id: lock
-        uses: actions/cache@v4
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - uses: prefix-dev/setup-pixi@v0.6.0
         with:
-          path: build/test-${{ matrix.os }}-${{ matrix.python-version }}.conda.lock
-          key: |-
-            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('.github/environment-test-webdriver.yml') }}
-
-      - name: install (conda, from lock)
-        if: steps.lock.outputs.cache-hit == 'true'
-        uses: conda-incubator/setup-miniconda@v3
-        with:
-          environment-file: build/test-${{ matrix.os }}-${{ matrix.python-version }}.conda.lock
-
-      - name: install (conda, from env)
-        if: steps.lock.outputs.cache-hit != 'true'
-        uses: conda-incubator/setup-miniconda@v3
-        with:
-          environment-file: .github/environment-test-webdriver.yml
-          miniforge-variant: Mambaforge
-          python-version: "${{ matrix.python-version }}.*"
-          use-mamba: true
-
-      - name: conda list
-        shell: bash -l {0}
-        run: |-
-          mkdir -p build && conda list --explicit | tee "build/test-${{ matrix.os }}-${{ matrix.python-version }}.conda.lock"
-
-      - name: download (dist)
-        uses: actions/download-artifact@v4
+          pixi-version: v0.19.1
+          cache: true
+          environments: ${{ matrix.test-env }}
+      - uses: actions/download-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-dist
           path: ./dist
-
-      - name: dev (unix)
-        if: matrix.os != 'windows'
-        shell: bash -l {0}
-        run: doit dev
-
-      - name: dev (windows)
-        if: matrix.os == 'windows'
-        shell: cmd /C CALL {0}
-        run: doit dev
-
-      - name: test core (unix)
-        if: matrix.os != 'windows'
-        shell: bash -l {0}
-        run: doit test:pytest:jupyterlite-pyodide-lock
-
-      - name: test core (windows)
-        if: matrix.os == 'windows'
-        shell: cmd /C CALL {0}
-        env:
-          PYTEST_ADDOPTS: -x
-        run: doit test:pytest:jupyterlite-pyodide-lock
-
-      - name: test contrib (unix)
-        if: matrix.os != 'windows'
-        shell: bash -l {0}
-        run: doit test
-
-      - name: test contrib (windows)
-        if: matrix.os == 'windows'
-        shell: cmd /C CALL {0}
-        env:
-          PYTEST_ADDOPTS: -x
-        run: doit test
-
-      - name: upload (reports)
-        if: always()
+      - run: pixi run --environment=${{ matrix.test-env }} test-core
+      - run: pixi run --environment=${{ matrix.test-env }} test
+      - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: |-
-            jlpl-${{ github.run_number }}-test-${{ matrix.os }}-${{matrix.python-version }}
+            jlpl-${{ github.run_number }}-${{ matrix.test-env }}-${{ matrix.os }}
           path: |
-            ./build/*.conda.lock
             ./build/reports
             ./contrib/*/build/reports
 
-      - name: Rename uncached conda packages
-        shell: bash
-        run: mv "${CONDA_PKGS_DIR}" "${CONDA_PKGS_DIR}_do_not_cache"
-
   docs:
-    name: docs (${{ matrix.os }} ${{ matrix.python-version }})
+    name: docs
     needs: [build]
-    runs-on: ${{ matrix.os }}-latest
-    defaults:
-      run:
-        shell: bash -l {0}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ["ubuntu"]
-        python-version: ["3.12"]
+    runs-on: ubuntu-latest
     steps:
-      - name: configure line endings
-        run: |
-          git config --global core.autocrlf false
-
-      - name: checkout
-        uses: actions/checkout@v4
-
-      - name: install (conda)
-        uses: conda-incubator/setup-miniconda@v3
+      - uses: actions/checkout@v4
+      - uses: prefix-dev/setup-pixi@v0.6.0
         with:
-          environment-file: docs/environment-docs.yml
-          miniforge-variant: Mambaforge
-          use-mamba: true
-
-      - name: download (dist)
-        uses: actions/download-artifact@v4
+          pixi-version: v0.19.1
+          cache: true
+          environments: >-
+            build
+            docs
+      - uses: actions/download-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-dist
           path: ./dist
-
-      - name: dev
-        run: doit dev
-
-      - name: app
-        run: doit docs:app
-
-      - name: html
-        run: doit docs:html
-
-      - name: upload (docs)
-        uses: actions/upload-artifact@v4
+      - run: pixi run docs-lite
+      - run: pixi run docs-sphinx
+      - uses: actions/upload-artifact@v4
         with:
           name: |-
             jlpl-docs-${{ github.run_number }}

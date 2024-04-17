@@ -9,14 +9,15 @@ from pathlib import Path
 from jupyterlite_core.trait_types import TypedTuple
 from traitlets import Bool, Instance, Unicode, default
 
-from ..constants import (
+from jupyterlite_pyodide_lock.constants import (
     BROWSER_BIN,
     CHROME,
     CHROMIUM,
     ENV_VAR_BROWSER,
     FIREFOX,
 )
-from ..utils import find_browser_binary
+from jupyterlite_pyodide_lock.utils import find_browser_binary
+
 from .tornado import TornadoLocker
 
 #: chromium base args
@@ -81,6 +82,7 @@ class BrowserLocker(TornadoLocker):
     _browser_process: subprocess.Popen = Instance(subprocess.Popen, allow_none=True)
 
     def cleanup(self) -> None:
+        """Clean up the browser process and profile directory."""
         proc, path = self._browser_process, self._temp_profile_path
         self.log.debug("[browser] cleanup process: %s", proc)
         self.log.debug("[browser] cleanup path: %s", path)
@@ -100,7 +102,8 @@ class BrowserLocker(TornadoLocker):
 
         super().cleanup()
 
-    async def fetch(self):
+    async def fetch(self) -> None:
+        """Open the browser to the lock page, and wait for it to finish."""
         args = [*self.browser_argv, self.lock_html_url]
         self.log.debug("[browser] browser args: %s", args)
         self._browser_process = subprocess.Popen(args)
@@ -124,11 +127,11 @@ class BrowserLocker(TornadoLocker):
 
     # trait defaults
     @default("browser")
-    def _default_browser(self):
-        return os.environ.get(ENV_VAR_BROWSER, FIREFOX)
+    def _default_browser(self) -> str:
+        return os.environ.get(ENV_VAR_BROWSER, "").strip() or FIREFOX
 
     @default("browser_argv")
-    def _default_browser_argv(self):
+    def _default_browser_argv(self) -> list[str]:
         argv = self.browser_cli_arg(self.browser, "launch")
         argv[0] = find_browser_binary(argv[0], self.log)
 

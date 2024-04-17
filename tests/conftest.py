@@ -54,7 +54,7 @@ def pytest_configure(config):
 
     for k in sorted([*os.environ, *ENV_VAR_ALL]):
         if k.startswith("JLPL_") or k.startswith("JUPYTERLITE_"):
-            config.stash[metadata_key][k] = os.environ.get(k)
+            config.stash[metadata_key][k] = os.environ.get(k, "")
 
 
 @fixture()

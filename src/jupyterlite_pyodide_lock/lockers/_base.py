@@ -8,10 +8,10 @@ from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK, PYODIDE_VERSION
 from traitlets import Dict, Instance, Int, List, Unicode, default
 from traitlets.config import LoggingConfigurable
 
-from ..constants import ENV_VAR_TIMEOUT, FILES_PYTHON_HOSTED
+from jupyterlite_pyodide_lock.constants import ENV_VAR_TIMEOUT, FILES_PYTHON_HOSTED
 
 if TYPE_CHECKING:  # pragma: no cover
-    from ..addons.lock import PyodideLockAddon
+    from jupyterlite_pyodide_lock.addons.lock import PyodideLockAddon
 
 
 class BaseLocker(LoggingConfigurable):
@@ -47,7 +47,7 @@ class BaseLocker(LoggingConfigurable):
 
     # API methods
     def resolve_sync(self) -> bool | None:
-        """A synchronous facade for doing async solves, called by ``PyodideLockAddon``.
+        """Provide a sync facade for doing async solves, called by ``PyodideLockAddon``.
 
         If a locker is entirely synchronous, it can overload this.
         """
@@ -77,4 +77,4 @@ class BaseLocker(LoggingConfigurable):
 
     @default("timeout")
     def _default_timeout(self) -> int:
-        return int(json.loads(os.environ.get(ENV_VAR_TIMEOUT, "120")))
+        return int(json.loads(os.environ.get(ENV_VAR_TIMEOUT, "").strip() or "120"))

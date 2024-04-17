@@ -1,17 +1,21 @@
-"""web handlers for BrowserLocker"""
+"""Tornado handlers for ``BrowserLocker``."""
 
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from jupyterlite_core.constants import JSON_FMT
 
-from ...constants import (
+from jupyterlite_pyodide_lock.constants import (
     LOCK_HTML,
     PROXY,
     PYODIDE_LOCK,
     WAREHOUSE_UPLOAD_DATE,
 )
-from ...utils import epoch_to_warehouse_date, warehouse_date_to_epoch
+from jupyterlite_pyodide_lock.utils import (
+    epoch_to_warehouse_date,
+    warehouse_date_to_epoch,
+)
+
 from .cacher import CachingRemoteFiles
 from .freezer import MicropipFreeze
 from .logger import Log
@@ -19,10 +23,15 @@ from .mime import ExtraMimeFiles
 from .solver import SolverHTML
 
 if TYPE_CHECKING:  # pragma: no cover
-    from ..browser import BrowserLocker
+    from collections.abc import Callable
+
+    from jupyterlite_pyodide_lock.lockers.browser import BrowserLocker
+
+    TRouteRule = tuple[str, type, dict[str, Any]]
 
 
-def make_lock_date_epoch_replacer(locker: "BrowserLocker"):
+def make_lock_date_epoch_replacer(locker: "BrowserLocker") -> "Callable[[str], str]":
+    """Filter out releases newer than the lock date."""
     lock_date_epoch = locker.parent.lock_date_epoch
     lock_date_iso8601 = epoch_to_warehouse_date(lock_date_epoch)
 
@@ -35,7 +44,7 @@ def make_lock_date_epoch_replacer(locker: "BrowserLocker"):
         }
         return json.dumps(release_data, **JSON_FMT).encode("utf-8")
 
-    def _uploaded_before(artifact) -> bool:
+    def _uploaded_before(artifact: dict[str, Any]) -> bool:
         upload_iso8601 = artifact[WAREHOUSE_UPLOAD_DATE]
         upload_epoch = warehouse_date_to_epoch(upload_iso8601)
 
@@ -55,8 +64,8 @@ def make_lock_date_epoch_replacer(locker: "BrowserLocker"):
     return _clamp_to_lock_date_epoch
 
 
-def make_handlers(locker: "BrowserLocker"):
-    """Create the default handlers used for serving proxied CDN assets and locking"""
+def make_handlers(locker: "BrowserLocker") -> "tuple[TRouteRule]":
+    """Create the default handlers used for serving proxied CDN assets and locking."""
     files_cdn = locker.pythonhosted_cdn_url.encode("utf-8")
     files_local = f"{locker.base_url}/{PROXY}/pythonhosted".encode()
 
@@ -71,7 +80,10 @@ def make_handlers(locker: "BrowserLocker"):
             (WAREHOUSE_UPLOAD_DATE.encode("utf-8"), replacer)
         ]
 
-    solver_kwargs = {"context": locker._context, "log": locker.log}
+    solver_kwargs = {
+        "context": locker._context,  # noqa: SLF001
+        "log": locker.log,
+    }
     fallback_kwargs = {
         "log": locker.log,
         "path": locker.parent.manager.output_dir,
@@ -96,10 +108,10 @@ def make_proxy(
     locker: "BrowserLocker",
     path: str,
     remote: str,
-    route: str = None,
-    **extra_config,
-):
-    """Generate a proxied tornado handler rule"""
+    route: str | None = None,
+    **extra_config: Any,
+) -> "TRouteRule":
+    """Generate a proxied tornado handler rule."""
     route = route or f"^/{PROXY}/{path}/(.*)$"
     config = {
         "path": locker.cache_dir / path,

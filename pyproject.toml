@@ -106,6 +106,13 @@ line-length = 88
 extend-include = [
   "*.ipynb",
 ]
+include = [
+  "_scripts/*.py",
+  "contrib/*/src/**/*.py",
+  "docs/**/*.py",
+  "examples/**/*.ipynb",
+  "src/**/*.py",
+]
 cache-dir = "build/.cache/ruff"
 
 [tool.ruff.lint]
@@ -156,6 +163,7 @@ select = [
   "YTT",
 ]
 ignore = [
+  "C408",
   "D211",
   "D203",
   "D213",
@@ -171,11 +179,48 @@ ignore = [
 "_scripts/dodo.py" = [
   "A001",
   "C408",
-  "INP001",
   "N812",
   "RUF012",
   "RUF017",
-  "T201",
   "UP006",
   "S603",
+]
+"_scripts/*.py" = [
+  "INP001",
+  "T201",
+]
+"docs/conf.py" = [
+  "INP001",
+  "A001",
+  "E731",
+]
+"examples/*.ipynb" = [
+  "T201",
+]
+"*/jupyterlite_pyodide_lock_webdriver/locker.py" = [
+  "BLE001",
+]
+"*/lock.py" = [
+  "ARG002",
+  "T201",
+  "BLE001",
+]
+"*/lockers/__init__.py" = [
+  "ARG001",
+]
+"*/browser.py" = [
+  "S603",
+]
+"*/logger.py" = [
+  "BLE001",
+]
+"*/solver.py" = [
+  "ARG002",
+]
+"*/tornado.py" = [
+  "BLE001",
+]
+
+"utils.py" = [
+  "C901",
 ]

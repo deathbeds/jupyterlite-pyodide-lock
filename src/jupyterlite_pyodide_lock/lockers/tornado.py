@@ -15,12 +15,13 @@ from jupyterlite_core.constants import JSON_FMT, UTF8
 from jupyterlite_core.trait_types import TypedTuple
 from traitlets import Bool, Dict, Instance, Int, Tuple, Type, Unicode, default
 
-from ..constants import (
+from jupyterlite_pyodide_lock.constants import (
     LOCK_HTML,
     PROXY,
     PYODIDE_LOCK,
     PYODIDE_LOCK_STEM,
 )
+
 from ._base import BaseLocker
 from .handlers import make_handlers
 
@@ -29,6 +30,8 @@ if TYPE_CHECKING:  # pragma: no cover
 
     from tornado.httpserver import HTTPServer
     from tornado.web import Application
+
+    from .handlers import TRouteRule
 
 
 #: a type for tornado rules
@@ -60,8 +63,8 @@ class TornadoLocker(BaseLocker):
         * ``/_proxy/pypi``
         * ``/_proxy/pythonhosted``
 
-    If an ``{output_dir}/static/pyodide`` distribution is found, these will also be proxied
-    from the configured URL.
+    If an ``{output_dir}/static/pyodide`` distribution is found, these will also
+    be proxied from the configured URL.
     """
 
     log: "Logger"
@@ -84,7 +87,7 @@ class TornadoLocker(BaseLocker):
 
     # API methods
     async def resolve(self) -> bool | None:
-        """The main solve"""
+        """Launch a web application, then delegate to actually run the solve."""
         self.preflight()
         self.log.info("Starting server at:   %s", self.base_url)
 
@@ -118,27 +121,27 @@ class TornadoLocker(BaseLocker):
 
     # derived properties
     @property
-    def cache_dir(self):
-        """The location of cached files discovered during the solve"""
+    def cache_dir(self) -> Path:
+        """The location of cached files discovered during the solve."""
         return self.parent.manager.cache_dir / "browser-locker"
 
     @property
-    def lockfile_cache(self):
-        """The location of the updated lockfile"""
+    def lockfile_cache(self) -> Path:
+        """The location of the updated lockfile."""
         return self.cache_dir / PYODIDE_LOCK
 
     @property
-    def base_url(self):
-        """The effective base URL"""
+    def base_url(self) -> str:
+        """The effective base URL."""
         return f"{self.protocol}://{self.host}:{self.port}"
 
     @property
-    def lock_html_url(self):
+    def lock_html_url(self) -> str:
         """The as-served URL for the lock HTML page."""
         return f"{self.base_url}/{LOCK_HTML}"
 
     # helper functions
-    def preflight(self):
+    def preflight(self) -> None:
         """Prepare the cache.
 
         The PyPI cache is removed before each build, as the JSON cache is
@@ -154,7 +157,7 @@ class TornadoLocker(BaseLocker):
             self.lockfile_cache.unlink()
 
     def collect(self) -> dict[str, Path]:
-        """Copy all packages in the cached lockfile to ``output_dir``, and fix lock"""
+        """Copy all packages in the cached lockfile to ``output_dir``, and fix lock."""
         cached_lock = json.loads(self.lockfile_cache.read_text(**UTF8))
         packages = cached_lock["packages"]
 
@@ -162,13 +165,14 @@ class TornadoLocker(BaseLocker):
         self.log.info("collecting %s packages", len(packages))
         for name, package in packages.items():
             try:
-                found.update(self.collect_one_package(name, package))
+                found.update(self.collect_one_package(package))
             except Exception:  # pragma: no cover
                 self.log.error("Failed to collect %s: %s", name, package, exc_info=1)
 
         return found
 
-    def collect_one_package(self, name: str, package: dict[str, Any]) -> list[Path]:
+    def collect_one_package(self, package: dict[str, Any]) -> dict[str, Path]:
+        """Find a package in the cache."""
         found: Path | None = None
         file_name: str = package["file_name"]
 
@@ -185,7 +189,8 @@ class TornadoLocker(BaseLocker):
 
         return {}
 
-    def fix_lock(self, found: dict[str, Path]):
+    def fix_lock(self, found: dict[str, Path]) -> None:
+        """Fill in missing metadata from the ``micropip.freeze`` output."""
         from pyodide_lock import PyodideLockSpec
         from pyodide_lock.utils import add_wheels_to_spec
 
@@ -228,7 +233,8 @@ class TornadoLocker(BaseLocker):
         lock_dir: Path,
         package: dict[str, Any],
         found_path: Path,
-    ):
+    ) -> None:
+        """Update a ``pyodide-lock`` URL for deployment."""
         file_name = package["file_name"]
         new_file_name = file_name
 
@@ -250,34 +256,35 @@ class TornadoLocker(BaseLocker):
 
         package["file_name"] = new_file_name
 
-    async def fetch(self):  # pragma: no cover
+    async def fetch(self) -> None:  # pragma: no cover
         """Actually perform the solve."""
-        raise NotImplementedError(f"{self.__class__.__name__} must implement 'fetch'")
+        msg = f"{self.__class__.__name__} must implement 'fetch'"
+        raise NotImplementedError(msg)
 
     # trait defaults
     @default("_web_app")
-    def _default_web_app(self):
-        """Build the web application"""
+    def _default_web_app(self) -> "Application":
+        """Build the web application."""
         from tornado.web import Application
 
         return Application(self._handlers, **self.tornado_settings)
 
     @default("tornado_settings")
-    def _default_tornado_settings(self):
+    def _default_tornado_settings(self) -> dict[str, Any]:
         return {"debug": True, "autoreload": False}
 
     @default("_handlers")
-    def _default_handlers(self):
+    def _default_handlers(self) -> "TRouteRule":
         return make_handlers(self)
 
     @default("_http_server")
-    def _default_http_server(self):
+    def _default_http_server(self) -> "HTTPServer":
         from tornado.httpserver import HTTPServer
 
         return HTTPServer(self._web_app)
 
     @default("port")
-    def _default_port(self):
+    def _default_port(self) -> int:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind((self.host, 0))
         sock.listen(1)
@@ -286,11 +293,11 @@ class TornadoLocker(BaseLocker):
         return port
 
     @default("_context")
-    def _default_context(self):
+    def _default_context(self) -> dict[str, Any]:
         return {"micropip_args_json": json.dumps(self.micropip_args)}
 
     @default("micropip_args")
-    def _default_micropip_args(self):
+    def _default_micropip_args(self) -> dict[str, Any]:
         args = {}
         # defaults
         args.update(pre=False, verbose=True, keep_going=True)
@@ -312,5 +319,5 @@ class TornadoLocker(BaseLocker):
         return args
 
     @default("extra_micropip_args")
-    def _default_extra_micropip_args(self):
+    def _default_extra_micropip_args(self) -> dict[str, Any]:
         return {}

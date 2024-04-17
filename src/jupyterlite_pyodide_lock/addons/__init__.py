@@ -1,1 +1,1 @@
-"""Addons for supporting pyodide-lock"""
+"""Addons for supporting ``pyodide-lock`` in JupyterLite."""

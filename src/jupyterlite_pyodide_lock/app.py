@@ -1,5 +1,10 @@
+"""A command line for ``pyodide-lock`` in JupyterLite."""
+
+import contextlib
 import os
+import sys
 import textwrap
+from typing import ClassVar
 
 from jupyter_core.application import JupyterApp
 from jupyterlite_core.app import DescribedMixin
@@ -11,11 +16,11 @@ from .utils import find_browser_binary, get_browser_search_path
 
 
 class BrowsersApp(DescribedMixin, JupyterApp):
-    """list discoverable browsers"""
+    """An app that lists discoverable browsers."""
 
-    format = Unicode(allow_none=True).tag(config=True)
+    format: str = Unicode(allow_none=True).tag(config=True)
 
-    flags = {
+    flags: ClassVar = {
         "json": (
             {"BrowsersApp": {"format": "json"}},
             "output json",
@@ -23,6 +28,7 @@ class BrowsersApp(DescribedMixin, JupyterApp):
     }
 
     def start(self) -> None:
+        """Run the application."""
         results = {
             "search_path": get_browser_search_path().split(os.path.pathsep),
             "browsers": {},
@@ -36,15 +42,13 @@ class BrowsersApp(DescribedMixin, JupyterApp):
                 "aliases": aliases,
                 "found": None,
             }
-            try:
+            with contextlib.suppress(ValueError):
                 result["found"] = find_browser_binary(browser_bin, log=self.log)
-            except ValueError:  # pragma: no cover
-                pass
 
         if self.format == "json":
             import json
 
-            print(json.dumps(results, **JSON_FMT))
+            sys.stdout.write(json.dumps(results, **JSON_FMT))
             return
 
         self.log.info(
@@ -66,9 +70,9 @@ class BrowsersApp(DescribedMixin, JupyterApp):
 
 
 class PyodideLockApp(DescribedMixin, JupyterApp):
-    """tools for working with 'pyodide-lock' in JupyterLite"""
+    """Tools for working with 'pyodide-lock' in JupyterLite."""
 
-    subcommands = {
+    subcommands: ClassVar = {
         k: (v, v.__doc__.splitlines()[0].strip())
         for k, v in dict(
             browsers=BrowsersApp,

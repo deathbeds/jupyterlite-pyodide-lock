@@ -1,0 +1,336 @@
+
+[project]
+name = "jupyterlite-pyodide-lock-monorepo"
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64", "win-64", "osx-arm64"]
+
+# top-level tasks a la make phony
+[tasks]
+fix = {depends_on = [
+  "fix-ruff",
+  "fix-taplo",
+]}
+lint = {depends_on = [
+  "lint-ruff",
+]}
+build = {depends_on = [
+  "build-core",
+  "build-webdriver",
+]}
+test = {depends_on = [
+  "test-browsers",
+  "test-core",
+  "test-webdriver",
+]}
+docs = {depends_on = [
+  "docs-lite",
+  "docs-sphinx",
+]}
+
+# real tasks
+[feature.lint.tasks.fix-deps]
+inputs = [
+  "/pyproject.toml",
+  "/_scripts/fix-deps.py",
+]
+outputs = [
+  "/contrib/*/pyproject.toml",
+]
+cmd = """
+  python _scripts/fix-deps.py
+    pyproject.toml
+    contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml
+"""
+
+[feature.lint.tasks.fix-ruff]
+depends_on = ["fix-conftest"]
+inputs = [
+  "/contrib/*/src/**/*.py",
+  "/docs/**/*.py",
+  "/pyproject.toml",
+  "/src/**/*.py",
+  "/_scripts/*.py",
+]
+cmd = """
+    ruff check --fix-only
+    && ruff format
+"""
+
+[feature.lint.tasks.lint-ruff]
+inputs = [
+  "/contrib/*/src/**/*.py",
+  "/docs/**/*.py",
+  "/pyproject.toml",
+  "/src/**/*.py",
+  "/_scripts/*.py",
+]
+cmd = """
+    ruff check
+    && ruff format --check
+"""
+
+[feature.lint.tasks.fix-taplo]
+depends_on = ["fix-deps"]
+inputs = [
+  "/pyproject.toml",
+  "/pixi.toml",
+  "/contrib/*/pyproject.toml",
+]
+cmd = """
+    taplo fmt
+        --option=array_auto_collapse=false
+        --option=array_auto_expand=true
+        --option=compact_inline_tables=true
+        --option=column_width=88
+        --option=indent_string="  "
+        pyproject.toml
+        pixi.toml
+        contrib/*/pyproject.toml
+"""
+
+[feature.lint.tasks.fix-conftest]
+depends_on = ["fix-deps"]
+inputs = [
+  "/tests/conftest.py",
+  "/_scripts/replace-between.py",
+]
+outputs = [
+  "/contrib/jupyterlite-pyodide-lock-webdriver/tests/conftest.py",
+]
+cmd = """
+    python _scripts/replace-between.py
+        tests/conftest.py
+        contrib/jupyterlite-pyodide-lock-webdriver/tests/conftest.py
+        "### shared fixtures ###"
+"""
+
+[feature.build.tasks.build-licenses]
+inputs = [
+  "/LICENSE",
+]
+outputs = [
+  "/contrib/jupyterlite-pyodide-lock-webdriver/LICENSE",
+]
+cmd = """
+    cp LICENSE contrib/jupyterlite-pyodide-lock-webdriver/LICENSE
+"""
+
+[feature.build.tasks.build-core]
+inputs = [
+  "/LICENSE",
+  "/pyproject.toml",
+  "/README.md",
+  "/src/**/*.py",
+]
+outputs = [
+  "/dist/jupyterlite_pyodide_lock-*.tar.gz",
+  "/dist/jupyterlite_pyodide_lock-*.whl",
+]
+cmd = """
+    rm -rf dist/
+    && pyproject-build . --no-isolation -vv
+"""
+
+[feature.build.tasks.build-webdriver]
+depends_on = ["build-licenses"]
+inputs = [
+  "/contrib/jupyterlite-pyodide-lock-webdriver/LICENSE",
+  "/contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
+  "/contrib/jupyterlite-pyodide-lock-webdriver/README.md",
+  "/contrib/jupyterlite-pyodide-lock-webdriver/src/**/*.py",
+]
+outputs = [
+  "/contrib/jupyterlite-pyodide-lock-webdriver/dist/jupyterlite_pyodide_lock_webdriver-*.tar.gz",
+  "/contrib/jupyterlite-pyodide-lock-webdriver/dist/jupyterlite_pyodide_lock_webdriver-0.1.0a0.tar.gz",
+]
+cmd = """
+    cd contrib/jupyterlite-pyodide-lock-webdriver
+    && rm -rf dist
+    && pyproject-build . --no-isolation -vv
+"""
+
+[feature.test.tasks.test-pip]
+inputs = [
+  "/pyproject.toml",
+  "/contrib/*/pyproject.toml",
+]
+outputs = [
+  "/build/pip-freeze-test.txt",
+]
+cmd = """
+  python -m pip install -vv --no-deps --no-build-isolation --ignore-installed
+    -e .
+    -e contrib/jupyterlite-pyodide-lock-webdriver
+  && mkdir -p build
+  && pip freeze > build/pip-freeze-test.txt
+"""
+
+[feature.test.tasks.test-browsers]
+depends_on = ["test-pip"]
+cmd = """
+    jupyter-pyodide-lock browsers
+"""
+
+[feature.test.tasks.test-core]
+depends_on = ["test-pip"]
+inputs = [
+  "/build/pip-freeze-test.txt",
+  "/pyproject.toml",
+  "/src/**/*/.py",
+  "/tests/**/*/.py",
+]
+outputs = [
+  "/build/reports/pytest.html",
+  "/build/reports/htmlcov/status.json",
+]
+cmd = """
+    pytest
+"""
+
+[feature.test.tasks.test-webdriver]
+depends_on = ["test-pip"]
+inputs = [
+  "/build/pip-freeze-test.txt",
+  "/contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
+  "/contrib/jupyterlite-pyodide-lock-webdriver/src/**/*/.py",
+  "/contrib/jupyterlite-pyodide-lock-webdriver/tests/**/*/.py",
+  "/src/**/*/.py",
+]
+outputs = [
+  "/contrib/jupyterlite-pyodide-lock-webdriver/build/reports/pytest.html",
+  "/contrib/jupyterlite-pyodide-lock-webdriver/build/reports/htmlcov/status.json",
+]
+cmd = """
+    pytest
+"""
+
+[feature.docs.tasks.docs-pip]
+inputs = [
+  "/pyproject.toml",
+  "/contrib/*/pyproject.toml",
+]
+outputs = [
+  "/build/pip-freeze-docs.txt",
+]
+cmd = """
+  python -m pip install -vv --no-deps --no-build-isolation --ignore-installed
+    -e .
+    -e contrib/jupyterlite-pyodide-lock-webdriver
+  && mkdir -p build
+  && pip freeze > build/pip-freeze-docs.txt
+"""
+
+[feature.docs.tasks.docs-lite]
+depends_on = ["docs-pip"]
+inputs = [
+  "/build/pip-freeze-docs.txt",
+  "/examples/jupyter_lite_config.json",
+  "/examples/files/**/*.*",
+  "/src/**/*.py",
+]
+outputs = [
+  "/build/docs-app/SHA256SUMS",
+]
+cmd = """
+    cd examples &&
+    jupyter-lite doit --debug -- pre_archive:report:SHA256SUMS
+"""
+
+[feature.docs.tasks.docs-sphinx]
+depends_on = ["docs-lite", "build"]
+inputs = [
+  "/build/docs-app/SHA256SUMS",
+  "/docs/**/*.css",
+  "/docs/**/*.ipynb",
+  "/docs/**/*.md",
+  "/docs/**/*.py",
+  "/dist/*.whl",
+  "/contrib/*/dist/*.whl",
+]
+outputs = [
+  "/build/docs/.buildinfo",
+]
+cmd = """
+    cd docs
+    && sphinx-build -W --color -b html . ../build/docs
+"""
+
+### environments for tasks
+
+[environments]
+lint = {features = [
+  "lint",
+], solve-group = "default"}
+build = {features = [
+  "build",
+], solve-group = "default"}
+test = {features = [
+  "dev",
+  "firefox",
+  "run",
+  "test",
+  "webdriver",
+], solve-group = "default"}
+docs = {features = [
+  "demo",
+  "dev",
+  "docs",
+  "run",
+  "webdriver",
+], solve-group = "default"}
+test-oldest = {features = [
+  "dev",
+  "firefox",
+  "run",
+  "test",
+  "webdriver",
+  "py310",
+], solve-group = "oldest"}
+
+[feature.py310.dependencies]
+python = "3.10.*"
+
+[feature.run.dependencies]
+python = ">=3.10,<3.13"
+jupyterlite-core = ">=0.3.0,<0.4.0"
+jupyterlite-pyodide-kernel = ">=0.3.1,<0.4.0"
+pyodide-lock = ">=0.1.0a4,<0.1.0a6"
+pyodide-lock-with-wheel = "*"
+tornado = ">=6.1.0"
+
+[feature.dev.dependencies]
+pip = "*"
+flit-core = ">=3.9,<4.0"
+
+[feature.build.dependencies]
+python-build = "*"
+flit-core = ">=3.9,<4.0"
+
+[feature.lint.dependencies]
+ruff = ">=0.3.0"
+taplo = ">=0.9.1"
+tomli-w = "*"
+
+[feature.test.dependencies]
+pytest = ">=8,<9"
+pytest-cov = "*"
+pytest-html = "*"
+
+[feature.webdriver.dependencies]
+selenium = ">=4.19,<4.20"
+
+[feature.firefox.dependencies]
+firefox = "115.*"
+geckodriver = "*"
+
+[feature.docs.dependencies]
+myst-nb = "*"
+pydata-sphinx-theme = "*"
+sphinx = "*"
+sphinx-autodoc-typehints = "*"
+sphinx-copybutton = "*"
+python-libarchive-c = "*"
+
+[feature.demo.dependencies]
+ipywidgets = ">=8.1,<8.2"
+jupyterlab = ">=4.1,<4.2"
