@@ -255,6 +255,28 @@ cmd = """
     && sphinx-build -W --color -b html . ../build/docs
 """
 
+[feature.docs.tasks.lab-pip]
+inputs = [
+  "/pyproject.toml",
+  "/contrib/*/pyproject.toml",
+]
+outputs = [
+  "/build/pip-freeze-lab.txt",
+]
+cmd = """
+  python -m pip install -vv --no-deps --no-build-isolation --ignore-installed
+    -e .
+    -e contrib/jupyterlite-pyodide-lock-webdriver
+  && mkdir -p build
+  && pip freeze > build/pip-freeze-lab.txt
+"""
+
+[feature.demo.tasks.lab]
+depends_on = ["lab-pip"]
+cmd = """
+  jupyter lab --no-browser --debug
+"""
+
 ### environments for tasks
 
 [environments]
@@ -286,6 +308,14 @@ test-oldest = {features = [
   "webdriver",
   "py310",
 ], solve-group = "oldest"}
+lab = {features = [
+  "demo",
+  "dev",
+  "docs",
+  "run",
+  "test",
+  "webdriver",
+], solve-group = "default"}
 
 [feature.py310.dependencies]
 python = "3.10.*"
