@@ -1,11 +1,13 @@
+"""A ``tornado`` handler for accepting ``micropip.freeze`` output and errors."""
+
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from jupyterlite_core.constants import JSON_FMT, UTF8
 from tornado.web import RequestHandler
 
 if TYPE_CHECKING:  # pragma: no cover
-    from ..browser import BrowserLocker
+    from jupyterlite_pyodide_lock.lockers.browser import BrowserLocker
 
 
 class MicropipFreeze(RequestHandler):
@@ -13,11 +15,12 @@ class MicropipFreeze(RequestHandler):
 
     locker: "BrowserLocker"
 
-    def initialize(self, locker: "BrowserLocker", **kwargs):
+    def initialize(self, locker: "BrowserLocker", **kwargs: Any) -> None:
+        """Initialize instance members."""
         self.locker = locker
         super().initialize(**kwargs)
 
-    async def post(self):
+    async def post(self) -> None:
         """Accept a ``pyodide-lock.json`` as the POST body."""
         # parse and write out the re-normalized lockfile
         lock_json = json.loads(self.request.body)
@@ -31,6 +34,6 @@ class MicropipFreeze(RequestHandler):
                 "[micropip] unexpected 'freeze' response %s", lock_json
             )
 
-        self.locker._solve_halted = True
+        self.locker._solve_halted = True  # noqa: SLF001
 
         await self.finish()

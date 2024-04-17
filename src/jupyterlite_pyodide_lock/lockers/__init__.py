@@ -2,14 +2,18 @@
 
 import warnings
 from functools import lru_cache
+from typing import TYPE_CHECKING, Any
 
 from jupyterlite_core.addons import entry_points
 
-from ..constants import LOCKER_ENTRYPOINT, NAME
+from jupyterlite_pyodide_lock.constants import LOCKER_ENTRYPOINT, NAME
+
+if TYPE_CHECKING:  # pragma: no cover
+    from importlib_metadata import EntryPoint
 
 
 @lru_cache(1)
-def get_locker_entry_points(force=None):
+def get_locker_entry_points(force: Any = None) -> dict[str, "EntryPoint"]:
     """Discover (and cache) modern entrypoints as a ``dict`` with sorted keys.
 
     Pass some noise (like ``date.date``) to the ``force`` argument to reload.

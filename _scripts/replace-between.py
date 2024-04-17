@@ -1,3 +1,5 @@
+"""replace text in a file with text from another file between matching markers."""
+
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -10,6 +12,7 @@ PARSER.add_argument("pattern", default=None)
 
 
 def replace_between(source: Path, dest: Path, pattern: str | None) -> int:
+    """Replace text in a file with text from another file between matching markers."""
     pattern = pattern or f"### {source.name} ###"
     src_text = source.read_text(**UTF8)
     dest_text = dest.read_text(**UTF8)

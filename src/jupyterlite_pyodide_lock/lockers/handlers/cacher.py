@@ -1,3 +1,5 @@
+"""A ``tornado`` handler for proxying remote CDN files with a cache."""
+
 import re
 from collections.abc import Callable
 from pathlib import Path
@@ -24,14 +26,15 @@ class CachingRemoteFiles(ExtraMimeFiles):
 
     def initialize(
         self, remote: str, rewrites: TRewriteMap | None = None, **kwargs: Any
-    ):
+    ) -> None:
+        """Extend the base initialize with instance members."""
         super().initialize(**kwargs)
         self.remote = remote
         self.client = AsyncHTTPClient()
         self.rewrites = rewrites or {}
 
     async def get(self, path: str, include_body: bool = True) -> None:
-        """Actually fetch a file"""
+        """Actually fetch a file."""
         cache_path = self.root / path
         if cache_path.exists():  # pragma: no cover
             cache_path.touch()
@@ -39,7 +42,7 @@ class CachingRemoteFiles(ExtraMimeFiles):
             await self.cache_file(path, cache_path)
         return await super().get(path, include_body)
 
-    async def cache_file(self, path: str, cache_path: Path):
+    async def cache_file(self, path: str, cache_path: Path) -> None:
         """Get the file, and rewrite it."""
         if not cache_path.parent.exists():  # pragma: no cover
             cache_path.parent.mkdir(parents=True)
@@ -64,8 +67,7 @@ class CachingRemoteFiles(ExtraMimeFiles):
                 elif callable(replacement):
                     body = replacement(body)
                 else:  # pragma: no cover
-                    raise NotImplementedError(
-                        f"Don't know what to do with {type(replacement)}"
-                    )
+                    msg = f"Don't know what to do with {type(replacement)}"
+                    raise NotImplementedError(msg)
 
         cache_path.write_bytes(body)

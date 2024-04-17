@@ -52,6 +52,8 @@ BROWSERS = {
 
 
 class WebDriverLocker(TornadoLocker):
+    """A locker that uses the WebDriver standard to control a browser."""
+
     browser = Unicode(help="an alias for a pre-configured browser").tag(
         config=True,
     )
@@ -87,6 +89,7 @@ class WebDriverLocker(TornadoLocker):
     )
 
     async def fetch(self) -> None:
+        """Create the WebDriver, open the lock page, and wait for it to lock."""
         webdriver = self._webdriver
 
         self.log.info("[webdriver] %s", webdriver)
@@ -104,6 +107,7 @@ class WebDriverLocker(TornadoLocker):
             self.cleanup()
 
     def cleanup(self) -> None:
+        """Clean up the WebDriver."""
         if self._webdriver:  # pragma: no cover
             for method in [self._webdriver.close, self._webdriver.quit]:
                 try:
@@ -113,10 +117,12 @@ class WebDriverLocker(TornadoLocker):
             self._webdriver = None
         return super().cleanup()
 
-    async def _webdriver_get_async(self):
+    async def _webdriver_get_async(self) -> None:
+        """Wrap the blocking webdriver behavior for making a ``Task``."""
         await asyncio.get_event_loop().run_in_executor(None, self._webdriver_get)
 
-    def _webdriver_get(self):
+    def _webdriver_get(self) -> None:
+        """Actually open the page (or fail)."""
         try:
             self._webdriver.get(self.lock_html_url)
         except Exception as err:  # pragma: no cover
@@ -125,43 +131,43 @@ class WebDriverLocker(TornadoLocker):
 
     # defaults
     @default("browser")
-    def _default_browser(self):
+    def _default_browser(self) -> str:
         return os.environ.get(ENV_VAR_BROWSER, "").strip() or FIREFOX
 
     @default("_webdriver")
     def _default_webdriver(self) -> "TAnyWebDriver":  # pragma: no cover
-        WebDriverClass = BROWSERS[self.browser]["webdriver_class"]
+        webdriver_class = BROWSERS[self.browser]["webdriver_class"]
         options = self._webdriver_options
         service = self._webdriver_service
 
-        return WebDriverClass(options=options, service=service)
+        return webdriver_class(options=options, service=service)
 
     @default("browser_path")
-    def _default_browser_path(self):  # pragma: no cover
+    def _default_browser_path(self) -> str:  # pragma: no cover
         return find_browser_binary(BROWSERS[self.browser]["browser_binary"], self.log)
 
     @default("webdriver_path")
-    def _default_webdriver_path(self):  # pragma: no cover
-        bin = BROWSERS[self.browser]["webdriver_path"]
-        if bin:
-            return shutil.which(bin) or shutil.which(f"{bin}.exe")
+    def _default_webdriver_path(self) -> str | None:  # pragma: no cover
+        exe = BROWSERS[self.browser].get("webdriver_path")
+        if exe:
+            return shutil.which(exe) or shutil.which(f"{exe}.exe")
         return None
 
     @default("webdriver_log_output")
-    def _default_webdriver_log_output(self):  # pragma: no cover
+    def _default_webdriver_log_output(self) -> str:  # pragma: no cover
         return BROWSERS[self.browser]["log_output"]
 
     @default("webdriver_env")
-    def _default_webdriver_env(self):  # pragma: no cover
+    def _default_webdriver_env(self) -> dict[str, str]:  # pragma: no cover
         if self.browser == FIREFOX and self.headless:
-            return {"MOZ_HEADLESS": "1"}
+            return dict(MOZ_HEADLESS="1")
         return {}
 
     @default("_webdriver_options")
     def _default_webdriver_options(self) -> "TAnyOptions":
         browser = self.browser
-        OptionsClass: "type[TAnyOptions]" = BROWSERS[browser]["options_class"]
-        options = OptionsClass()
+        options_klass: "type[TAnyOptions]" = BROWSERS[browser]["options_class"]
+        options = options_klass()
 
         if self.browser_path:  # pragma: no cover
             self.log.debug("[webdriver] %s path %s", browser, self.browser_path)
@@ -172,7 +178,7 @@ class WebDriverLocker(TornadoLocker):
     @default("_webdriver_service")
     def _default_webdriver_service(self) -> "TAnyService":
         browser = self.browser
-        ServiceClass: "type[TAnyService]" = BROWSERS[browser]["service_class"]
+        service_class: "type[TAnyService]" = BROWSERS[browser]["service_class"]
         service_kwargs = dict(
             executable_path=self.webdriver_path,
             service_args=self.webdriver_service_args,
@@ -190,4 +196,4 @@ class WebDriverLocker(TornadoLocker):
         _env.update(service_kwargs["env"])
         service_kwargs["env"] = _env
 
-        return ServiceClass(**service_kwargs)
+        return service_class(**service_kwargs)

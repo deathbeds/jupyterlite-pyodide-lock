@@ -1,10 +1,10 @@
+"""Utilities for working with the Warehouse API, and browsers."""
+
 import os
 import shutil
 from datetime import datetime, timezone
 from logging import Logger, getLogger
 from pathlib import Path
-
-logger = getLogger(__name__)
 
 from .constants import (
     BROWSER_BIN_ALIASES,
@@ -19,9 +19,13 @@ from .constants import (
     WIN_PROGRAM_FILES_DIRS,
 )
 
+logger = getLogger(__name__)
+
 
 def warehouse_date_to_epoch(iso8601_str: str) -> int:
-    for format_str in WAREHOUSE_UPLOAD_FORMAT_ANY:
+    """Convert a Warehouse upload date to a UNIX epoch timeestamp."""
+    formats = WAREHOUSE_UPLOAD_FORMAT_ANY
+    for format_str in formats:
         try:
             return int(
                 datetime.strptime(iso8601_str, format_str)
@@ -30,12 +34,13 @@ def warehouse_date_to_epoch(iso8601_str: str) -> int:
             )
         except ValueError:
             continue
-    raise ValueError(  # pragma: no cover
-        f"'{iso8601_str}' didn't match any of {WAREHOUSE_UPLOAD_FORMAT_ANY}"
-    )
+
+    msg = f"'{iso8601_str}' didn't match any of {formats}"  # pragma: no cover
+    raise ValueError(msg)  # pragma: no cover
 
 
 def epoch_to_warehouse_date(epoch: int) -> str:
+    """Convert a UNIX epoch timeestamp to a Warehouse upload date."""
     return datetime.fromtimestamp(epoch, tz=timezone.utc).strftime(
         WAREHOUSE_UPLOAD_FORMAT
     )
@@ -45,7 +50,7 @@ def find_browser_binary(browser_binary: str, log: Logger = logger) -> str:
     """Resolve an absolute path to a browser binary."""
     path_var = get_browser_search_path()
 
-    bin: None | str = None
+    exe: None | str = None
 
     extensions = [""]
 
@@ -58,31 +63,32 @@ def find_browser_binary(browser_binary: str, log: Logger = logger) -> str:
             candidates += [f"{base}{extension}"]
 
     for candidate in candidates:  # pragma: no cover
-        bin = shutil.which(candidate, path=path_var)
-        if bin:
+        exe = shutil.which(candidate, path=path_var)
+        if exe:
             break
 
-    if bin is None and browser_binary in ENV_VARS_BROWSER_BINS:  # pragma: no cover
+    if exe is None and browser_binary in ENV_VARS_BROWSER_BINS:  # pragma: no cover
         log.debug("[browser] fall back to well-known env vars...")
-        for bin in ENV_VARS_BROWSER_BINS[browser_binary]:
-            if bin and Path(bin).exists():
+        for exe in ENV_VARS_BROWSER_BINS[browser_binary]:
+            if exe and Path(exe).exists():
                 break
 
-    if bin is None and WIN:  # pragma: no cover
+    if exe is None and WIN:  # pragma: no cover
         log.debug("[browser] fall back to registry...")
         for key in WIN_BROWSER_REG_KEYS.get(browser_binary, []):
             import winreg
 
             with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key) as reg:
-                bin = winreg.QueryValue(reg)
-                if bin and Path(bin).exists():
+                exe = winreg.QueryValue(reg)
+                if exe and Path(exe).exists():
                     break
 
-    if bin is None or not Path(bin).exists():  # pragma: no cover
+    if exe is None or not Path(exe).exists():  # pragma: no cover
         log.warning("[browser] no '%s' on PATH (or other means)", browser_binary)
-        raise ValueError("No browser found for '%s'", browser_binary)
+        msg = f"No browser found for '{browser_binary}'"
+        raise ValueError(msg)
 
-    return bin
+    return exe
 
 
 def get_browser_search_path() -> str:  # pragma: no cover
