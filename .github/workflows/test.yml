@@ -109,4 +109,4 @@ jobs:
         with:
           name: |-
             jlpl-docs-${{ github.run_number }}
-          path: ./build/reports
+          path: ./build/docs
