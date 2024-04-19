@@ -6,8 +6,8 @@ platforms = ["linux-64", "osx-64", "win-64", "osx-arm64"]
 
 # top-level tasks a la make phony
 [tasks]
-fix = {depends_on = ["fix-ruff", "fix-taplo"]}
-lint = {depends_on = ["lint-ruff"]}
+fix = {depends_on = ["fix-ruff", "fix-taplo", "fix-ipynb"]}
+lint = {depends_on = ["lint-ruff", "lint-ipynb"]}
 build = {depends_on = ["build-core", "build-webdriver"]}
 test = {depends_on = ["test-browsers", "test-core", "test-webdriver"]}
 docs = {depends_on = ["docs-lite", "docs-sphinx"]}
@@ -37,6 +37,22 @@ cmd = """
   python _scripts/fix-deps.py
     pyproject.toml
     contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml"""
+
+[feature.lint.tasks.fix-ipynb]
+cmd = "python _scripts/nb-lint.py --fix docs"
+inputs = [
+  "/_scripts/nb-lint.py",
+  "/docs/**/*.ipynb",
+  "!**/.ipynb_checkpoints",
+]
+
+[feature.lint.tasks.lint-ipynb]
+cmd = "python _scripts/nb-lint.py docs"
+inputs = [
+  "/_scripts/nb-lint.py",
+  "/docs/**/*.ipynb",
+  "!**/.ipynb_checkpoints",
+]
 
 [feature.lint.tasks.fix-ruff]
 depends_on = ["fix-conftest"]
@@ -256,6 +272,7 @@ flit-core = ">=3.9,<4.0"
 [feature.lint.dependencies]
 ruff = ">=0.3.0"
 taplo = ">=0.9.1"
+nbformat = "*"
 tomli-w = "*"
 
 [feature.test.dependencies]
