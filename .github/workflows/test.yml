@@ -74,14 +74,15 @@ jobs:
         with:
           name: jlpl-${{ github.run_number }}-dist
           path: ./dist
-      - run: pixi run --environment=${{ matrix.test-env }} test-core
-      - run: pixi run --environment=${{ matrix.test-env }} test
+      - run: pixi run -e=${{ matrix.test-env }} test-core
+      - run: pixi run -e=${{ matrix.test-env }} test
       - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: |-
             jlpl-${{ github.run_number }}-${{ matrix.test-env }}-${{ matrix.os }}
           path: |
+            ./.pixi/task-cache-v0
             ./build/reports
             ./contrib/*/build/reports
 

@@ -1,6 +1,6 @@
 # jupyterlite-pyodide-lock-webdriver
 
-> A ``jupyterlite-pyodide-lock` lock strategy using the [WebDriver] standard.
+> A `jupyterlite-pyodide-lock` lock strategy using the [WebDriver] standard.
 
 [webdriver]: https://www.w3.org/TR/webdriver
 

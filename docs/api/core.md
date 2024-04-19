@@ -1,4 +1,4 @@
-# API
+# jupyterlite-pyodide-lock
 
 ## Addons
 
@@ -16,13 +16,6 @@
 ```{eval-rst}
 .. currentmodule:: jupyterlite_pyodide_lock
 .. automodule:: jupyterlite_pyodide_lock.lockers.browser
-```
-
-### WebDriverLocker
-
-```{eval-rst}
-.. currentmodule:: jupyterlite_pyodide_lock_webdriver
-.. automodule:: jupyterlite_pyodide_lock_webdriver.locker
 ```
 
 ## Locker Bases
