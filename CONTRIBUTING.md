@@ -63,7 +63,8 @@ pixi run lab
 Some tasks need to have an `-e {environment}` provided, for example:
 
 ```bash
-pixi run -e test        test  # test against the latest python
-pixi run -e test-oldest test  # test against the oldest supported python
-pixi run -e docs        docs  # build the docs
+pixi run -e build       build  # build distributions
+pixi run -e test        test   # test against the latest python
+pixi run -e test-oldest test   # test against the oldest supported python
+pixi run -e docs        docs   # build the docs
 ```
