@@ -15,10 +15,10 @@ docs = {depends_on = ["docs-lite", "docs-sphinx"]}
 # tasks that are customized per env
 [tasks.pip]
 inputs = [
-  "/pyproject.toml",
-  "/contrib/*/pyproject.toml",
+  "pyproject.toml",
+  "contrib/*/pyproject.toml",
 ]
-outputs = ["/build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt"]
+outputs = ["build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt"]
 cmd = """
   python -m pip install -vv --no-deps --no-build-isolation --ignore-installed
     -e .
@@ -29,10 +29,10 @@ cmd = """
 # real tasks
 [feature.lint.tasks.fix-deps]
 inputs = [
-  "/pyproject.toml",
-  "/_scripts/fix-deps.py",
+  "pyproject.toml",
+  "_scripts/fix-deps.py",
 ]
-outputs = ["/contrib/*/pyproject.toml"]
+outputs = ["contrib/*/pyproject.toml"]
 cmd = """
   python _scripts/fix-deps.py
     pyproject.toml
@@ -41,40 +41,40 @@ cmd = """
 [feature.lint.tasks.fix-ipynb]
 cmd = "python _scripts/nb-lint.py --fix docs"
 inputs = [
-  "/_scripts/nb-lint.py",
-  "/docs/**/*.ipynb",
+  "_scripts/nb-lint.py",
+  "docs/**/*.ipynb",
   "!**/.ipynb_checkpoints",
 ]
 
 [feature.lint.tasks.lint-ipynb]
 cmd = "python _scripts/nb-lint.py docs"
 inputs = [
-  "/_scripts/nb-lint.py",
-  "/docs/**/*.ipynb",
+  "_scripts/nb-lint.py",
+  "docs/**/*.ipynb",
   "!**/.ipynb_checkpoints",
 ]
 
 [feature.lint.tasks.fix-ruff]
 depends_on = ["fix-conftest"]
 inputs = [
-  "/_scripts/*.py",
-  "/contrib/*/src/**/*.py",
-  "/docs/**/*.ipynb",
-  "/docs/**/*.py",
-  "/pyproject.toml",
-  "/src/**/*.py",
+  "_scripts/*.py",
+  "contrib/*/src/**/*.py",
+  "docs/**/*.ipynb",
+  "docs/**/*.py",
+  "pyproject.toml",
+  "src/**/*.py",
   "!**/.ipynb_checkpoints",
 ]
 cmd = "ruff check --fix-only && ruff format"
 
 [feature.lint.tasks.lint-ruff]
 inputs = [
-  "/_scripts/*.py",
-  "/contrib/*/src/**/*.py",
-  "/docs/**/*.ipynb",
-  "/docs/**/*.py",
-  "/pyproject.toml",
-  "/src/**/*.py",
+  "_scripts/*.py",
+  "contrib/*/src/**/*.py",
+  "docs/**/*.ipynb",
+  "docs/**/*.py",
+  "pyproject.toml",
+  "src/**/*.py",
   "!**/.ipynb_checkpoints",
 ]
 cmd = "ruff check && ruff format --check"
@@ -82,8 +82,8 @@ cmd = "ruff check && ruff format --check"
 [feature.lint.tasks.fix-taplo]
 depends_on = ["fix-deps"]
 inputs = [
-  "/*.toml",
-  "/contrib/*/*.toml",
+  "*.toml",
+  "contrib/*/*.toml",
 ]
 cmd = """
   taplo fmt
@@ -99,10 +99,10 @@ cmd = """
 [feature.lint.tasks.fix-conftest]
 depends_on = ["fix-deps"]
 inputs = [
-  "/tests/conftest.py",
-  "/_scripts/replace-between.py",
+  "tests/conftest.py",
+  "_scripts/replace-between.py",
 ]
-outputs = ["/contrib/jupyterlite-pyodide-lock-webdriver/tests/conftest.py"]
+outputs = ["contrib/jupyterlite-pyodide-lock-webdriver/tests/conftest.py"]
 cmd = """
   python _scripts/replace-between.py
     tests/conftest.py
@@ -110,35 +110,35 @@ cmd = """
     "### shared fixtures ###" """
 
 [feature.build.tasks.build-licenses]
-inputs = ["/LICENSE"]
-outputs = ["/contrib/jupyterlite-pyodide-lock-webdriver/LICENSE"]
+inputs = ["LICENSE"]
+outputs = ["contrib/jupyterlite-pyodide-lock-webdriver/LICENSE"]
 cmd = "cp LICENSE contrib/jupyterlite-pyodide-lock-webdriver/LICENSE"
 
 [feature.build.tasks.build-core]
 inputs = [
-  "/LICENSE",
-  "/pyproject.toml",
-  "/README.md",
-  "/src/**/*.py",
-  "/src/**/*.j2",
+  "LICENSE",
+  "pyproject.toml",
+  "README.md",
+  "src/**/*.py",
+  "src/**/*.j2",
 ]
 outputs = [
-  "/dist/jupyterlite_pyodide_lock-*.tar.gz",
-  "/dist/jupyterlite_pyodide_lock-*.whl",
+  "dist/jupyterlite_pyodide_lock-*.tar.gz",
+  "dist/jupyterlite_pyodide_lock-*.whl",
 ]
 cmd = "rm -rf dist && pyproject-build . --no-isolation -vv"
 
 [feature.build.tasks.build-webdriver]
 depends_on = ["build-licenses"]
 inputs = [
-  "/contrib/jupyterlite-pyodide-lock-webdriver/LICENSE",
-  "/contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
-  "/contrib/jupyterlite-pyodide-lock-webdriver/README.md",
-  "/contrib/jupyterlite-pyodide-lock-webdriver/src/**/*.py",
+  "contrib/jupyterlite-pyodide-lock-webdriver/LICENSE",
+  "contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
+  "contrib/jupyterlite-pyodide-lock-webdriver/README.md",
+  "contrib/jupyterlite-pyodide-lock-webdriver/src/**/*.py",
 ]
 outputs = [
-  "/contrib/jupyterlite-pyodide-lock-webdriver/dist/jupyterlite_pyodide_lock_webdriver-*.tar.gz",
-  "/contrib/jupyterlite-pyodide-lock-webdriver/dist/jupyterlite_pyodide_lock_webdriver-0.1.0a0.tar.gz",
+  "contrib/jupyterlite-pyodide-lock-webdriver/dist/jupyterlite_pyodide_lock_webdriver-*.tar.gz",
+  "contrib/jupyterlite-pyodide-lock-webdriver/dist/jupyterlite_pyodide_lock_webdriver-0.1.0a0.tar.gz",
 ]
 cmd = "cd contrib/jupyterlite-pyodide-lock-webdriver && rm -rf dist && pyproject-build . --no-isolation -vv"
 
@@ -149,57 +149,57 @@ cmd = "jupyter-pyodide-lock browsers"
 [feature.test.tasks.test-core]
 depends_on = ["pip"]
 inputs = [
-  "/build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt",
-  "/pyproject.toml",
-  "/src/**/*/.py",
-  "/tests/**/*/.py",
+  "build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt",
+  "pyproject.toml",
+  "src/**/*/.py",
+  "tests/**/*/.py",
 ]
 outputs = [
-  "/build/reports/pytest.html",
-  "/build/reports/htmlcov/status.json",
+  "build/reports/pytest.html",
+  "build/reports/htmlcov/status.json",
 ]
 cmd = "pytest"
 
 [feature.test.tasks.test-webdriver]
 depends_on = ["pip"]
 inputs = [
-  "/build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt",
-  "/contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
-  "/contrib/jupyterlite-pyodide-lock-webdriver/src/**/*/.py",
-  "/contrib/jupyterlite-pyodide-lock-webdriver/tests/**/*/.py",
-  "/src/**/*/.py",
+  "build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt",
+  "contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
+  "contrib/jupyterlite-pyodide-lock-webdriver/src/**/*/.py",
+  "contrib/jupyterlite-pyodide-lock-webdriver/tests/**/*/.py",
+  "src/**/*/.py",
 ]
 outputs = [
-  "/contrib/jupyterlite-pyodide-lock-webdriver/build/reports/pytest.html",
-  "/contrib/jupyterlite-pyodide-lock-webdriver/build/reports/htmlcov/status.json",
+  "contrib/jupyterlite-pyodide-lock-webdriver/build/reports/pytest.html",
+  "contrib/jupyterlite-pyodide-lock-webdriver/build/reports/htmlcov/status.json",
 ]
 cmd = "pytest"
 
 [feature.docs.tasks.docs-lite]
 depends_on = ["pip"]
 inputs = [
-  "/build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt",
-  "/examples/jupyter_lite_config.json",
-  "/examples/files/**/*.*",
-  "/src/**/*.py",
+  "build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt",
+  "examples/jupyter_lite_config.json",
+  "examples/files/**/*.*",
+  "src/**/*.py",
 ]
-outputs = ["/build/docs-app/SHA256SUMS"]
+outputs = ["build/docs-app/SHA256SUMS"]
 cmd = "cd examples && jupyter-lite doit --debug -- pre_archive:report:SHA256SUMS"
 
 [feature.docs.tasks.docs-sphinx]
 depends_on = ["build", "docs-lite"]
 inputs = [
-  "/*.md",
-  "/build/docs-app/SHA256SUMS",
-  "/contrib/*/dist/*.whl",
-  "/dist/*.whl",
-  "/docs/**/*.css",
-  "/docs/**/*.ipynb",
-  "/docs/**/*.md",
-  "/docs/**/*.py",
+  "*.md",
+  "build/docs-app/SHA256SUMS",
+  "contrib/*/dist/*.whl",
+  "dist/*.whl",
+  "docs/**/*.css",
+  "docs/**/*.ipynb",
+  "docs/**/*.md",
+  "docs/**/*.py",
   "!**/.ipynb_checkpoints",
 ]
-outputs = ["/build/docs/.buildinfo"]
+outputs = ["build/docs/.buildinfo"]
 cmd = """
   export PYDEVD_DISABLE_FILE_VALIDATION=1
   && cd docs
