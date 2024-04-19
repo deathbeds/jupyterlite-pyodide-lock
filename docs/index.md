@@ -15,6 +15,8 @@
 :maxdepth: 2
 
 demo
-api
+configuration/index
+lockers/index
+api/index
 contributing
 ```

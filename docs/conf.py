@@ -46,6 +46,7 @@ extensions = [
     "myst_nb",
     "sphinx.ext.autosectionlabel",
     "sphinx_copybutton",
+    "autodoc_traits",
 ]
 
 # content
@@ -77,8 +78,9 @@ suppress_warnings = ["autosectionlabel.*"]
 # theme
 templates_path = ["_templates"]
 html_static_path = [
-    "../build/docs-app",
     "../dist",
+    "../contrib/jupyterlite-pyodide-lock-webdriver/dist",
+    "../build/docs-app",
     "_static",
 ]
 html_theme = "pydata_sphinx_theme"
@@ -96,6 +98,8 @@ html_theme_options = {
         }
     ],
     "navigation_with_keys": False,
+    "pygment_light_style": "github-light-colorblind",
+    "pygment_dark_style": "github-dark-colorblind",
 }
 
 html_sidebars: dict[str, Any] = {"demo": []}

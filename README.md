@@ -39,19 +39,28 @@
 
 #### Requirements
 
-A number of `requirements` specifications are supported:
+A number of ways to add requirements to the lock file are supported:
+
+- adding wheels in `{lite_dir}/static/pyodide-lock`
+- configuring `specs` as a list of PEP508 dependency specs
+- configuring `packages` as a list of
+  - URLs to remote wheels that will be downloaded and cached
+  - local paths relative to `lite_dir` of `.whl` files (or folders of wheels)
 
 ```yaml
 # examples/jupyter_lite_config.json
 {
   "PyodideLockAddon": {
     "enabled": true,
-    "requirements": [
-      # wheels in {lite_dir}/static/pyodide-lock will be found
-      "ipywidgets >=8.1,<8.2"     # pep508 spec
-      "../dist",                  # (folders of) wheels
-      "-r requirements.txt",      # requirements files
-      "../pyproject.toml[lite]"   # pyproject.toml with an extra
+    "specs": [
+      # pep508 spec
+      "ipywidgets >=8.1,<8.2"
+    ],
+    "packages": [
+      # a wheel
+      "../dist/ipywidgets-8.1.2-py3-none-any.whl",
+      # a folder of wheels
+      "../dist",
     ]
   }
 }
@@ -66,10 +75,12 @@ and `micropip.freeze` to try to get a viable lock file solution.
 {
   "PyodideLockAddon": {
     "enabled": true,
-    "locker": "browser"     # the default locker: uses `subprocess`
+    # the default locker: uses naive a `subprocess.Popen` approach
+    "locker": "browser"
   },
   "BrowserLocker": {
-    "browser": "firefox",   # requires `firefox` or `firefox.exe` on PATH
+    # requires `firefox` or `firefox.exe` on PATH
+    "browser": "firefox",
     "headless": true,
     "private_mode": true,
     "temp_profile": true

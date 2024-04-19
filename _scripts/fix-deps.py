@@ -1,5 +1,6 @@
 """fix dependencies."""
 
+import sys
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -40,4 +41,4 @@ def fix_deps(
 
 
 if __name__ == "__main__":
-    fix_deps(**dict(vars(PARSER.parse_args())))
+    sys.exit(fix_deps(**dict(vars(PARSER.parse_args()))))

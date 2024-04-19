@@ -1,27 +1,70 @@
 # Contributing
 
-## Environment
+## Local Development
 
-- start with [mambaforge](https://github.com/conda-forge/miniforge)
-- set up the dev environment
+### Set up
+
+This project is developed locally and in CI with [pixi],
+a relatively new approach to `conda` package management and task running.
+
+[pixi]: https://pixi.sh/latest/#installation
+
+
+If using `mamba` or `conda` (or some other `$CONDA_EXE`):
 
 ```bash
-mamba env update --file environment.yml --prefix .venv
+mamba install -c conda-forge pixi  # replace `mamba` with your CONDA_EXE
 ```
 
-- activate the environment
+<details><summary><i>Why <code>pixi</code>?</i></summary>
+
+`pixi` provides the necessary primitives to:
+
+- capture complex environments, with python and other runtimes
+- install environments quickly, and cache well, but only when needed
+- run tasks, in the right environment, in the right order
+- skip tasks that have already run, and dependencies have not changed
+
+</details>
+
+<br />
+
+
+### Tasks and Environments
+
+See all the project info:
 
 ```bash
-source activate .venv
-# or on windows
-activate .venv
+pixi info
 ```
 
-
-## doit
-
-See the available `doit` tasks:
+See just the available top-level `pixi` tasks:
 
 ```bash
-doit list
+pixi task list
+```
+
+See just the tasks that run in e.g. the `test` environment:
+
+```bash
+pixi task list -e test
+```
+
+### Running Tasks
+
+Most tasks `run` just fine:
+
+```bash
+pixi run fix
+pixi run lint
+pixi run lab
+```
+
+Some tasks need to have an `-e {environment}` provided, for example:
+
+```bash
+pixi run -e build       build  # build distributions
+pixi run -e test        test   # test against the latest python
+pixi run -e test-oldest test   # test against the oldest supported python
+pixi run -e docs        docs   # build the docs
 ```

@@ -107,7 +107,7 @@ extend-include = [
   "*.ipynb",
 ]
 include = [
-  "_scripts/*.py",
+  "_scripts/*.*",
   "contrib/*/src/**/*.py",
   "docs/**/*.py",
   "examples/**/*.ipynb",
@@ -176,18 +176,10 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"_scripts/dodo.py" = [
-  "A001",
-  "C408",
-  "N812",
-  "RUF012",
-  "RUF017",
-  "UP006",
-  "S603",
-]
-"_scripts/*.py" = [
+"_scripts/*.*" = [
   "INP001",
   "T201",
+  "SLF001",
 ]
 "docs/conf.py" = [
   "INP001",
