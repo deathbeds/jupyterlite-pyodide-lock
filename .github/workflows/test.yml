@@ -103,8 +103,8 @@ jobs:
         with:
           name: jlpl-${{ github.run_number }}-dist
           path: ./dist
-      - run: pixi run docs-lite
-      - run: pixi run docs-sphinx
+      - run: pixi run -e docs docs-lite
+      - run: pixi run -e docs docs-sphinx
       - uses: actions/upload-artifact@v4
         with:
           name: |-
