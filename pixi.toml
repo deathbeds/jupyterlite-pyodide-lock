@@ -140,7 +140,8 @@ outputs = [
   "contrib/jupyterlite-pyodide-lock-webdriver/dist/jupyterlite_pyodide_lock_webdriver-*.tar.gz",
   "contrib/jupyterlite-pyodide-lock-webdriver/dist/jupyterlite_pyodide_lock_webdriver-0.1.0a0.tar.gz",
 ]
-cmd = "cd contrib/jupyterlite-pyodide-lock-webdriver && rm -rf dist && pyproject-build . --no-isolation -vv"
+cwd = "contrib/jupyterlite-pyodide-lock-webdriver"
+cmd = "rm -rf dist && pyproject-build . --no-isolation -vv"
 
 [feature.test.tasks.test-browsers]
 depends_on = ["pip"]
@@ -184,7 +185,8 @@ inputs = [
   "src/**/*.py",
 ]
 outputs = ["build/docs-app/SHA256SUMS"]
-cmd = "cd examples && jupyter-lite doit --debug -- pre_archive:report:SHA256SUMS"
+cwd = "examples"
+cmd = "jupyter-lite doit --debug -- pre_archive:report:SHA256SUMS"
 
 [feature.docs.tasks.docs-sphinx]
 depends_on = ["build", "docs-lite"]
@@ -200,9 +202,9 @@ inputs = [
   "!**/.ipynb_checkpoints",
 ]
 outputs = ["build/docs/.buildinfo"]
+cwd = "docs"
 cmd = """
   export PYDEVD_DISABLE_FILE_VALIDATION=1
-  && cd docs
   && sphinx-build -W --color -b html . ../build/docs
 """
 
