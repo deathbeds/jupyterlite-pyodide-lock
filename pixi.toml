@@ -21,7 +21,7 @@ inputs = [
 ]
 outputs = ["build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt"]
 cmd = """
-  python -m pip install -vv --no-deps --no-build-isolation --ignore-installed
+  python -m pip install -vv --no-deps --no-build-isolation --ignore-installed --disable-pip-version-check
     -e .
     -e contrib/jupyterlite-pyodide-lock-webdriver
   && mkdir -p build/pip-freeze
