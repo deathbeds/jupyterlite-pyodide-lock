@@ -1,4 +1,4 @@
-"$schema" = "https://pixi.sh/v0.21.0/schema/manifest/schema.json"
+"$schema" = "https://pixi.sh/v0.21.1/schema/manifest/schema.json"
 
 [project]
 name = "jlpl"
@@ -206,12 +206,18 @@ outputs = ["build/docs/.buildinfo"]
 cwd = "docs"
 cmd = """
   export PYDEVD_DISABLE_FILE_VALIDATION=1
-  && sphinx-build -W --color -b html . ../build/docs
-"""
+  && sphinx-build -W --color -b html . ../build/docs"""
 
 [feature.demo.tasks.lab]
 depends-on = ["pip"]
 cmd = "jupyter lab --no-browser --debug"
+
+[feature.docs.tasks.readthedocs]
+depends-on = ["build", "docs-lite"]
+cmd = """
+  export PYDEVD_DISABLE_FILE_VALIDATION=1
+  && sphinx-build -W --color -b html docs $READTHEDOCS_OUTPUT/html
+"""
 
 ### environments for tasks
 [environments]
@@ -284,7 +290,7 @@ pytest-cov = "*"
 pytest-html = "*"
 
 [feature.webdriver.dependencies]
-selenium = ">=4.19,<4.20"
+selenium = ">=4.19"
 
 [feature.firefox.dependencies]
 firefox = "115.*"

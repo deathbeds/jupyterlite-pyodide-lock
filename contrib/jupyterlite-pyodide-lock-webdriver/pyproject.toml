@@ -26,17 +26,17 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
   "jupyterlite-pyodide-lock ==0.1.0a0",
-  "selenium >=4.19,<4.20",
+  "selenium >=4.19",
 ]
 
 [project.license]
 file = "LICENSE"
 
 [project.urls]
-"Bug Tracker" = "https://github.com/bollwyvl/jupyterlite-pyodide-lock/issues"
-Changelog = "https://github.com/bollwyvl/jupyterlite-pyodide-lock/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/deathbeds/jupyterlite-pyodide-lock/issues"
+Changelog = "https://github.com/deathbeds/jupyterlite-pyodide-lock/blob/main/CHANGELOG.md"
 PyPI = "https://pypi.org/project/jupyterlite-pyodide-lock"
-Source = "https://github.com/bollwyvl/jupyterlite-pyodide-lock/tree/main"
+Source = "https://github.com/deathbeds/jupyterlite-pyodide-lock/tree/main"
 
 [project.entry-points."jupyterlite_pyodide_lock.locker.v0"]
 WebDriverLocker = "jupyterlite_pyodide_lock_webdriver.locker:WebDriverLocker"
