@@ -2,11 +2,13 @@ version: 2
 
 build:
   os: ubuntu-22.04
+  apt_packages:
+    - firefox
   tools:
     python: mambaforge-latest
   commands:
     - mamba install -c conda-forge -c nodefaults pixi==0.21.1
-    - pixi install --environment=rtd
-    - pixi run --environment=rtd build
-    - pixi run --environment=rtd docs-lite
-    - pixi run --environment=rtd readthedocs
+    - pixi install --environment=docs
+    - pixi run --environment=docs build
+    - pixi run --environment=docs docs-lite
+    - pixi run --environment=docs readthedocs

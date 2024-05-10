@@ -214,7 +214,7 @@ cmd = """
 depends-on = ["pip"]
 cmd = "jupyter lab --no-browser --debug"
 
-[feature.rtd.tasks.readthedocs]
+[feature.docs.tasks.readthedocs]
 depends-on = ["build", "docs-lite"]
 cmd = """
   export PYDEVD_DISABLE_FILE_VALIDATION=1
@@ -241,16 +241,6 @@ docs = {features = [
   "build",
   "dev",
   "docs",
-  "run",
-  "webdriver",
-], solve-group = "default"}
-rtd = {features = [
-  "build",
-  "demo",
-  "dev",
-  "docs",
-  "firefox-oldest",
-  "rtd",
   "run",
   "webdriver",
 ], solve-group = "default"}
@@ -329,9 +319,3 @@ importnb = "*"
 [feature.demo.dependencies]
 ipywidgets = ">=8.1,<8.2"
 jupyterlab = ">=4.1,<4.2"
-
-[feature.rtd]
-platforms = ["linux-64"]
-
-[feature.rtd.dependencies]
-alsa-lib = "*"
