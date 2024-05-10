@@ -6,5 +6,7 @@ build:
     python: mambaforge-latest
   commands:
     - mamba install -c conda-forge -c nodefaults pixi==0.21.1
-    - pixi install --environment=docs
-    - pixi run --environment=docs readthedocs
+    - pixi install --environment=rtd
+    - pixi run --environment=rtd build
+    - pixi run --environment=rtd docs-lite
+    - pixi run --environment=rtd readthedocs
