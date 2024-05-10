@@ -1,1 +1,1 @@
-"""tests for jupyterlite-pyodide-lock."""
+"""Tests for ``jupyterlite-pyodide-lock``."""
