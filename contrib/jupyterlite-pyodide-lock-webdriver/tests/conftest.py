@@ -1,4 +1,4 @@
-"""test configuration and fixtures for ``jupyterlite-pyodide-lock-webdriver``"""
+"""Test configuration and fixtures for ``jupyterlite-pyodide-lock-webdriver``."""
 
 #### the below is copied from ``jupyterlite-pyodide-lock``'s ``conftest.py``
 ### shared fixtures ###
@@ -6,10 +6,10 @@ import difflib
 import json
 import os
 import shutil
-from typing import Any
 import subprocess
 import urllib.request
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from jupyterlite_core.constants import JSON_FMT, JUPYTER_LITE_CONFIG, UTF8
 from jupyterlite_pyodide_lock.constants import (
@@ -24,7 +24,25 @@ try:
 except ImportError:
     import tomli as tomllib
 
-from pytest import fixture
+
+import pytest
+
+if TYPE_CHECKING:
+    TLiteRunResult = tuple[int, str | None, str | None]
+
+    def t_lite_runner(
+        *args: str,
+        expect_rc: int = 0,
+        expect_stderr: str | None = None,
+        expect_stdout: str | None = None,
+        **popen_kwargs: Any,
+    ) -> TLiteRunResult:
+        """Provide a type for the ``lite_cli`` fixture."""
+        print(args, expect_rc, expect_stderr, expect_stdout, popen_kwargs)
+        return 0, None, None
+
+    TLiteRunner = type[t_lite_runner]
+
 
 HERE = Path(__file__).parent
 ROOT = HERE.parent
@@ -47,50 +65,67 @@ WIDGETS_CONFIG = dict(
 )
 
 
-def pytest_configure(config):
-    from pytest_metadata.plugin import metadata_key
+def pytest_configure(config: Any) -> None:
+    """Configure the pytest environment."""
+    try:
+        from pytest_metadata.plugin import metadata_key
+    except ImportError:
+        return
 
     config.stash[metadata_key].pop("JAVA_HOME", None)
 
     for k in sorted([*os.environ, *ENV_VAR_ALL]):
-        if k.startswith("JLPL_") or k.startswith("JUPYTERLITE_"):
+        if k.startswith("JLPL_") or k.startswith("JUPYTERLITE_"):  # noqa: PIE810
             config.stash[metadata_key][k] = os.environ.get(k, "")
+    return
 
 
-@fixture(scope="session")
-def the_pyproject():
+@pytest.fixture(scope="session")
+def the_pyproject() -> dict[str, Any]:
+    """Provide the python project data."""
     return tomllib.loads(PPT.read_text(**UTF8))
 
 
-@fixture()
-def a_lite_dir(tmp_path: Path):
+@pytest.fixture()
+def a_lite_dir(tmp_path: Path) -> Path:
+    """Provide a temporary JupyterLite project."""
     lite_dir = tmp_path / "lite"
     lite_dir.mkdir()
     return lite_dir
 
 
-@fixture()
+@pytest.fixture()
 def a_bad_widget_lock_date_epoch() -> int:
+    """Provide a UNIX timestamp for a widget release that should NOT be in a lock."""
     return warehouse_date_to_epoch(WIDGET_ISO8601["before"])
 
 
-@fixture()
+@pytest.fixture()
 def a_good_widget_lock_date_epoch() -> int:
+    """Provide a UNIX timestamp for a widget release that should be in a lock."""
     return warehouse_date_to_epoch(WIDGET_ISO8601["after_"])
 
 
-@fixture()
-def lite_cli(a_lite_dir: Path):
-    def run(*args, expect_rc=0, expect_stderr=None, expect_stdout=None, **popen_kwargs):
+@pytest.fixture()
+def lite_cli(a_lite_dir: Path) -> "TLiteRunner":
+    """Provide a ``jupyter lite`` runner in a project."""
+
+    def run(
+        *args: str,
+        expect_rc: int = 0,
+        expect_stderr: str | None = None,
+        expect_stdout: str | None = None,
+        **popen_kwargs: Any,
+    ) -> "TLiteRunResult":
         a_lite_config = a_lite_dir / JUPYTER_LITE_CONFIG
         env = None
 
         print(
             "[env] well-known:",
             {
-                k: v
-                for k, v in sorted(os.environ.items())
-                if k.startswith("JLPL_") or k.startswith("JUPYTERLITE_")
+                k: os.getenv(k)
+                for k in sorted(os.environ.keys())
+                if k.startswith("JLPL_") or k.startswith("JUPYTERLITE_")  # noqa: PIE810
             },
         )
 
@@ -133,15 +168,17 @@ def lite_cli(a_lite_dir: Path):
     return run
 
 
-@fixture(params=sorted(WIDGETS_CONFIG))
-def a_widget_approach(request):
+@pytest.fixture(params=sorted(WIDGETS_CONFIG))
+def a_widget_approach(request: pytest.FixtureRequest) -> str:
+    """Provide a key for which ``ipywidgets`` lock approach to try."""
     return request.param
 
 
-@fixture()
+@pytest.fixture()
 def a_lite_config_with_widgets(
     a_lite_dir: Path, a_lite_config: Path, a_widget_approach: str
 ) -> Path:
+    """Patch a lite project to use ``ipywidgets``."""
     approach = WIDGETS_CONFIG[a_widget_approach]
 
     packages = approach.get("packages")
@@ -171,7 +208,8 @@ def a_lite_config_with_widgets(
     return a_lite_config
 
 
-def patch_config(config_path: Path, **configurables):
+def patch_config(config_path: Path, **configurables: dict[str, Any]) -> Path:
+    """Patch a Jupyter JSON configuration file."""
     config = {}
     if config_path.exists():
         config = json.loads(config_path.read_text(**UTF8))
@@ -181,14 +219,16 @@ def patch_config(config_path: Path, **configurables):
     return config_path
 
 
-def fetch(url: str, dest: Path):
+def fetch(url: str, dest: Path) -> None:
+    """Download a file to a destination path, creating its parent folder if needed."""
     with urllib.request.urlopen(url) as response:  # noqa: S310
         dest.parent.mkdir(parents=True, exist_ok=True)
         with dest.open("wb") as fd:
             shutil.copyfileobj(response, fd)
 
 
-def expect_no_diff(left_text: Path, right_text: Path, left: str, right: str):
+def expect_no_diff(left_text: Path, right_text: Path, left: str, right: str) -> None:
+    """Verify two texts contain no differences."""
     diff = [
         *difflib.unified_diff(
             left_text.strip().splitlines(),
@@ -205,13 +245,15 @@ def expect_no_diff(left_text: Path, right_text: Path, left: str, right: str):
 #### the above is copied from ``jupyterlite-pyodide-lock``'s ``conftest.py``
 
 
-@fixture()
+@pytest.fixture()
 def a_lite_config(a_lite_dir: Path) -> Path:
+    """Provide a configured ``jupyter_lite_config.json``."""
     return patch_config(
         a_lite_dir / JUPYTER_LITE_CONFIG,
         PyodideLockAddon=dict(enabled=True, locker="WebDriverLocker"),
     )
 
 
-def pytest_html_report_title(report):
+def pytest_html_report_title(report: Any) -> None:
+    """Configure the ``pytest-html`` report title."""
     report.title = "jupyterlite-pyodide-lock-webdriver"

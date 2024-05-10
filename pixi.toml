@@ -60,10 +60,12 @@ depends-on = ["fix-conftest"]
 inputs = [
   "_scripts/*.py",
   "contrib/*/src/**/*.py",
+  "contrib/*/tests/**/*.py",
   "docs/**/*.ipynb",
   "docs/**/*.py",
   "pyproject.toml",
   "src/**/*.py",
+  "tests/**/*.py",
   "!**/.ipynb_checkpoints",
 ]
 cmd = "ruff check --fix-only && ruff format"
