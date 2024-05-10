@@ -6,9 +6,15 @@ build:
     - firefox
   tools:
     python: mambaforge-latest
-  commands:
-    - mamba install -c conda-forge -c nodefaults pixi==0.21.1
-    - pixi install --environment=docs
-    - pixi run --environment=docs build
-    - pixi run --environment=docs docs-lite
-    - pixi run --environment=docs readthedocs
+  jobs:
+    pre_build:
+      - pixi install --environment=docs
+      - pixi run --environment=docs build
+      - pixi run --environment=docs docs-lite
+      - pixi run --environment=docs readthedocs
+sphinx:
+  builder: html
+  configuration: docs/conf.py
+  fail_on_warning: true
+conda:
+  environment: docs/environment.yml

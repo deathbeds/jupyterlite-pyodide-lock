@@ -1,7 +1,10 @@
 """documentation for ``jupyterlite-pyodide-lock``."""
 
 import datetime
+import json
+import os
 import re
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -9,6 +12,14 @@ try:
     import tomllib
 except ImportError:
     import tomli as tomllib
+
+
+RTD = bool(json.loads(os.environ.get("READTHEDOCS", "False").lower()))
+
+if RTD:
+    buildinfo = Path(os.environ["READTHEDOCS_OUTPUT"]) / "html/.buildinfo"
+    if buildinfo.exists():
+        sys.exit(0)
 
 
 CONF_PY = Path(__file__)

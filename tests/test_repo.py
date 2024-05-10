@@ -8,7 +8,7 @@ from .conftest import ROOT, UTF8
 
 PIXI_PATTERNS = {
     ".github/workflows/*.yml": r"JLPL_PIXI_VERSION: ([^\s]+)",
-    "docs/.readthedocs.yaml": r"pixi==([^\s]+)",
+    "docs/environment.yml": r"pixi ==([^\s]+)",
     "CONTRIBUTING.md": r"pixi==([^\s]+)",
 }
 
