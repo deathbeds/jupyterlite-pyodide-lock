@@ -246,11 +246,13 @@ docs = {features = [
 ], solve-group = "default"}
 test-oldest = {features = [
   "dev",
+  "firefox-oldest",
   "firefox",
   "run",
   "test",
   "webdriver",
-  "py310",
+  "webdriver-oldest",
+  "py-oldest",
 ], solve-group = "oldest"}
 lab = {features = [
   "demo",
@@ -261,7 +263,7 @@ lab = {features = [
   "webdriver",
 ], solve-group = "default"}
 
-[feature.py310.dependencies]
+[feature.py-oldest.dependencies]
 python = "3.10.*"
 
 [feature.run.dependencies]
@@ -294,9 +296,15 @@ pytest-html = "*"
 [feature.webdriver.dependencies]
 selenium = ">=4.19"
 
+[feature.webdriver-oldest.dependencies]
+selenium = "4.19.*"
+
 [feature.firefox.dependencies]
-firefox = "115.*"
+firefox = "*"
 geckodriver = "*"
+
+[feature.firefox-oldest.dependencies]
+firefox = "115.*"
 
 [feature.docs.dependencies]
 autodoc-traits = ">=1.2.2"
