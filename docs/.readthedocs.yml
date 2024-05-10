@@ -1,0 +1,10 @@
+version: 2
+
+build:
+  os: ubuntu-22.04
+  tools:
+    python: mambaforge-latest
+  commands:
+    - mamba install -c conda-forge -c nodefaults pixi==0.21.1
+    - pixi install --environment=docs
+    - pixi run --environment=docs readthedocs

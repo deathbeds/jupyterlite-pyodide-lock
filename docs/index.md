@@ -17,6 +17,7 @@
 demo
 configuration/index
 lockers/index
+changelog
 api/index
 contributing
 ```

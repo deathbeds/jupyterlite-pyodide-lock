@@ -35,10 +35,11 @@ dependencies = [
 file = "LICENSE"
 
 [project.urls]
-"Bug Tracker" = "https://github.com/bollwyvl/jupyterlite-pyodide-lock/issues"
-Changelog = "https://github.com/bollwyvl/jupyterlite-pyodide-lock/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/deathbeds/jupyterlite-pyodide-lock/issues"
+Changelog = "https://github.com/deathbeds/jupyterlite-pyodide-lock/blob/main/CHANGELOG.md"
+Documentation = "https://deathbeds.github.io/jupyterlite-pyodide-lock"
 PyPI = "https://pypi.org/project/jupyterlite-pyodide-lock"
-Source = "https://github.com/bollwyvl/jupyterlite-pyodide-lock/tree/main"
+Source = "https://github.com/deathbeds/jupyterlite-pyodide-lock/tree/main"
 
 [project.scripts]
 jupyter-pyodide-lock = "jupyterlite_pyodide_lock.app:main"
@@ -57,9 +58,23 @@ test = [
 ]
 
 [tool.flit.sdist]
-include = [
-  "tests/",
+include = ["tests/"]
+
+[tool.mypy]
+python_version = "3.10"
+
+[[tool.mypy.overrides]]
+ignore_missing_imports = true
+module = [
+  "ipywidgets",
+  "jsonpointer",
+  "jupytask.model.*",
 ]
+
+[tool.pylsp-mypy]
+enabled = true
+dmypy = true
+live_mode = false
 
 [tool.pytest.ini_options]
 cache_dir = "build/.cache/pytest"
@@ -109,9 +124,11 @@ extend-include = [
 include = [
   "_scripts/*.*",
   "contrib/*/src/**/*.py",
+  "contrib/*/tests/**/*.py",
   "docs/**/*.py",
   "examples/**/*.ipynb",
   "src/**/*.py",
+  "tests/**/*.py",
 ]
 cache-dir = "build/.cache/ruff"
 
@@ -212,7 +229,12 @@ ignore = [
 "*/tornado.py" = [
   "BLE001",
 ]
-
 "utils.py" = [
   "C901",
+]
+"**/tests/**/*.py" = [
+  "T201",
+  "S101",
+  "S603",
+  "S607",
 ]

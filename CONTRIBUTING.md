@@ -7,13 +7,17 @@
 This project is developed locally and in CI with [pixi],
 a relatively new approach to `conda` package management and task running.
 
-[pixi]: https://pixi.sh/latest/#installation
+> ** Note **
+>
+> Refer to `pixi.toml#/$schema` for the current development version
 
+
+[pixi]: https://pixi.sh/latest/#installation
 
 If using `mamba` or `conda` (or some other `$CONDA_EXE`):
 
 ```bash
-mamba install -c conda-forge pixi  # replace `mamba` with your CONDA_EXE
+mamba install -c conda-forge pixi==0.21.1  # replace `mamba` with your CONDA_EXE
 ```
 
 <details><summary><i>Why <code>pixi</code>?</i></summary>

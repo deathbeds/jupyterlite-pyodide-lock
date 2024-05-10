@@ -2,6 +2,7 @@
 
 import subprocess
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 import pyodide_lock
 import pytest
@@ -10,6 +11,9 @@ from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK
 from jupyterlite_pyodide_lock.constants import ENV_VAR_LOCK_DATE_EPOCH
 
 from .conftest import expect_no_diff, patch_config
+
+if TYPE_CHECKING:
+    from .conftest import TLiteRunner
 
 MESSAGES = {
     "not-a-locker": (
@@ -20,12 +24,13 @@ MESSAGES = {
 
 
 @pytest.mark.parametrize("args", [["--json"], []])
-def test_cli_self_browsers(args) -> None:
+def test_cli_self_browsers(args: list[str]) -> None:
+    """Verify the browser check CLI works."""
     subprocess.check_call(["jupyter-pyodide-lock", "browsers", *args])
 
 
 @pytest.mark.parametrize("args", [["--pyodide-lock"], []])
-def test_cli_status(lite_cli, args) -> None:
+def test_cli_status(lite_cli: "TLiteRunner", args: list[str]) -> None:
     """Verify various status invocations work."""
     from jupyterlite_pyodide_lock import __version__
 
@@ -33,20 +38,23 @@ def test_cli_status(lite_cli, args) -> None:
 
 
 @pytest.mark.parametrize(
-    ["bad_config", "message"],
+    ("bad_config", "message"),
     [({"locker": "not-a-locker"}, "not-a-locker")],
 )
 def test_cli_bad_config(
-    lite_cli,
+    lite_cli: "TLiteRunner",
     a_lite_config: Path,
-    bad_config,
+    bad_config: dict[str, Any],
     message: str,
 ) -> None:
+    """Verify bad configs are caught."""
     patch_config(a_lite_config, PyodideLockAddon=bad_config)
     lite_cli("status", expect_rc=0, expect_stderr=MESSAGES[message])
 
 
-def test_cli_good_build(lite_cli, a_lite_config_with_widgets: Path) -> None:
+def test_cli_good_build(
+    lite_cli: "TLiteRunner", a_lite_config_with_widgets: Path
+) -> None:
     """Verify a build works, twice."""
     from jupyterlite_pyodide_lock.constants import PYODIDE_LOCK_STEM
 
@@ -67,14 +75,14 @@ def test_cli_good_build(lite_cli, a_lite_config_with_widgets: Path) -> None:
     expect_no_diff(lock_text, relock_text, "build", "rebuild")
 
 
-def test_cli_bad_build(lite_cli, a_lite_config: Path) -> None:
+def test_cli_bad_build(lite_cli: "TLiteRunner", a_lite_config: Path) -> None:
     """Verify an impossible package solve fails."""
     patch_config(a_lite_config, PyodideLockAddon={"enabled": True, "specs": ["torch"]})
     lite_cli("build", "--debug", expect_rc=1)
 
 
 def test_cli_lock_date_epoch(
-    lite_cli,
+    lite_cli: "TLiteRunner",
     a_widget_approach: str,
     a_lite_config_with_widgets: Path,
     a_bad_widget_lock_date_epoch: int,
@@ -94,3 +102,4 @@ def test_cli_lock_date_epoch(
         PyodideLockAddon=dict(lock_date_epoch=a_bad_widget_lock_date_epoch),
     )
     lite_cli("build", "--debug", expect_rc=1)
+    return None

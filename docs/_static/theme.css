@@ -23,6 +23,10 @@
   display: none !important;
 }
 
+.search-button-field {
+  border: solid 2px var(--pst-color-border);
+}
+
 /** theme customizations */
 .jlpl-demo {
   position: fixed;
@@ -47,9 +51,11 @@
   text-align: center;
 }
 
-.jlpl-hero p {
+.bd-article .jlpl-hero p {
   margin: 0;
   padding: 0;
+  width: 100% !important;
+  max-width: unset;
 }
 
 html[data-theme="dark"] .bd-content div.cell_output .text_html,
