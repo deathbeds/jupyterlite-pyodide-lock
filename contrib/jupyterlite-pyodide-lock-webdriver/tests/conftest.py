@@ -2,11 +2,11 @@
 
 #### the below is copied from ``jupyterlite-pyodide-lock``'s ``conftest.py``
 ### shared fixtures ###
-
 import difflib
 import json
 import os
 import shutil
+from typing import Any
 import subprocess
 import urllib.request
 from pathlib import Path
@@ -57,7 +57,7 @@ def pytest_configure(config):
             config.stash[metadata_key][k] = os.environ.get(k, "")
 
 
-@fixture()
+@fixture(scope="session")
 def the_pyproject():
     return tomllib.loads(PPT.read_text(**UTF8))
 

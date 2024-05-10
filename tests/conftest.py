@@ -2,11 +2,11 @@
 
 #### the below is copied to ``contrib`` packages
 ### shared fixtures ###
-
 import difflib
 import json
 import os
 import shutil
+from typing import Any
 import subprocess
 import urllib.request
 from pathlib import Path
@@ -57,7 +57,7 @@ def pytest_configure(config):
             config.stash[metadata_key][k] = os.environ.get(k, "")
 
 
-@fixture()
+@fixture(scope="session")
 def the_pyproject():
     return tomllib.loads(PPT.read_text(**UTF8))
 
@@ -203,6 +203,20 @@ def expect_no_diff(left_text: Path, right_text: Path, left: str, right: str):
 
 ### shared fixtures ###
 #### the above is copied to ``contrib`` packages
+PXT = ROOT / "pixi.toml"
+
+@fixture(scope="session")
+def the_pixi_manifest():
+    return tomllib.loads(PXT.read_text(**UTF8))
+
+@fixture(scope="session")
+def the_pixi_version(the_pixi_manifest: dict[str, Any]):
+    import re
+
+    return re.findall(
+        "/v(.*?)/",
+        the_pixi_manifest["$schema"]
+    )[0]
 
 
 @fixture()
