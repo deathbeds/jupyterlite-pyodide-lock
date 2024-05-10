@@ -19,7 +19,7 @@ inputs = [
   "pyproject.toml",
   "contrib/*/pyproject.toml",
 ]
-outputs = ["build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt"]
+outputs = ["build/pip-freeze/*.txt"]
 cmd = """
   python -m pip install -vv --no-deps --no-build-isolation --ignore-installed --disable-pip-version-check
     -e .

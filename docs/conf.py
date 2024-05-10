@@ -100,6 +100,7 @@ html_theme_options = {
     "navigation_with_keys": False,
     "pygment_light_style": "github-light-colorblind",
     "pygment_dark_style": "github-dark-colorblind",
+    "header_links_before_dropdown": 10,
 }
 
 html_sidebars: dict[str, Any] = {"demo": []}
