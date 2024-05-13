@@ -214,13 +214,6 @@ cmd = """
 depends-on = ["pip"]
 cmd = "jupyter lab --no-browser --debug"
 
-[feature.rtd.tasks.readthedocs]
-depends-on = ["build", "docs-lite"]
-cmd = """
-  export PYDEVD_DISABLE_FILE_VALIDATION=1
-  && sphinx-build -W --color -b html docs $READTHEDOCS_OUTPUT/html
-"""
-
 ### environments for tasks
 [environments]
 lint = {features = [

@@ -25,7 +25,10 @@ build:
       - pixi install --environment=rtd
       - pixi run --environment=rtd build
       - pixi run --environment=rtd docs-lite
-      - pixi run --environment=rtd readthedocs
+      - pixi run --environment=rtd docs-sphinx
+    post_build:
+      - rm -rf $READTHEDOCS_OUTPUT/html
+      - cp -r build/docs $READTHEDOCS_OUTPUT/html
 sphinx:
   builder: html
   configuration: docs/conf.py
