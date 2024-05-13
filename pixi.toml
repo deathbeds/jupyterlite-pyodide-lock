@@ -208,17 +208,22 @@ outputs = ["build/docs/.buildinfo"]
 cwd = "docs"
 cmd = """
   export PYDEVD_DISABLE_FILE_VALIDATION=1
-  && sphinx-build -W --color -b html . ../build/docs"""
+  && sphinx-build -W --keep-going --color -b html . ../build/docs"""
 
 [feature.demo.tasks.lab]
 depends-on = ["pip"]
 cmd = "jupyter lab --no-browser --debug"
 
-[feature.docs.tasks.readthedocs]
-depends-on = ["build", "docs-lite"]
+[feature.rtd.tasks.fake-docs-build]
 cmd = """
-  export PYDEVD_DISABLE_FILE_VALIDATION=1
-  && sphinx-build -W --color -b html docs $READTHEDOCS_OUTPUT/html
+  rm -rf build/fake-docs
+  && python -m sphinx -W --keep-going --color -b html ./_scripts/fake-docs ./build/fake-docs
+"""
+
+[feature.rtd.tasks.fake-docs-post-build]
+cmd = """
+  rm -rf $READTHEDOCS_OUTPUT/html
+  && cp -r build/docs $READTHEDOCS_OUTPUT/html
 """
 
 ### environments for tasks
@@ -243,6 +248,16 @@ docs = {features = [
   "docs",
   "run",
   "webdriver",
+], solve-group = "default"}
+rtd = {features = [
+  "build",
+  "demo",
+  "dev",
+  "docs",
+  "firefox-oldest",
+  "run",
+  "webdriver",
+  "rtd",
 ], solve-group = "default"}
 test-oldest = {features = [
   "dev",
@@ -319,3 +334,6 @@ importnb = "*"
 [feature.demo.dependencies]
 ipywidgets = ">=8.1,<8.2"
 jupyterlab = ">=4.1,<4.2"
+
+[feature.rtd]
+platforms = ["linux-64"]
