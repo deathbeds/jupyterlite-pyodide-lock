@@ -26,12 +26,11 @@ build:
       - pixi run --environment=rtd build
       - pixi run --environment=rtd docs-lite
       - pixi run --environment=rtd docs-sphinx
+      - pixi run --environment=rtd fake-docs-pre-build
     post_build:
-      - rm -rf $READTHEDOCS_OUTPUT/html
-      - cp -r build/docs $READTHEDOCS_OUTPUT/html
+      - pixi run --environment=rtd fake-docs-post-build
 sphinx:
   builder: html
-  configuration: docs/conf.py
-  fail_on_warning: true
+  configuration: _scripts/fake-docs/conf.py
 conda:
   environment: docs/environment.yml

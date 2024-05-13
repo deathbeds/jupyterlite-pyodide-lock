@@ -208,11 +208,23 @@ outputs = ["build/docs/.buildinfo"]
 cwd = "docs"
 cmd = """
   export PYDEVD_DISABLE_FILE_VALIDATION=1
-  && sphinx-build -W --color -b html . ../build/docs"""
+  && sphinx-build -W --keep-going --color -b html . ../build/docs"""
 
 [feature.demo.tasks.lab]
 depends-on = ["pip"]
 cmd = "jupyter lab --no-browser --debug"
+
+[feature.rtd.tasks.fake-docs-build]
+cmd = """
+  rm -rf build/fake-docs
+  && python -m sphinx -W --keep-going --color -b html ./_scripts/fake-docs ./build/fake-docs
+"""
+
+[feature.rtd.tasks.fake-docs-post-build]
+cmd = """
+  rm -rf $READTHEDOCS_OUTPUT/html
+  && cp -r build/docs $READTHEDOCS_OUTPUT/html
+"""
 
 ### environments for tasks
 [environments]
