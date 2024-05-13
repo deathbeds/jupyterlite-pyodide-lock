@@ -122,7 +122,7 @@ extend-include = [
   "*.ipynb",
 ]
 include = [
-  "_scripts/*.*",
+  "_scripts/*.py",
   "contrib/*/src/**/*.py",
   "contrib/*/tests/**/*.py",
   "docs/**/*.py",
