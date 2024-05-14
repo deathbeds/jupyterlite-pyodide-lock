@@ -1,4 +1,4 @@
-"$schema" = "https://pixi.sh/v0.21.1/schema/manifest/schema.json"
+"$schema" = "https://pixi.sh/v0.22.0/schema/manifest/schema.json"
 
 [project]
 name = "jlpl"
