@@ -12,6 +12,7 @@ lint = {depends-on = ["lint-ruff", "lint-ipynb"]}
 build = {depends-on = ["build-core", "build-webdriver"]}
 test = {depends-on = ["test-browsers", "test-core", "test-webdriver"]}
 docs = {depends-on = ["docs-lite", "docs-sphinx"]}
+check = {depends-on = ["check-links"]}
 
 # tasks that are customized per env
 [tasks.pip]
@@ -210,6 +211,24 @@ cmd = """
   export PYDEVD_DISABLE_FILE_VALIDATION=1
   && sphinx-build -W --keep-going --color -b html . ../build/docs"""
 
+[feature.docs.tasks.check-links]
+cmd = """
+  rm -rf build/reports/check-links
+  && mkdir -p build/reports/check-links
+  && cd build/reports/check-links
+  && touch pytest.ini
+  && pytest
+    -c pytest.ini
+    --rootdir=.
+    -p no:importnb
+    --check-links
+    --check-links-ignore '^https?://'
+    -k "not _modules/index.html"
+    ../../docs/**/*.html
+"""
+depends-on = ["docs-sphinx"]
+inputs = ["build/docs/**/*.html"]
+
 [feature.demo.tasks.lab]
 depends-on = ["pip"]
 cmd = "jupyter lab --no-browser --debug"
@@ -330,6 +349,7 @@ sphinx-autodoc-typehints = "*"
 sphinx-copybutton = "*"
 python-libarchive-c = "*"
 importnb = "*"
+pytest-check-links = "*"
 
 [feature.demo.dependencies]
 ipywidgets = ">=8.1,<8.2"
