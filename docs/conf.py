@@ -58,7 +58,6 @@ else:
     # The short X.Y version
     version = ".".join(release.rsplit(".", 1))
 
-
     # sphinx config
     extensions = [
         "sphinx.ext.autodoc",
