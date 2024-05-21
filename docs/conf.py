@@ -29,6 +29,9 @@ if os.getenv(RTD) == "True":
 
         app.connect("build-finished", _run_pixi)
 else:
+    # exclude RTD
+    exclude_patterns = ["rtd.rst"]
+
     try:
         import tomllib
     except ImportError:
@@ -55,8 +58,6 @@ else:
     # The short X.Y version
     version = ".".join(release.rsplit(".", 1))
 
-    # exclude RTD
-    exclude_patterns = ["rtd.rst"]
 
     # sphinx config
     extensions = [
