@@ -284,7 +284,7 @@ test-oldest = {features = [
   "test",
   "webdriver",
   "webdriver-oldest",
-  "py-oldest",
+  "run-oldest",
 ], solve-group = "oldest"}
 lab = {features = [
   "demo",
@@ -295,14 +295,15 @@ lab = {features = [
   "webdriver",
 ], solve-group = "default"}
 
-[feature.py-oldest.dependencies]
+[feature.run-oldest.dependencies]
 python = "3.10.*"
+pyodide-lock = "0.1.0a4"
 
 [feature.run.dependencies]
 python = ">=3.10,<3.13"
 jupyterlite-core = ">=0.3.0,<0.4.0"
 jupyterlite-pyodide-kernel = ">=0.3.1,<0.4.0"
-pyodide-lock = ">=0.1.0a4,<0.1.0a6"
+pyodide-lock = ">=0.1.0a4,<0.1.0a7"
 pyodide-lock-with-wheel = "*"
 tornado = ">=6.1.0"
 
