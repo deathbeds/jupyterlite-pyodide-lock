@@ -7,6 +7,8 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from sphinx import Application
+
 RTD = "READTHEDOCS"
 CONF_PY = Path(__file__)
 HERE = CONF_PY.parent
@@ -14,17 +16,18 @@ ROOT = HERE.parent
 PYPROJ = ROOT / "pyproject.toml"
 
 if os.getenv(RTD) == "True":
+    # provide a fake root doc
     root_doc = "rtd"
 
-    def setup(app):
-        app.connect(
-            "build-finished",
-            lambda *args: subprocess.check_call(
-                ["pixi", "run", "-e", "rtd", "-v", "rtd"],
-                env={k: v for k, v in os.environ.items() if k != RTD},
-                cwd=str(ROOT),
-            ),
-        )
+    def setup(app: Application) -> None:
+        """Customize the sphinx build lifecycle."""
+
+        def _run_pixi(*_args: Any) -> None:
+            args = ["pixi", "run", "-e", "rtd", "-v", "rtd"]
+            env = {k: v for k, v in os.environ.items() if k != RTD}
+            subprocess.check_call(args, env=env, cwd=str(ROOT))  # noqa: S603
+
+        app.connect("build-finished", _run_pixi)
 else:
     try:
         import tomllib
