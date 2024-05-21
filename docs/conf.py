@@ -5,9 +5,10 @@ import os
 import re
 import subprocess
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from sphinx import Application
+if TYPE_CHECKING:
+    from sphinx.application import Sphinx
 
 RTD = "READTHEDOCS"
 CONF_PY = Path(__file__)
@@ -19,7 +20,7 @@ if os.getenv(RTD) == "True":
     # provide a fake root doc
     root_doc = "rtd"
 
-    def setup(app: Application) -> None:
+    def setup(app: "Sphinx") -> None:
         """Customize the sphinx build lifecycle."""
 
         def _run_pixi(*_args: Any) -> None:
