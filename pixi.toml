@@ -254,6 +254,7 @@ test = {features = [
   "dev",
   "firefox",
   "run",
+  "run-latest",
   "test",
   "webdriver",
 ], solve-group = "default"}
@@ -298,6 +299,10 @@ lab = {features = [
 [feature.run-oldest.dependencies]
 python = "3.10.*"
 pyodide-lock = "0.1.0a4"
+
+[feature.run-latest.dependencies]
+python = "3.12.*"
+pyodide-lock = "0.1.0a6"
 
 [feature.run.dependencies]
 python = ">=3.10,<3.13"
