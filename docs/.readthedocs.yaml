@@ -25,11 +25,8 @@ build:
       - pixi install --environment=rtd
       - pixi run --environment=rtd build
       - pixi run --environment=rtd docs-lite
-      - pixi run --environment=rtd docs-sphinx
-    post_build:
-      - pixi run --environment=rtd fake-docs-post-build
 sphinx:
   builder: html
-  configuration: _scripts/fake-docs/conf.py
+  configuration: docs/conf.py
 conda:
   environment: docs/environment.yml
