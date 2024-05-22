@@ -12,6 +12,7 @@ lint = {depends-on = ["lint-ruff", "lint-ipynb"]}
 build = {depends-on = ["build-core", "build-webdriver"]}
 test = {depends-on = ["test-browsers", "test-core", "test-webdriver"]}
 docs = {depends-on = ["docs-lite", "docs-sphinx"]}
+check = {depends-on = ["check-links"]}
 
 # tasks that are customized per env
 [tasks.pip]
@@ -196,12 +197,8 @@ depends-on = ["build", "docs-lite"]
 inputs = [
   "*.md",
   "build/docs-app/SHA256SUMS",
-  "contrib/*/dist/*.whl",
-  "dist/*.whl",
-  "docs/**/*.css",
-  "docs/**/*.ipynb",
-  "docs/**/*.md",
-  "docs/**/*.py",
+  "{.,contrib/*}/dist/*.whl",
+  "docs/**/*.{css,ipynb,md,py}",
   "!**/.ipynb_checkpoints",
 ]
 outputs = ["build/docs/.buildinfo"]
@@ -210,21 +207,40 @@ cmd = """
   export PYDEVD_DISABLE_FILE_VALIDATION=1
   && sphinx-build -W --keep-going --color -b html . ../build/docs"""
 
+[feature.check.tasks.check-links]
+cmd = """
+  rm -rf build/reports/check-links
+  && mkdir -p build/reports/check-links
+  && cd build/reports/check-links
+  && touch pytest.ini
+  && pytest
+    -c pytest.ini
+    --rootdir=.
+    -p no:importnb
+    --check-links
+    --check-links-ignore '^https?://'
+    -k "not _modules/index.html"
+    ../../docs/**/*.html
+"""
+depends-on = ["docs-sphinx"]
+inputs = ["build/docs/**/*.html"]
+
+[feature.check.tasks.check-spelling]
+cmd = "python _scripts/check-spelling.py"
+depends-on = ["docs-sphinx"]
+inputs = ["build/docs/**/*.html", "_scripts/check-spelling.py"]
+
 [feature.demo.tasks.lab]
 depends-on = ["pip"]
 cmd = "jupyter lab --no-browser --debug"
 
-[feature.rtd.tasks.fake-docs-build]
-cmd = """
-  rm -rf build/fake-docs
-  && python -m sphinx -W --keep-going --color -b html ./_scripts/fake-docs ./build/fake-docs
-"""
-
-[feature.rtd.tasks.fake-docs-post-build]
+[feature.rtd.tasks.rtd]
 cmd = """
   rm -rf $READTHEDOCS_OUTPUT/html
   && cp -r build/docs $READTHEDOCS_OUTPUT/html
 """
+depends-on = ["docs-sphinx"]
+inputs = ["build/docs/.buildinfo"]
 
 ### environments for tasks
 [environments]
@@ -238,6 +254,7 @@ test = {features = [
   "dev",
   "firefox",
   "run",
+  "run-latest",
   "test",
   "webdriver",
 ], solve-group = "default"}
@@ -248,6 +265,7 @@ docs = {features = [
   "docs",
   "run",
   "webdriver",
+  "check",
 ], solve-group = "default"}
 rtd = {features = [
   "build",
@@ -267,7 +285,7 @@ test-oldest = {features = [
   "test",
   "webdriver",
   "webdriver-oldest",
-  "py-oldest",
+  "run-oldest",
 ], solve-group = "oldest"}
 lab = {features = [
   "demo",
@@ -278,14 +296,19 @@ lab = {features = [
   "webdriver",
 ], solve-group = "default"}
 
-[feature.py-oldest.dependencies]
+[feature.run-oldest.dependencies]
 python = "3.10.*"
+pyodide-lock = "0.1.0a4"
+
+[feature.run-latest.dependencies]
+python = "3.12.*"
+pyodide-lock = "0.1.0a6"
 
 [feature.run.dependencies]
 python = ">=3.10,<3.13"
 jupyterlite-core = ">=0.3.0,<0.4.0"
 jupyterlite-pyodide-kernel = ">=0.3.1,<0.4.0"
-pyodide-lock = ">=0.1.0a4,<0.1.0a6"
+pyodide-lock = ">=0.1.0a4,<0.1.0a7"
 pyodide-lock-with-wheel = "*"
 tornado = ">=6.1.0"
 
@@ -331,9 +354,14 @@ sphinx-copybutton = "*"
 python-libarchive-c = "*"
 importnb = "*"
 
+[feature.check.dependencies]
+pytest-check-links = "*"
+
 [feature.demo.dependencies]
 ipywidgets = ">=8.1,<8.2"
 jupyterlab = ">=4.1,<4.2"
 
 [feature.rtd]
 platforms = ["linux-64"]
+dependencies = {requests = "*", jinja2 = ">=2.9", packaging = "*"}
+pypi-dependencies = {readthedocs-sphinx-ext = "*"}

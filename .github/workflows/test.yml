@@ -111,3 +111,4 @@ jobs:
           name: |-
             jlpl-docs-${{ github.run_number }}
           path: ./build/docs
+      - run: pixi run -e docs check
