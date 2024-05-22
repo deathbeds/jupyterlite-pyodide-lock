@@ -135,14 +135,11 @@ cmd = "rm -rf dist && pyproject-build . --no-isolation -vv"
 [feature.build.tasks.build-webdriver]
 depends-on = ["build-licenses"]
 inputs = [
-  "contrib/jupyterlite-pyodide-lock-webdriver/LICENSE",
-  "contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
-  "contrib/jupyterlite-pyodide-lock-webdriver/README.md",
+  "contrib/jupyterlite-pyodide-lock-webdriver/{LICENSE,pyproject.toml,README.md}",
   "contrib/jupyterlite-pyodide-lock-webdriver/src/**/*.py",
 ]
 outputs = [
   "contrib/jupyterlite-pyodide-lock-webdriver/dist/jupyterlite_pyodide_lock_webdriver-*.tar.gz",
-  "contrib/jupyterlite-pyodide-lock-webdriver/dist/jupyterlite_pyodide_lock_webdriver-0.1.0a0.tar.gz",
 ]
 cwd = "contrib/jupyterlite-pyodide-lock-webdriver"
 cmd = "rm -rf dist && pyproject-build . --no-isolation -vv"
@@ -170,13 +167,11 @@ depends-on = ["pip"]
 inputs = [
   "build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt",
   "contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
-  "contrib/jupyterlite-pyodide-lock-webdriver/src/**/*/.py",
-  "contrib/jupyterlite-pyodide-lock-webdriver/tests/**/*/.py",
+  "contrib/jupyterlite-pyodide-lock-webdriver/{src,tests}/**/*/.py",
   "src/**/*/.py",
 ]
 outputs = [
-  "contrib/jupyterlite-pyodide-lock-webdriver/build/reports/pytest.html",
-  "contrib/jupyterlite-pyodide-lock-webdriver/build/reports/htmlcov/status.json",
+  "contrib/jupyterlite-pyodide-lock-webdriver/build/reports/{pytest.html,htmlcov/status.json}",
 ]
 cmd = "pytest"
 
