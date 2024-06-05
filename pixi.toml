@@ -145,11 +145,11 @@ cwd = "contrib/jupyterlite-pyodide-lock-webdriver"
 cmd = "rm -rf dist && pyproject-build . --no-isolation -vv"
 
 [feature.test.tasks.test-browsers]
-depends-on = ["pip"]
-cmd = "jupyter-pyodide-lock browsers"
+cmd = """
+pixi run -e $PIXI_ENVIRONMENT_NAME pip
+&& jupyter-pyodide-lock browsers"""
 
 [feature.test.tasks.test-core]
-depends-on = ["pip"]
 inputs = [
   "build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt",
   "pyproject.toml",
@@ -160,10 +160,11 @@ outputs = [
   "build/reports/pytest.html",
   "build/reports/htmlcov/status.json",
 ]
-cmd = "pytest"
+cmd = """
+pixi run -e $PIXI_ENVIRONMENT_NAME pip
+&& pytest"""
 
 [feature.test.tasks.test-webdriver]
-depends-on = ["pip"]
 inputs = [
   "build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt",
   "contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
@@ -173,10 +174,11 @@ inputs = [
 outputs = [
   "contrib/jupyterlite-pyodide-lock-webdriver/build/reports/{pytest.html,htmlcov/status.json}",
 ]
-cmd = "pytest"
+cmd = """
+pixi run -e $PIXI_ENVIRONMENT_NAME pip
+&& pytest"""
 
 [feature.docs.tasks.docs-lite]
-depends-on = ["pip"]
 inputs = [
   "build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt",
   "examples/jupyter_lite_config.json",
@@ -185,7 +187,9 @@ inputs = [
 ]
 outputs = ["build/docs-app/SHA256SUMS"]
 cwd = "examples"
-cmd = "jupyter-lite doit --debug -- pre_archive:report:SHA256SUMS"
+cmd = """
+pixi run -e $PIXI_ENVIRONMENT_NAME pip
+&& jupyter-lite doit --debug -- pre_archive:report:SHA256SUMS"""
 
 [feature.docs.tasks.docs-sphinx]
 depends-on = ["build", "docs-lite"]
@@ -226,8 +230,9 @@ depends-on = ["docs-sphinx"]
 inputs = ["build/docs/**/*.html", "_scripts/check-spelling.py"]
 
 [feature.demo.tasks.lab]
-depends-on = ["pip"]
-cmd = "jupyter lab --no-browser --debug"
+cmd = """
+  pixi run -e $PIXI_ENVIRONMENT_NAME pip
+  && jupyter lab --no-browser --debug"""
 
 [feature.rtd.tasks.rtd]
 cmd = """
@@ -244,14 +249,6 @@ lint = {features = [
 ], solve-group = "default"}
 build = {features = [
   "build",
-], solve-group = "default"}
-test = {features = [
-  "dev",
-  "firefox",
-  "run",
-  "run-latest",
-  "test",
-  "webdriver",
 ], solve-group = "default"}
 docs = {features = [
   "demo",
@@ -282,6 +279,22 @@ test-oldest = {features = [
   "webdriver-oldest",
   "run-oldest",
 ], solve-group = "oldest"}
+test = {features = [
+  "dev",
+  "firefox",
+  "run",
+  "run-latest",
+  "test",
+  "webdriver",
+], solve-group = "default"}
+test-future = {features = [
+  "dev",
+  "firefox",
+  "run",
+  "run-future",
+  "test",
+  "webdriver",
+], solve-group = "future"}
 lab = {features = [
   "demo",
   "dev",
@@ -298,6 +311,19 @@ pyodide-lock = "0.1.0a4"
 [feature.run-latest.dependencies]
 python = "3.12.*"
 pyodide-lock = "0.1.0a6"
+
+[feature.run-future]
+platforms = ["linux-64"]
+channels = [
+  "conda-forge",
+  "conda-forge/label/jupyterlite_core_alpha",
+  "conda-forge/label/jupyterlite_pyodide_kernel_alpha",
+]
+[feature.run-future.dependencies]
+python = "3.12.*"
+pyodide-lock = "0.1.0a6"
+jupyterlite-core = {version = ">=0.4.0a3", channel = "conda-forge/label/jupyterlite_core_alpha"}
+jupyterlite-pyodide-kernel = {version = ">=0.4.0a1", channel = "conda-forge/label/jupyterlite_pyodide_kernel_alpha"}
 
 [feature.run.dependencies]
 python = ">=3.10,<3.13"
