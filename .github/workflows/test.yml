@@ -47,23 +47,19 @@ jobs:
       - run: pixi run lint
 
   test:
-    name: ${{ matrix.test-env }} (${{ matrix.os }} ${{ matrix.browser }})
+    name: ${{ matrix.test-env }} (${{ matrix.vm }} ${{ matrix.browser }})
     needs: [build]
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.vm }}
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu", "macos", "windows"]
-        test-env: ["test", "test-oldest"]
         include:
-          - test-env: test-oldest
-            browser: chrome
-          - test-env: test-oldest
-            os: ubuntu
-            browser: firefox
-          - os: ubuntu
-            test-env: test-future
-            browser: firefox
+          - {vm: macos-13,       test-env: test-oldest, browser: firefox}
+          - {vm: macos-latest,   test-env: test,        browser: chrome}
+          - {vm: ubuntu-latest,  test-env: test-oldest, browser: firefox}
+          - {vm: ubuntu-latest,  test-env: test,        browser: chromium}
+          - {vm: windows-latest, test-env: test-oldest, browser: firefox}
+          - {vm: windows-latest, test-env: test,        browser: chrome}
     env:
       JLPL_BROWSER: ${{ matrix.browser }}
     steps:
@@ -84,7 +80,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: |-
-            jlpl-${{ github.run_number }}-${{ matrix.test-env }}-${{ matrix.os }}
+            jlpl-${{ github.run_number }}-${{ matrix.test-env }}-${{ matrix.vm }}
           path: |
             ./.pixi/task-cache-v0
             ./build/reports
