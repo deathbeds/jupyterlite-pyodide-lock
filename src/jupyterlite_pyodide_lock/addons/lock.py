@@ -284,7 +284,7 @@ class PyodideLockAddon(_BaseAddon):
     # actions
     def lock(self, packages: list[Path], specs: list[str], lockfile: Path) -> bool:
         """Generate the lockfile."""
-        locker_ep: "EntryPoint" = LOCKERS.get(self.locker)
+        locker_ep: EntryPoint = LOCKERS.get(self.locker)
 
         if locker_ep is None:  # pragma: no cover
             return False
@@ -296,7 +296,7 @@ class PyodideLockAddon(_BaseAddon):
             return False
 
         # build
-        locker: "BaseLocker" = locker_class(
+        locker: BaseLocker = locker_class(
             parent=self,
             specs=specs,
             packages=packages,

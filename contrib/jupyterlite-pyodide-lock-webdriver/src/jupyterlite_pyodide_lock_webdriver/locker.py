@@ -166,7 +166,7 @@ class WebDriverLocker(TornadoLocker):
     @default("_webdriver_options")
     def _default_webdriver_options(self) -> "TAnyOptions":
         browser = self.browser
-        options_klass: "type[TAnyOptions]" = BROWSERS[browser]["options_class"]
+        options_klass: type[TAnyOptions] = BROWSERS[browser]["options_class"]
         options = options_klass()
 
         if self.browser_path:  # pragma: no cover
@@ -178,7 +178,7 @@ class WebDriverLocker(TornadoLocker):
     @default("_webdriver_service")
     def _default_webdriver_service(self) -> "TAnyService":
         browser = self.browser
-        service_class: "type[TAnyService]" = BROWSERS[browser]["service_class"]
+        service_class: type[TAnyService] = BROWSERS[browser]["service_class"]
         service_kwargs = dict(
             executable_path=self.webdriver_path,
             service_args=self.webdriver_service_args,
