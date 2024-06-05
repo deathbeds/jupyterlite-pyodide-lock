@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@v0.6.0
+      - uses: prefix-dev/setup-pixi@v0.8.1
         with:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true
@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@v0.6.0
+      - uses: prefix-dev/setup-pixi@v0.8.1
         with:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true
@@ -61,12 +61,15 @@ jobs:
           - test-env: test-oldest
             os: ubuntu
             browser: firefox
+          - os: ubuntu
+            test-env: test-future
+            browser: firefox
     env:
       JLPL_BROWSER: ${{ matrix.browser }}
     steps:
       - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@v0.6.0
+      - uses: prefix-dev/setup-pixi@v0.8.1
         with:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true
@@ -93,7 +96,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@v0.6.0
+      - uses: prefix-dev/setup-pixi@v0.8.1
         with:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true

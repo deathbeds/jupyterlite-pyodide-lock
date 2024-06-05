@@ -70,5 +70,6 @@ Some tasks need to have an `-e {environment}` provided, for example:
 pixi run -e build       build  # build distributions
 pixi run -e test        test   # test against the latest python
 pixi run -e test-oldest test   # test against the oldest supported python
+pixi run -e test-future test   # test against the prereleases
 pixi run -e docs        docs   # build the docs
 ```
