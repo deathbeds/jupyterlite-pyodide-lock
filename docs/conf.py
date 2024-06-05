@@ -119,8 +119,8 @@ else:
             }
         ],
         "navigation_with_keys": False,
-        "pygment_light_style": "github-light-colorblind",
-        "pygment_dark_style": "github-dark-colorblind",
+        "pygments_light_style": "github-light-colorblind",
+        "pygments_dark_style": "github-dark-colorblind",
         "header_links_before_dropdown": 10,
     }
 
