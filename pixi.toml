@@ -59,26 +59,16 @@ inputs = [
 [feature.lint.tasks.fix-ruff]
 depends-on = ["fix-conftest"]
 inputs = [
-  "_scripts/*.py",
-  "contrib/*/src/**/*.py",
-  "contrib/*/tests/**/*.py",
-  "docs/**/*.ipynb",
-  "docs/**/*.py",
+  "{_scripts,src,tests,docs,contrib}/**/*.{ipynb,py}",
   "pyproject.toml",
-  "src/**/*.py",
-  "tests/**/*.py",
   "!**/.ipynb_checkpoints",
 ]
 cmd = "ruff check --fix-only && ruff format"
 
 [feature.lint.tasks.lint-ruff]
 inputs = [
-  "_scripts/*.py",
-  "contrib/*/src/**/*.py",
-  "docs/**/*.ipynb",
-  "docs/**/*.py",
+  "{docs,src,contrib}/**/*.{ipynb,py}",
   "pyproject.toml",
-  "src/**/*.py",
   "!**/.ipynb_checkpoints",
 ]
 cmd = "ruff check && ruff format --check"
@@ -120,16 +110,10 @@ cmd = "cp LICENSE contrib/jupyterlite-pyodide-lock-webdriver/LICENSE"
 
 [feature.build.tasks.build-core]
 inputs = [
-  "LICENSE",
-  "pyproject.toml",
-  "README.md",
-  "src/**/*.py",
-  "src/**/*.j2",
+  "{LICENSE,pyproject.toml,README.md}",
+  "src/**/*.{py,j2}",
 ]
-outputs = [
-  "dist/jupyterlite_pyodide_lock-*.tar.gz",
-  "dist/jupyterlite_pyodide_lock-*.whl",
-]
+outputs = ["dist/jupyterlite_pyodide_lock-*.{tar.gz,whl}"]
 cmd = "rm -rf dist && pyproject-build . --no-isolation -vv"
 
 [feature.build.tasks.build-webdriver]
@@ -153,12 +137,10 @@ pixi run -e $PIXI_ENVIRONMENT_NAME pip
 inputs = [
   "build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt",
   "pyproject.toml",
-  "src/**/*/.py",
-  "tests/**/*/.py",
+  "{src,tests}/**/*.py",
 ]
 outputs = [
-  "build/reports/pytest.html",
-  "build/reports/htmlcov/status.json",
+  "build/reports/{pytest.html,htmlcov/status.json}",
 ]
 cmd = """
 pixi run -e $PIXI_ENVIRONMENT_NAME pip
@@ -168,8 +150,8 @@ pixi run -e $PIXI_ENVIRONMENT_NAME pip
 inputs = [
   "build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt",
   "contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
-  "contrib/jupyterlite-pyodide-lock-webdriver/{src,tests}/**/*/.py",
-  "src/**/*/.py",
+  "contrib/jupyterlite-pyodide-lock-webdriver/{src,tests}/**/*.py",
+  "src/**/*.py",
 ]
 outputs = [
   "contrib/jupyterlite-pyodide-lock-webdriver/build/reports/{pytest.html,htmlcov/status.json}",
@@ -181,9 +163,10 @@ pixi run -e $PIXI_ENVIRONMENT_NAME pip
 [feature.docs.tasks.docs-lite]
 inputs = [
   "build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt",
-  "examples/jupyter_lite_config.json",
-  "examples/files/**/*.*",
+  "examples/**/*.*",
   "src/**/*.py",
+  "!**/.jupyterlite.doit.db",
+  "!**/.ipynb_checkpoints",
 ]
 outputs = ["build/docs-app/SHA256SUMS"]
 cwd = "examples"
@@ -196,7 +179,8 @@ depends-on = ["build", "docs-lite"]
 inputs = [
   "*.md",
   "build/docs-app/SHA256SUMS",
-  "{.,contrib/*}/dist/*.whl",
+  "dist/*.whl",
+  "contrib/*/dist/*.whl",
   "docs/**/*.{css,ipynb,md,py}",
   "!**/.ipynb_checkpoints",
 ]
@@ -323,7 +307,7 @@ channels = [
 python = "3.12.*"
 pyodide-lock = "0.1.0a6"
 jupyterlite-core = {version = ">=0.4.0a3", channel = "conda-forge/label/jupyterlite_core_alpha"}
-jupyterlite-pyodide-kernel = {version = ">=0.4.0a1", channel = "conda-forge/label/jupyterlite_pyodide_kernel_alpha"}
+jupyterlite-pyodide-kernel = {version = ">=0.4.0a2", channel = "conda-forge/label/jupyterlite_pyodide_kernel_alpha"}
 
 [feature.run.dependencies]
 python = ">=3.10,<3.13"
