@@ -29,7 +29,7 @@ jobs:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true
           environments: build
-      - run: pixi run -e build build
+      - run: pixi run build
       - uses: actions/upload-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-dist
@@ -108,4 +108,4 @@ jobs:
           name: |-
             jlpl-docs-${{ github.run_number }}
           path: ./build/docs
-      - run: pixi run -e docs check
+      - run: pixi run check
