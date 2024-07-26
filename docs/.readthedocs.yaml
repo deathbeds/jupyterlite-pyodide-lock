@@ -22,9 +22,10 @@ build:
     python: mambaforge-latest
   jobs:
     pre_build:
-      - pixi install --environment=rtd
-      - pixi run --environment=rtd build
-      - pixi run --environment=rtd docs-lite
+      - pixi install --environment=build
+      - pixi install --environment=docs
+      - pixi run build
+      - pixi run docs-lite
 sphinx:
   builder: html
   configuration: docs/conf.py

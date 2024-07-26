@@ -1,12 +1,12 @@
-"$schema" = "https://pixi.sh/v0.22.0/schema/manifest/schema.json"
+"$schema" = "https://pixi.sh/v0.26.1/schema/manifest/schema.json"
 
 [project]
 name = "jlpl"
 channels = ["conda-forge"]
 platforms = ["linux-64", "osx-64", "win-64", "osx-arm64"]
 
-# top-level tasks a la make phony
 [tasks]
+# top-level tasks a la make phony
 fix = {depends-on = ["fix-ruff", "fix-taplo", "fix-ipynb"]}
 lint = {depends-on = ["lint-ruff", "lint-ipynb"]}
 build = {depends-on = ["build-core", "build-webdriver"]}
@@ -29,7 +29,7 @@ cmd = """
   && pip freeze > build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt"""
 
 # real tasks
-[feature.lint.tasks.fix-deps]
+[feature.tasks-lint.tasks.fix-deps]
 inputs = [
   "pyproject.toml",
   "_scripts/fix-deps.py",
@@ -40,7 +40,7 @@ cmd = """
     pyproject.toml
     contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml"""
 
-[feature.lint.tasks.fix-ipynb]
+[feature.tasks-lint.tasks.fix-ipynb]
 cmd = "python _scripts/nb-lint.py --fix docs"
 inputs = [
   "_scripts/nb-lint.py",
@@ -48,7 +48,7 @@ inputs = [
   "!**/.ipynb_checkpoints",
 ]
 
-[feature.lint.tasks.lint-ipynb]
+[feature.tasks-lint.tasks.lint-ipynb]
 cmd = "python _scripts/nb-lint.py docs"
 inputs = [
   "_scripts/nb-lint.py",
@@ -56,7 +56,7 @@ inputs = [
   "!**/.ipynb_checkpoints",
 ]
 
-[feature.lint.tasks.fix-ruff]
+[feature.tasks-lint.tasks.fix-ruff]
 depends-on = ["fix-conftest"]
 inputs = [
   "{_scripts,src,tests,docs,contrib}/**/*.{ipynb,py}",
@@ -65,7 +65,7 @@ inputs = [
 ]
 cmd = "ruff check --fix-only && ruff format"
 
-[feature.lint.tasks.lint-ruff]
+[feature.tasks-lint.tasks.lint-ruff]
 inputs = [
   "{docs,src,contrib}/**/*.{ipynb,py}",
   "pyproject.toml",
@@ -73,7 +73,7 @@ inputs = [
 ]
 cmd = "ruff check && ruff format --check"
 
-[feature.lint.tasks.fix-taplo]
+[feature.tasks-lint.tasks.fix-taplo]
 depends-on = ["fix-deps"]
 inputs = [
   "*.toml",
@@ -90,7 +90,7 @@ cmd = """
     pixi.toml
     contrib/*/pyproject.toml"""
 
-[feature.lint.tasks.fix-conftest]
+[feature.tasks-lint.tasks.fix-conftest]
 depends-on = ["fix-deps"]
 inputs = [
   "tests/conftest.py",
@@ -103,12 +103,12 @@ cmd = """
     contrib/jupyterlite-pyodide-lock-webdriver/tests/conftest.py
     "### shared fixtures ###" """
 
-[feature.build.tasks.build-licenses]
+[feature.tasks-build.tasks.build-licenses]
 inputs = ["LICENSE"]
 outputs = ["contrib/jupyterlite-pyodide-lock-webdriver/LICENSE"]
 cmd = "cp LICENSE contrib/jupyterlite-pyodide-lock-webdriver/LICENSE"
 
-[feature.build.tasks.build-core]
+[feature.tasks-build.tasks.build-core]
 inputs = [
   "{LICENSE,pyproject.toml,README.md}",
   "src/**/*.{py,j2}",
@@ -116,7 +116,7 @@ inputs = [
 outputs = ["dist/jupyterlite_pyodide_lock-*.{tar.gz,whl}"]
 cmd = "rm -rf dist && pyproject-build . --no-isolation -vv"
 
-[feature.build.tasks.build-webdriver]
+[feature.tasks-build.tasks.build-webdriver]
 depends-on = ["build-licenses"]
 inputs = [
   "contrib/jupyterlite-pyodide-lock-webdriver/{LICENSE,pyproject.toml,README.md}",
@@ -160,7 +160,7 @@ cmd = """
 pixi run -e $PIXI_ENVIRONMENT_NAME pip
 && pytest"""
 
-[feature.docs.tasks.docs-lite]
+[feature.tasks-docs.tasks.docs-lite]
 inputs = [
   "build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt",
   "examples/**/*.*",
@@ -174,7 +174,7 @@ cmd = """
 pixi run -e $PIXI_ENVIRONMENT_NAME pip
 && jupyter-lite doit --debug -- pre_archive:report:SHA256SUMS"""
 
-[feature.docs.tasks.docs-sphinx]
+[feature.tasks-docs.tasks.docs-sphinx]
 depends-on = ["build", "docs-lite"]
 inputs = [
   "*.md",
@@ -185,12 +185,12 @@ inputs = [
   "!**/.ipynb_checkpoints",
 ]
 outputs = ["build/docs/.buildinfo"]
-cwd = "docs"
+cwd = "docs/"
 cmd = """
   export PYDEVD_DISABLE_FILE_VALIDATION=1
   && sphinx-build -W --keep-going --color -b html . ../build/docs"""
 
-[feature.check.tasks.check-links]
+[feature.tasks-check.tasks.check-links]
 cmd = """
   rm -rf build/reports/check-links
   && mkdir -p build/reports/check-links
@@ -208,7 +208,7 @@ cmd = """
 depends-on = ["docs-sphinx"]
 inputs = ["build/docs/**/*.html"]
 
-[feature.check.tasks.check-spelling]
+[feature.tasks-check.tasks.check-spelling]
 cmd = "python _scripts/check-spelling.py"
 depends-on = ["docs-sphinx"]
 inputs = ["build/docs/**/*.html", "_scripts/check-spelling.py"]
@@ -229,60 +229,48 @@ inputs = ["build/docs/.buildinfo"]
 ### environments for tasks
 [environments]
 lint = {features = [
-  "lint",
+  "deps-lint",
+  "tasks-lint",
 ], solve-group = "default"}
 build = {features = [
-  "build",
+  "deps-build",
+  "tasks-build",
 ], solve-group = "default"}
 docs = {features = [
   "demo",
-  "build",
+  "deps-build",
+  "deps-check",
+  "deps-docs",
   "dev",
-  "docs",
   "run",
+  "tasks-check",
+  "tasks-docs",
   "webdriver",
-  "check",
-], solve-group = "default"}
-rtd = {features = [
-  "build",
-  "demo",
-  "dev",
-  "docs",
-  "firefox-oldest",
-  "run",
-  "webdriver",
-  "rtd",
 ], solve-group = "default"}
 test-oldest = {features = [
   "dev",
   "firefox-oldest",
   "firefox",
+  "run-oldest",
   "run",
   "test",
-  "webdriver",
   "webdriver-oldest",
-  "run-oldest",
+  "webdriver",
 ], solve-group = "oldest"}
 test = {features = [
   "dev",
   "firefox",
-  "run",
   "run-latest",
+  "run",
   "test",
   "webdriver",
 ], solve-group = "default"}
-test-future = {features = [
-  "dev",
-  "firefox",
-  "run",
-  "run-future",
-  "test",
-  "webdriver",
-], solve-group = "future"}
 lab = {features = [
   "demo",
   "dev",
-  "docs",
+  "deps-docs",
+  "deps-lint",
+  "deps-build",
   "run",
   "test",
   "webdriver",
@@ -291,28 +279,19 @@ lab = {features = [
 [feature.run-oldest.dependencies]
 python = "3.10.*"
 pyodide-lock = "0.1.0a4"
+jupyterlite-core = "0.3.0"
+jupyterlite-pyodide-kernel = "0.3.1"
 
 [feature.run-latest.dependencies]
 python = "3.12.*"
 pyodide-lock = "0.1.0a6"
-
-[feature.run-future]
-platforms = ["linux-64"]
-channels = [
-  "conda-forge",
-  "conda-forge/label/jupyterlite_core_alpha",
-  "conda-forge/label/jupyterlite_pyodide_kernel_alpha",
-]
-[feature.run-future.dependencies]
-python = "3.12.*"
-pyodide-lock = "0.1.0a6"
-jupyterlite-core = {version = ">=0.4.0a3", channel = "conda-forge/label/jupyterlite_core_alpha"}
-jupyterlite-pyodide-kernel = {version = ">=0.4.0a2", channel = "conda-forge/label/jupyterlite_pyodide_kernel_alpha"}
+jupyterlite-core = "0.4.*"
+jupyterlite-pyodide-kernel = "0.4.*"
 
 [feature.run.dependencies]
 python = ">=3.10,<3.13"
-jupyterlite-core = ">=0.3.0,<0.4.0"
-jupyterlite-pyodide-kernel = ">=0.3.1,<0.4.0"
+jupyterlite-core = ">=0.3.0,<0.5.0"
+jupyterlite-pyodide-kernel = ">=0.3.1,<0.5.0"
 pyodide-lock = ">=0.1.0a4,<0.1.0a7"
 pyodide-lock-with-wheel = "*"
 tornado = ">=6.1.0"
@@ -321,11 +300,11 @@ tornado = ">=6.1.0"
 pip = "*"
 flit-core = ">=3.9,<4.0"
 
-[feature.build.dependencies]
+[feature.deps-build.dependencies]
 python-build = "*"
 flit-core = ">=3.9,<4.0"
 
-[feature.lint.dependencies]
+[feature.deps-lint.dependencies]
 ruff = ">=0.3.0"
 taplo = ">=0.9.1"
 nbformat = "*"
@@ -349,7 +328,7 @@ geckodriver = "*"
 [feature.firefox-oldest.dependencies]
 firefox = "115.*"
 
-[feature.docs.dependencies]
+[feature.deps-docs.dependencies]
 autodoc-traits = ">=1.2.2"
 myst-nb = "*"
 pydata-sphinx-theme = "*"
@@ -358,15 +337,15 @@ sphinx-autodoc-typehints = "*"
 sphinx-copybutton = "*"
 python-libarchive-c = "*"
 importnb = "*"
+requests = "*"
+jinja2 = ">=2.9"
+packaging = "*"
+[feature.deps-docs.pypi-dependencies]
+readthedocs-sphinx-ext = "*"
 
-[feature.check.dependencies]
+[feature.deps-check.dependencies]
 pytest-check-links = "*"
 
 [feature.demo.dependencies]
 ipywidgets = ">=8.1,<8.2"
-jupyterlab = ">=4.1,<4.2"
-
-[feature.rtd]
-platforms = ["linux-64"]
-dependencies = {requests = "*", jinja2 = ">=2.9", packaging = "*"}
-pypi-dependencies = {readthedocs-sphinx-ext = "*"}
+jupyterlab = ">=4.1,<4.3"

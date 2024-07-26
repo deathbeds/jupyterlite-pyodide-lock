@@ -17,7 +17,7 @@ env:
   JUPYTERLITE_NO_JUPYTER_SERVER: 1
   JUPYTERLITE_NO_JUPYTERLAB_SERVER: 1
   JLPL_TIMEOUT: 500
-  JLPL_PIXI_VERSION: 0.22.0
+  JLPL_PIXI_VERSION: 0.26.1
 
 jobs:
   build:
@@ -96,9 +96,7 @@ jobs:
         with:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true
-          environments: >-
-            build
-            docs
+          environments: build docs
       - uses: actions/download-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-dist
