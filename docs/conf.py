@@ -24,7 +24,7 @@ if os.getenv(RTD) == "True":
         """Customize the sphinx build lifecycle."""
 
         def _run_pixi(*_args: Any) -> None:
-            args = ["pixi", "run", "-e", "rtd", "-v", "rtd"]
+            args = ["pixi", "run", "-v", "docs-rtd"]
             env = {k: v for k, v in os.environ.items() if k != RTD}
             subprocess.check_call(args, env=env, cwd=str(ROOT))  # noqa: S603
 

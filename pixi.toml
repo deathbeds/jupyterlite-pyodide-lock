@@ -190,6 +190,14 @@ cmd = """
   export PYDEVD_DISABLE_FILE_VALIDATION=1
   && sphinx-build -W --keep-going --color -b html . ../build/docs"""
 
+[feature.tasks-docs.tasks.docs-rtd]
+cmd = """
+  rm -rf $READTHEDOCS_OUTPUT/html
+  && cp -r build/docs $READTHEDOCS_OUTPUT/html
+"""
+depends-on = ["docs-sphinx"]
+inputs = ["build/docs/.buildinfo"]
+
 [feature.tasks-check.tasks.check-links]
 cmd = """
   rm -rf build/reports/check-links
@@ -218,13 +226,6 @@ cmd = """
   pixi run -e $PIXI_ENVIRONMENT_NAME pip
   && jupyter lab --no-browser --debug"""
 
-[feature.rtd.tasks.rtd]
-cmd = """
-  rm -rf $READTHEDOCS_OUTPUT/html
-  && cp -r build/docs $READTHEDOCS_OUTPUT/html
-"""
-depends-on = ["docs-sphinx"]
-inputs = ["build/docs/.buildinfo"]
 
 ### environments for tasks
 [environments]
