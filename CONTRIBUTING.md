@@ -17,7 +17,7 @@ a relatively new approach to `conda` package management and task running.
 If using `mamba` or `conda` (or some other `$CONDA_EXE`):
 
 ```bash
-mamba install -c conda-forge pixi==0.22.0  # replace `mamba` with your CONDA_EXE
+mamba install -c conda-forge pixi==0.26.1  # replace `mamba` with your CONDA_EXE
 ```
 
 <details><summary><i>Why <code>pixi</code>?</i></summary>
@@ -60,16 +60,16 @@ Most tasks `run` just fine:
 
 ```bash
 pixi run fix
+pixi run build
 pixi run lint
 pixi run lab
+pixi run check
+pixi run docs
 ```
 
 Some tasks need to have an `-e {environment}` provided, for example:
 
 ```bash
-pixi run -e build       build  # build distributions
-pixi run -e test        test   # test against the latest python
-pixi run -e test-oldest test   # test against the oldest supported python
-pixi run -e test-future test   # test against the prereleases
-pixi run -e docs        docs   # build the docs
+pixi run -e test        test   # test against the latest python and packages
+pixi run -e test-oldest test   # test against the oldest supported python and packages
 ```

@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 env:
-  JLPL_PIXI_VERSION: 0.22.0
+  JLPL_PIXI_VERSION: 0.26.1
 
 jobs:
   build:
