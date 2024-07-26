@@ -242,6 +242,7 @@ docs = {features = [
   "deps-check",
   "deps-docs",
   "dev",
+  "firefox",
   "run",
   "tasks-check",
   "tasks-docs",
