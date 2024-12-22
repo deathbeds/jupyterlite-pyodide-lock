@@ -24,6 +24,7 @@ test-all = {description = """
 🚀 run ALL tests""", depends-on = ["test", "test-oldest", "test-future"], cmd = "echo 🚀"}
 fix = {description = """
 🧹 fix ALL source files""", cmd = "echo 🧹", depends-on = [
+  "fix-tasks",
   "fix-deps",
   "fix-ruff",
   "fix-taplo",
@@ -94,6 +95,11 @@ cmd = """
     contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml"""
 inputs = ["pyproject.toml", "_scripts/fix-deps.py"]
 outputs = ["contrib/*/pyproject.toml"]
+
+[feature.tasks-lint.tasks.fix-tasks]
+description = "├ fix pixi tasks"
+cmd = "python _scripts/fix-tasks.py"
+inputs = ["pixi.toml", "_scripts/fix-tasks.py"]
 
 [feature.tasks-lint.tasks.fix-ipynb]
 description = "├ fix notebooks"
@@ -198,6 +204,16 @@ cmd = """export JLPL_TEST_REPORTS=$PIXI_PROJECT_ROOT/build/reports/$PIXI_ENVIRON
     --html=$JLPL_TEST_REPORTS/pytest.html --self-contained-html
     --no-cov-on-fail
 """
+[tasks.pytest-core--]
+cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock
+  && export JLPL_TEST_MOD=jupyterlite_pyodide_lock
+  && export JLPL_TEST_CWD=.
+  && pixi r -e test pytest--"""
+[tasks.pytest-wd--]
+cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock-webdriver
+  && export JLPL_TEST_MOD=jupyterlite_pyodide_lock_webdriver
+  && export JLPL_TEST_CWD=contrib/jupyterlite-pyodide-lock-webdriver
+  && pixi r -e test pytest--"""
 
 # default testing ##############################################################
 [feature.tasks-test.tasks.test-pip]
@@ -214,12 +230,7 @@ depends-on = ["test-pip"]
 
 [feature.tasks-test.tasks.test-core]
 description = "├ test core in the default test environment"
-cmd = """
-  export JLPL_TEST_PKG=jupyterlite-pyodide-lock
-  && export JLPL_TEST_MOD=jupyterlite_pyodide_lock
-  && export JLPL_TEST_CWD=.
-  && pixi r -e test pytest--
-"""
+cmd = "pixi r -e test pytest-core--"
 depends-on = ["test-pip", "test-browsers"]
 inputs = ["pyproject.toml", "tests/**/*.py", "dist/*.whl"]
 outputs = [
@@ -229,11 +240,7 @@ outputs = [
 [feature.tasks-test.tasks.test-webdriver]
 description = "├ test webdriver in the default test environment"
 depends-on = ["test-pip", "test-browsers"]
-cmd = """
-  export JLPL_TEST_PKG=jupyterlite-pyodide-lock-webdriver
-  && export JLPL_TEST_MOD=jupyterlite_pyodide_lock_webdriver
-  && export JLPL_TEST_CWD=contrib/jupyterlite-pyodide-lock-webdriver
-  && pixi r -e test pytest--"""
+cmd = "pixi r -e test pytest-wd--"
 inputs = [
   "contrib/jupyterlite-pyodide-lock-webdriver/dist/*.whl",
   "contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
