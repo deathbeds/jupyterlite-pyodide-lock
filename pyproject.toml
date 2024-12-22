@@ -72,21 +72,12 @@ warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
 ignore_missing_imports = true
-module = [
-  "ipywidgets",
-  "jsonpointer",
-  "jupytask.model.*",
-]
+module = ["ipywidgets", "jsonpointer"]
 
 [tool.pylsp-mypy]
 enabled = true
 dmypy = true
 live_mode = false
-
-[tool.pytest.ini_options]
-generate_report_on_test = true
-testpaths = ["tests"]
-addopts = ["-vv", "-Werror", "--color=yes", "--tb=long", "--durations=3"]
 
 [tool.coverage.run]
 disable_warnings = ["no-data-collected", "module-not-measured"]

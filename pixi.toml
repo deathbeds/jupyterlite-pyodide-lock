@@ -211,6 +211,11 @@ cmd = """export TEST_JLPL_REPORTS=$PIXI_PROJECT_ROOT/build/reports/$PIXI_ENVIRON
   && cd $TEST_JLPL_CWD
   && pytest
     -o cache_dir=$PIXI_PROJECT_ROOT/build/.cache/$TEST_JLPL_PKG/pytest
+    -vv
+    -W error
+    --color=yes
+    --tb=long
+    --durations=5
     --cov-branch
     --cov-context=test
     --cov-report=html:$TEST_JLPL_REPORTS/htmlcov
