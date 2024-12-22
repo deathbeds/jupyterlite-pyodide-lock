@@ -28,8 +28,9 @@ requires-python = ">=3.10"
 dependencies = [
   "jupyterlite-core >=0.3.0,<0.6.0",
   "jupyterlite-pyodide-kernel >=0.3.1,<0.6.0 ; platform_machine != \"wasm32\"",
-  "pyodide-lock[wheel] >=0.1.0a4,<0.1.0a8",
+  "pyodide-lock[wheel] >=0.1.0a4,<0.2.0",
   "tornado >=6.1.0 ; platform_machine != \"wasm32\"",
+  "psutil >=6",
 ]
 
 [project.license]
@@ -62,7 +63,12 @@ test = [
 include = ["tests/"]
 
 [tool.mypy]
+cache_dir = "build/.cache/mypy"
 python_version = "3.10"
+strict = true
+show_error_codes = true
+warn_return_any = true
+warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
 ignore_missing_imports = true
@@ -78,34 +84,12 @@ dmypy = true
 live_mode = false
 
 [tool.pytest.ini_options]
-cache_dir = "build/.cache/pytest"
 generate_report_on_test = true
-testpaths = [
-  "tests",
-]
-addopts = [
-  "--html=build/reports/pytest.html",
-  "--self-contained-html",
-  "--cov-report=html:build/reports/htmlcov",
-  "--cov-report=term-missing:skip-covered",
-  "--color=yes",
-  "--cov=jupyterlite_pyodide_lock",
-  "--cov-branch",
-  "--cov-context=test",
-  "--no-cov-on-fail",
-  "--cov-fail-under=100",
-  "-Werror",
-  "--tb=long",
-  "--durations=3",
-  "-vv",
-]
+testpaths = ["tests"]
+addopts = ["-vv", "-Werror", "--color=yes", "--tb=long", "--durations=3"]
 
 [tool.coverage.run]
-data_file = "build/reports/.coverage"
-disable_warnings = [
-  "no-data-collected",
-  "module-not-measured",
-]
+disable_warnings = ["no-data-collected", "module-not-measured"]
 
 [tool.coverage.html]
 show_contexts = true
