@@ -1,4 +1,6 @@
 """Tests of repo versions, etc."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
 
 import re
 
@@ -22,6 +24,6 @@ def test_repo_pixi_version(the_pixi_version: str, glob: str) -> None:
         pattern = PIXI_PATTERNS[glob]
         text = path.read_text(**UTF8)
         matches = re.findall(pattern, text)
-        assert {the_pixi_version} == {
-            *matches
-        }, f"pixi {the_pixi_version} is missing from {path.relative_to(ROOT)}"
+        assert {the_pixi_version} == {*matches}, (
+            f"pixi {the_pixi_version} is missing from {path.relative_to(ROOT)}"
+        )

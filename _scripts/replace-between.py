@@ -1,4 +1,6 @@
 """replace text in a file with text from another file between matching markers."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
 
 from argparse import ArgumentParser
 from pathlib import Path
@@ -24,9 +26,13 @@ def replace_between(source: Path, dest: Path, pattern: str | None) -> int:
         return 1
     src_chunks = src_text.split(pattern)
     dest_chunks = dest_text.split(pattern)
-    dest_text = "".join(
-        [dest_chunks[0], pattern, src_chunks[1], pattern, dest_chunks[2]]
-    )
+    dest_text = "".join([
+        dest_chunks[0],
+        pattern,
+        src_chunks[1],
+        pattern,
+        dest_chunks[2],
+    ])
     dest.write_text(dest_text, encoding="utf-8")
     return True
 

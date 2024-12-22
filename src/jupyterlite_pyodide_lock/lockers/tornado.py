@@ -1,4 +1,6 @@
 """Host a tornado web application to solve``pyodide-lock.json`` ."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
 
 import atexit
 import json
@@ -83,7 +85,7 @@ class TornadoLocker(BaseLocker):
         "tornado.httpserver.HTTPServer", allow_none=True
     )
     _handlers: tuple[THandler, ...] = TypedTuple(Tuple(Unicode(), Type(), Dict()))
-    _solve_halted: bool = Bool(False)
+    _solve_halted: bool = Bool(default_value=False)
 
     # API methods
     async def resolve(self) -> bool | None:
@@ -102,7 +104,7 @@ class TornadoLocker(BaseLocker):
             self.cleanup()
 
         if not self.lockfile_cache.exists():
-            self.log.error("No lockfile was created at %s", self.lockfile)
+            self.log.exception("No lockfile was created at %s", self.lockfile)
             return False
 
         found = self.collect()
@@ -167,7 +169,7 @@ class TornadoLocker(BaseLocker):
             try:
                 found.update(self.collect_one_package(package))
             except Exception:  # pragma: no cover
-                self.log.error("Failed to collect %s: %s", name, package, exc_info=1)
+                self.log.exception("Failed to collect %s: %s", name, package)
 
         return found
 

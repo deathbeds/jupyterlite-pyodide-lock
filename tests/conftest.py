@@ -1,7 +1,9 @@
 """Test configuration and fixtures for ``jupyterlite-pyodide-lock``."""
 
-#### the below is copied to ``contrib`` packages
-### shared fixtures ###
+# the below is copied to ``contrib`` packages
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
+# shared fixtures ###
 import difflib
 import json
 import os
@@ -12,6 +14,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from jupyterlite_core.constants import JSON_FMT, JUPYTER_LITE_CONFIG, UTF8
+
 from jupyterlite_pyodide_lock.constants import (
     ENV_VAR_ALL,
     FILES_PYTHON_HOSTED,
@@ -86,7 +89,7 @@ def the_pyproject() -> dict[str, Any]:
     return tomllib.loads(PPT.read_text(**UTF8))
 
 
-@pytest.fixture()
+@pytest.fixture
 def a_lite_dir(tmp_path: Path) -> Path:
     """Provide a temporary JupyterLite project."""
     lite_dir = tmp_path / "lite"
@@ -94,19 +97,19 @@ def a_lite_dir(tmp_path: Path) -> Path:
     return lite_dir
 
 
-@pytest.fixture()
+@pytest.fixture
 def a_bad_widget_lock_date_epoch() -> int:
     """Provide a UNIX timestamp for a widget release that should NOT be in a lock."""
     return warehouse_date_to_epoch(WIDGET_ISO8601["before"])
 
 
-@pytest.fixture()
+@pytest.fixture
 def a_good_widget_lock_date_epoch() -> int:
     """Provide a UNIX timestamp for a widget release that should be in a lock."""
     return warehouse_date_to_epoch(WIDGET_ISO8601["after_"])
 
 
-@pytest.fixture()
+@pytest.fixture
 def lite_cli(a_lite_dir: Path) -> "TLiteRunner":
     """Provide a ``jupyter lite`` runner in a project."""
 
@@ -174,7 +177,7 @@ def a_widget_approach(request: pytest.FixtureRequest) -> str:
     return request.param
 
 
-@pytest.fixture()
+@pytest.fixture
 def a_lite_config_with_widgets(
     a_lite_dir: Path, a_lite_config: Path, a_widget_approach: str
 ) -> Path:
@@ -241,8 +244,8 @@ def expect_no_diff(left_text: Path, right_text: Path, left: str, right: str) -> 
     assert not diff
 
 
-### shared fixtures ###
-#### the above is copied to ``contrib`` packages
+# shared fixtures ###
+# the above is copied to ``contrib`` packages
 PXT = ROOT / "pixi.toml"
 
 
@@ -257,10 +260,10 @@ def the_pixi_version(the_pixi_manifest: dict[str, Any]) -> str:
     """Provide the source of truth for the pixi version."""
     import re
 
-    return re.findall("/v(.*?)/", the_pixi_manifest["$schema"])[0]
+    return re.findall(r"/v(.*?)/", the_pixi_manifest["$schema"])[0]
 
 
-@pytest.fixture()
+@pytest.fixture
 def a_lite_config(a_lite_dir: Path) -> Path:
     """Provide a configured ``jupyter_lite_config.json``."""
     return patch_config(

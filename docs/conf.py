@@ -1,4 +1,6 @@
 """documentation for ``jupyterlite-pyodide-lock``."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
 
 import datetime
 import os
@@ -29,6 +31,7 @@ if os.getenv(RTD) == "True":
             subprocess.check_call(args, env=env, cwd=str(ROOT))  # noqa: S603
 
         app.connect("build-finished", _run_pixi)
+
 else:
     # exclude RTD
     exclude_patterns = ["rtd.rst"]

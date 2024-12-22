@@ -1,4 +1,6 @@
 """A handler that accepts log messages from the browser."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
 
 import json
 from typing import TYPE_CHECKING, Any

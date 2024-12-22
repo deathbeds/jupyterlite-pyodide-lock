@@ -1,4 +1,6 @@
 """Tests of the ``jupyter-lite`` CLI with ``jupyterlite-pyodide-lock``."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
 
 import subprocess
 from pathlib import Path
@@ -8,6 +10,7 @@ import pyodide_lock
 import pytest
 from jupyterlite_core.constants import UTF8
 from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK
+
 from jupyterlite_pyodide_lock.constants import ENV_VAR_LOCK_DATE_EPOCH
 
 from .conftest import expect_no_diff, patch_config

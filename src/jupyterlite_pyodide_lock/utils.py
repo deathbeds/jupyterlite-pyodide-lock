@@ -1,4 +1,6 @@
 """Utilities for working with the Warehouse API, and browsers."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
 
 import os
 import shutil
@@ -50,7 +52,7 @@ def find_browser_binary(browser_binary: str, log: Logger = logger) -> str:
     """Resolve an absolute path to a browser binary."""
     path_var = get_browser_search_path()
 
-    exe: None | str = None
+    exe: str | None = None
 
     extensions = [""]
 

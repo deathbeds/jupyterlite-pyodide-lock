@@ -1,4 +1,6 @@
 """A ``tornado`` handler with some extra MIME handling."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
 
 import re
 from pathlib import Path

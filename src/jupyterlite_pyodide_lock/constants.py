@@ -1,10 +1,12 @@
-"""Contants for jupyterlite-pyodide-lock."""
+"""Constants for jupyterlite-pyodide-lock."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
 
 import os
 
 from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK, PYODIDE_VERSION
 
-__all__ = ["NAME", "LOCKER_ENTRYPOINT", "PYODIDE_LOCK_STEM", "PROXY", "LOCK_HTML"]
+__all__ = ["LOCKER_ENTRYPOINT", "LOCK_HTML", "NAME", "PROXY", "PYODIDE_LOCK_STEM"]
 
 #: this distribution name
 NAME = "jupyterlite-pyodide-lock"
@@ -77,7 +79,7 @@ WAREHOUSE_UPLOAD_FORMAT_ANY = [
     WAREHOUSE_UPLOAD_FORMAT_SHORT,
 ]
 
-### browsers ###
+# browsers ###
 
 #: browser alias for firefox
 FIREFOX = "firefox"

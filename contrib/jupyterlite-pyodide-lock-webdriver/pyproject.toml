@@ -9,7 +9,7 @@ name = "jupyterlite-pyodide-lock-webdriver"
 version = "0.1.0a0"
 description = "A WebDriver strategy for jupyterlite-pyodide-kernel-lock"
 authors = [
-  {name = "JupyterLite Contributors"},
+  {name = "jupyterlite-pyodide-lock contributors"},
 ]
 readme = "README.md"
 classifiers = [

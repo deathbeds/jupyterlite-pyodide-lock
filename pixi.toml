@@ -1,4 +1,4 @@
-"$schema" = "https://pixi.sh/v0.26.1/schema/manifest/schema.json"
+"$schema" = "https://pixi.sh/v0.39.3/schema/manifest/schema.json"
 
 [project]
 name = "jlpl"
@@ -22,7 +22,8 @@ inputs = [
 ]
 outputs = ["build/pip-freeze/*.txt"]
 cmd = """
-  python -m pip install -vv --no-deps --no-build-isolation --ignore-installed --disable-pip-version-check
+  rm -f build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt
+  && python -m pip install -vv --no-deps --no-build-isolation --ignore-installed --disable-pip-version-check
     -e .
     -e contrib/jupyterlite-pyodide-lock-webdriver
   && mkdir -p build/pip-freeze
@@ -45,7 +46,7 @@ cmd = "python _scripts/nb-lint.py --fix docs"
 inputs = [
   "_scripts/nb-lint.py",
   "docs/**/*.ipynb",
-  "!**/.ipynb_checkpoints",
+  "!**/.*",
 ]
 
 [feature.tasks-lint.tasks.lint-ipynb]
@@ -53,7 +54,7 @@ cmd = "python _scripts/nb-lint.py docs"
 inputs = [
   "_scripts/nb-lint.py",
   "docs/**/*.ipynb",
-  "!**/.ipynb_checkpoints",
+  "!**/.*",
 ]
 
 [feature.tasks-lint.tasks.fix-ruff]
@@ -61,7 +62,7 @@ depends-on = ["fix-conftest"]
 inputs = [
   "{_scripts,src,tests,docs,contrib}/**/*.{ipynb,py}",
   "pyproject.toml",
-  "!**/.ipynb_checkpoints",
+  "!**/.*",
 ]
 cmd = "ruff check --fix-only && ruff format"
 
@@ -69,7 +70,7 @@ cmd = "ruff check --fix-only && ruff format"
 inputs = [
   "{docs,src,contrib}/**/*.{ipynb,py}",
   "pyproject.toml",
-  "!**/.ipynb_checkpoints",
+  "!**/.*",
 ]
 cmd = "ruff check && ruff format --check"
 
@@ -166,7 +167,7 @@ inputs = [
   "examples/**/*.*",
   "src/**/*.py",
   "!**/.jupyterlite.doit.db",
-  "!**/.ipynb_checkpoints",
+  "!**/.*",
 ]
 outputs = ["build/docs-app/SHA256SUMS"]
 cwd = "examples"
@@ -182,7 +183,7 @@ inputs = [
   "dist/*.whl",
   "contrib/*/dist/*.whl",
   "docs/**/*.{css,ipynb,md,py}",
-  "!**/.ipynb_checkpoints",
+  "!**/.*",
 ]
 outputs = ["build/docs/.buildinfo"]
 cwd = "docs/"
@@ -226,8 +227,94 @@ cmd = """
   pixi run -e $PIXI_ENVIRONMENT_NAME pip
   && jupyter lab --no-browser --debug"""
 
+# dependencies #################################################################
+[feature.run-oldest.dependencies]
+python = "3.10.*"
+pyodide-lock = "0.1.0a4"
+jupyterlite-core = "0.3.0"
+jupyterlite-pyodide-kernel = "0.3.1"
 
-### environments for tasks
+[feature.run-latest.dependencies]
+python = "3.13.*"
+pyodide-lock = "0.1.0a8"
+jupyterlite-core = "0.4.*"
+jupyterlite-pyodide-kernel = "0.4.*"
+
+[feature.run-future.dependencies]
+python = "3.13.*"
+pyodide-lock = "0.1.0a6"
+
+[feature.run-future.dependencies.jupyterlite-core]
+version = ">=0.5.0a2"
+channel = "https://conda.anaconda.org/conda-forge/label/jupyterlite_core_alpha"
+
+[feature.run-future.dependencies.jupyterlite-pyodide-kernel]
+version = ">=0.5.0a1"
+channel = "https://conda.anaconda.org/conda-forge/label/jupyterlite_pyodide_kernel_alpha"
+
+[feature.run.dependencies]
+python = ">=3.10,<3.14"
+jupyterlite-core = ">=0.3.0,<0.6.0"
+jupyterlite-pyodide-kernel = ">=0.3.1,<0.6.0"
+pyodide-lock = ">=0.1.0a4,<0.1.0b0"
+pyodide-lock-with-wheel = "*"
+tornado = ">=6.1.0"
+
+[feature.dev.dependencies]
+pip = "*"
+flit-core = ">=3.9,<4.0"
+
+[feature.deps-build.dependencies]
+python-build = "*"
+flit-core = ">=3.9,<4.0"
+
+[feature.deps-lint.dependencies]
+ruff = "*"
+taplo = "*"
+nbformat = "*"
+tomli-w = "*"
+
+[feature.test.dependencies]
+pytest = ">=8,<9"
+pytest-cov = "*"
+pytest-html = "*"
+
+[feature.webdriver.dependencies]
+selenium = ">=4.19"
+
+[feature.webdriver-oldest.dependencies]
+selenium = "4.19.*"
+
+[feature.firefox.dependencies]
+firefox = "*"
+geckodriver = "*"
+
+[feature.firefox-oldest.dependencies]
+firefox = "128.*"
+
+[feature.deps-docs.dependencies]
+autodoc-traits = ">=1.2.2"
+myst-nb = "*"
+pydata-sphinx-theme = "*"
+sphinx = "*"
+sphinx-autodoc-typehints = "*"
+sphinx-copybutton = "*"
+python-libarchive-c = "*"
+importnb = "*"
+requests = "*"
+jinja2 = ">=2.9"
+packaging = "*"
+[feature.deps-docs.pypi-dependencies]
+readthedocs-sphinx-ext = "*"
+
+[feature.deps-check.dependencies]
+pytest-check-links = "*"
+
+[feature.demo.dependencies]
+ipywidgets = ">=8.1,<8.2"
+jupyterlab = ">=4.1,<4.4"
+
+# environments #################################################################
 [environments]
 lint = {features = [
   "deps-lint",
@@ -277,77 +364,3 @@ lab = {features = [
   "test",
   "webdriver",
 ], solve-group = "default"}
-
-[feature.run-oldest.dependencies]
-python = "3.10.*"
-pyodide-lock = "0.1.0a4"
-jupyterlite-core = "0.3.0"
-jupyterlite-pyodide-kernel = "0.3.1"
-
-[feature.run-latest.dependencies]
-python = "3.12.*"
-pyodide-lock = "0.1.0a6"
-jupyterlite-core = "0.4.*"
-jupyterlite-pyodide-kernel = "0.4.*"
-
-[feature.run.dependencies]
-python = ">=3.10,<3.13"
-jupyterlite-core = ">=0.3.0,<0.5.0"
-jupyterlite-pyodide-kernel = ">=0.3.1,<0.5.0"
-pyodide-lock = ">=0.1.0a4,<0.1.0a7"
-pyodide-lock-with-wheel = "*"
-tornado = ">=6.1.0"
-
-[feature.dev.dependencies]
-pip = "*"
-flit-core = ">=3.9,<4.0"
-
-[feature.deps-build.dependencies]
-python-build = "*"
-flit-core = ">=3.9,<4.0"
-
-[feature.deps-lint.dependencies]
-ruff = ">=0.3.0"
-taplo = ">=0.9.1"
-nbformat = "*"
-tomli-w = "*"
-
-[feature.test.dependencies]
-pytest = ">=8,<9"
-pytest-cov = "*"
-pytest-html = "*"
-
-[feature.webdriver.dependencies]
-selenium = ">=4.19"
-
-[feature.webdriver-oldest.dependencies]
-selenium = "4.19.*"
-
-[feature.firefox.dependencies]
-firefox = "*"
-geckodriver = "*"
-
-[feature.firefox-oldest.dependencies]
-firefox = "115.*"
-
-[feature.deps-docs.dependencies]
-autodoc-traits = ">=1.2.2"
-myst-nb = "*"
-pydata-sphinx-theme = "*"
-sphinx = "*"
-sphinx-autodoc-typehints = "*"
-sphinx-copybutton = "*"
-python-libarchive-c = "*"
-importnb = "*"
-requests = "*"
-jinja2 = ">=2.9"
-packaging = "*"
-[feature.deps-docs.pypi-dependencies]
-readthedocs-sphinx-ext = "*"
-
-[feature.deps-check.dependencies]
-pytest-check-links = "*"
-
-[feature.demo.dependencies]
-ipywidgets = ">=8.1,<8.2"
-jupyterlab = ">=4.1,<4.3"

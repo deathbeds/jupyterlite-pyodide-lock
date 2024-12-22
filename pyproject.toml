@@ -9,7 +9,7 @@ name = "jupyterlite-pyodide-lock"
 version = "0.1.0a0"
 description = "Create pre-solved environments for jupyterlite-pyodide-kernel with pyodide-lock"
 authors = [
-  {name = "JupyterLite Contributors"},
+  {name = "jupyterlite-pyodide-lock contributors"},
 ]
 readme = "README.md"
 classifiers = [
@@ -22,12 +22,13 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
 ]
 requires-python = ">=3.10"
 dependencies = [
-  "jupyterlite-core >=0.3.0,<0.4.0",
-  "jupyterlite-pyodide-kernel >=0.3.1,<0.4.0 ; platform_machine != \"wasm32\"",
-  "pyodide-lock[wheel] >=0.1.0a4,<0.1.0a6",
+  "jupyterlite-core >=0.3.0,<0.6.0",
+  "jupyterlite-pyodide-kernel >=0.3.1,<0.6.0 ; platform_machine != \"wasm32\"",
+  "pyodide-lock[wheel] >=0.1.0a4,<0.1.0a8",
   "tornado >=6.1.0 ; platform_machine != \"wasm32\"",
 ]
 
@@ -116,6 +117,7 @@ par_type = "thread"
 dodoFile = "_scripts/dodo.py"
 
 [tool.ruff]
+preview = true
 target-version = "py310"
 line-length = 88
 extend-include = [
@@ -133,63 +135,29 @@ include = [
 cache-dir = "build/.cache/ruff"
 
 [tool.ruff.lint]
-select = [
-  "A",
-  "ANN",
-  "ARG",
-  "B",
-  "BLE",
-  "C4",
-  "C90",
-  "COM",
-  "D",
-  "DJ",
-  "DTZ",
-  "E",
-  "EM",
-  "ERA",
-  "EXE",
-  "F",
-  "G",
-  "I",
-  "ICN",
-  "INP",
-  "ISC",
-  "N",
-  "NPY",
-  "PD",
-  "PGH",
-  "PIE",
-  "PL",
-  "PT",
-  "PTH",
-  "PYI",
-  "Q",
-  "RET",
-  "RSE",
-  "RUF",
-  "S",
-  "SIM",
-  "SLF",
-  "T10",
-  "T20",
-  "TCH",
-  "TID",
-  "UP",
-  "W",
-  "YTT",
-]
+select = ["ALL"]
+flake8-copyright.notice-rgx = '''
+# Copyright \(c\) jupyterlite-pyodide-lock contributors\.
+# Distributed under the terms of the BSD-3-Clause License\.
+'''
+isort.known-first-party = ["urljsf"]
+
 ignore = [
-  "C408",
-  "D211",
-  "D203",
-  "D213",
-  "ANN101",
   "ANN401",
-  "PGH003",
-  "RUF015",
+  "C408",
   "COM812",
+  "D203",
+  "D211",
+  "D213",
+  "DOC201",
+  "DOC402",
+  "DOC501",
   "ISC001",
+  "PERF203",
+  "PGH003",
+  "PLC0415",
+  "PLR6301",
+  "RUF015",
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -197,11 +165,18 @@ ignore = [
   "INP001",
   "T201",
   "SLF001",
+  "FBT001",
+  "PLC1901",
 ]
 "docs/conf.py" = [
   "INP001",
   "A001",
   "E731",
+  "S404",
+]
+"**/*.ipynb" = [
+  "CPY001",
+  "TRY004",
 ]
 "examples/*.ipynb" = [
   "T201",
@@ -219,6 +194,7 @@ ignore = [
 ]
 "*/browser.py" = [
   "S603",
+  "S404",
 ]
 "*/logger.py" = [
   "BLE001",
@@ -233,8 +209,10 @@ ignore = [
   "C901",
 ]
 "**/tests/**/*.py" = [
-  "T201",
+  "PLC0415",
   "S101",
   "S603",
   "S607",
+  "S404",
+  "T201",
 ]

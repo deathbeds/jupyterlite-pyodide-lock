@@ -1,9 +1,21 @@
 """The locker implementation."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
 
 import asyncio
 import os
 import shutil
 from typing import TYPE_CHECKING
+
+from selenium.webdriver import (
+    Chrome,
+    ChromeOptions,
+    ChromeService,
+    Firefox,
+    FirefoxOptions,
+    FirefoxService,
+)
+from traitlets import Bool, Dict, Instance, List, Unicode, default
 
 from jupyterlite_pyodide_lock.constants import (
     BROWSER_BIN,
@@ -14,15 +26,6 @@ from jupyterlite_pyodide_lock.constants import (
 )
 from jupyterlite_pyodide_lock.lockers.tornado import TornadoLocker
 from jupyterlite_pyodide_lock.utils import find_browser_binary
-from selenium.webdriver import (
-    Chrome,
-    ChromeOptions,
-    ChromeService,
-    Firefox,
-    FirefoxOptions,
-    FirefoxService,
-)
-from traitlets import Bool, Dict, Instance, List, Unicode, default
 
 if TYPE_CHECKING:  # pragma: no cover
     TAnyService = FirefoxService | ChromeService
@@ -57,7 +60,9 @@ class WebDriverLocker(TornadoLocker):
     browser = Unicode(help="an alias for a pre-configured browser").tag(
         config=True,
     )
-    headless = Bool(True, help="run the browser in headless mode").tag(config=True)
+    headless = Bool(default_value=True, help="run the browser in headless mode").tag(
+        config=True
+    )
     browser_path = Unicode(
         help="an absolute path to a browser, if not well-known or on PATH",
     ).tag(config=True)
@@ -192,8 +197,8 @@ class WebDriverLocker(TornadoLocker):
 
         self.log.debug("[webdriver] %s service options: %s", browser, service_kwargs)
 
-        _env = dict(os.environ)
-        _env.update(service_kwargs["env"])
-        service_kwargs["env"] = _env
+        env_ = dict(os.environ)
+        env_.update(service_kwargs["env"])
+        service_kwargs["env"] = env_
 
         return service_class(**service_kwargs)

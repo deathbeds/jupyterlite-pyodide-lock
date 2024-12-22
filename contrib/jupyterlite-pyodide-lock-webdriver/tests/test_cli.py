@@ -1,4 +1,6 @@
 """Tests of the ``jupyter-lite`` CLI with ``jupyterlite-pyodide-lock-webdriver``."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
 
 from pathlib import Path
 from typing import TYPE_CHECKING

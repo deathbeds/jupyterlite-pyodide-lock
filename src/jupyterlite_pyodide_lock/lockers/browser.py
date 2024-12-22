@@ -1,4 +1,6 @@
 """Solve ``pyodide-lock`` with the browser manged as a naive subprocess."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
 
 import asyncio
 import os
@@ -65,15 +67,19 @@ class BrowserLocker(TornadoLocker):
     browser = Unicode(help="an alias for a pre-configured browser").tag(
         config=True,
     )
-    headless = Bool(True, help="run the browser in headless mode").tag(config=True)
-    private_mode = Bool(True, help="run the browser in private mode").tag(config=True)
+    headless = Bool(default_value=True, help="run the browser in headless mode").tag(
+        config=True
+    )
+    private_mode = Bool(default_value=True, help="run the browser in private mode").tag(
+        config=True
+    )
     profile = Unicode(
         None,
         help="run the browser with a copy of the given profile directory",
         allow_none=True,
     ).tag(config=True)
     temp_profile: bool = Bool(
-        False,
+        default_value=False,
         help="run the browser with a temporary profile: incompatible with ``profile``",
     ).tag(config=True)
 
@@ -106,7 +112,7 @@ class BrowserLocker(TornadoLocker):
         """Open the browser to the lock page, and wait for it to finish."""
         args = [*self.browser_argv, self.lock_html_url]
         self.log.debug("[browser] browser args: %s", args)
-        self._browser_process = subprocess.Popen(args)
+        self._browser_process = subprocess.Popen(args)  # noqa: ASYNC220
 
         try:
             while True:

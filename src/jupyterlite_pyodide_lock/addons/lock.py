@@ -1,4 +1,6 @@
 """A JupyterLite addon for patching ``pyodide-lock.json`` files."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
 
 import functools
 import json
@@ -16,7 +18,7 @@ import pkginfo
 from doit.tools import config_changed
 from jupyterlite_core.constants import JUPYTERLITE_JSON, LAB_EXTENSIONS, UTF8
 from jupyterlite_core.trait_types import TypedTuple
-from jupyterlite_pyodide_kernel.addons._base import _BaseAddon
+from jupyterlite_pyodide_kernel.addons._base import _BaseAddon  # noqa: PLC2701
 from jupyterlite_pyodide_kernel.constants import (
     ALL_WHL,
     PKG_JSON_PIPLITE,
@@ -115,8 +117,7 @@ class PyodideLockAddon(_BaseAddon):
     packages: tuple[str] = TypedTuple(
         Unicode(),
         help=(
-            "URLs of packages, or local (folders of) packages for pyodide"
-            " depdendencies"
+            "URLs of packages, or local (folders of) packages for pyodide depdendencies"
         ),
     ).tag(config=True)
 
@@ -291,8 +292,8 @@ class PyodideLockAddon(_BaseAddon):
 
         try:
             locker_class = locker_ep.load()
-        except Exception as err:  # pragma: no cover
-            self.log.error("[lock] failed to load locker %s: %s", self.locker, err)
+        except Exception:  # pragma: no cover
+            self.log.exception("[lock] failed to load locker %s", self.locker)
             return False
 
         # build
@@ -433,7 +434,7 @@ class PyodideLockAddon(_BaseAddon):
             elif local_path.exists():
                 suffix = local_path.suffix
 
-                if suffix not in [".whl"]:  # pragma: no cover
+                if suffix != ".whl":  # pragma: no cover
                     self.log.warning("[lock] %s is not a wheel, ignoring", local_path)
                 else:
                     yield from self.copy_wheel(local_path)

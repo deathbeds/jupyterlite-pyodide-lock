@@ -1,4 +1,6 @@
 """A ``tornado`` handler for accepting ``micropip.freeze`` output and errors."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
 
 import json
 from typing import TYPE_CHECKING, Any
