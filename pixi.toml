@@ -18,7 +18,7 @@ ALL tasks to prepare for a release""", depends-on = [
   "build",
   "docs",
   "check",
-  "all-test",
+  "test-all",
 ], cmd = "echo 🚢"}
 test-all = {description = """
 🚀 run ALL tests""", depends-on = ["test", "test-oldest", "test-future"], cmd = "echo 🚀"}
@@ -208,12 +208,12 @@ cmd = """export JLPL_TEST_REPORTS=$PIXI_PROJECT_ROOT/build/reports/$PIXI_ENVIRON
 cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock
   && export JLPL_TEST_MOD=jupyterlite_pyodide_lock
   && export JLPL_TEST_CWD=.
-  && pixi r -e test pytest--"""
+  && pixi r pytest--"""
 [tasks.pytest-wd--]
 cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock-webdriver
   && export JLPL_TEST_MOD=jupyterlite_pyodide_lock_webdriver
   && export JLPL_TEST_CWD=contrib/jupyterlite-pyodide-lock-webdriver
-  && pixi r -e test pytest--"""
+  && pixi r pytest--"""
 
 # default testing ##############################################################
 [feature.tasks-test.tasks.test-pip]
