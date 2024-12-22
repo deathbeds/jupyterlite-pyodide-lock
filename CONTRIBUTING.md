@@ -17,7 +17,7 @@ a relatively new approach to `conda` package management and task running.
 If using `mamba` or `conda` (or some other `$CONDA_EXE`):
 
 ```bash
-mamba install -c conda-forge pixi==0.26.1  # replace `mamba` with your CONDA_EXE
+mamba install -c conda-forge pixi==0.39.3  # replace `mamba` with your CONDA_EXE
 ```
 
 <details><summary><i>Why <code>pixi</code>?</i></summary>

@@ -1,13 +1,15 @@
 """Solve ``pyodide-lock`` with the browser manged as a naive subprocess."""
+
 # Copyright (c) jupyterlite-pyodide-lock contributors.
 # Distributed under the terms of the BSD-3-Clause License.
+from __future__ import annotations
 
 import asyncio
 import os
 import shutil
-import subprocess
 from pathlib import Path
 
+import psutil
 from jupyterlite_core.trait_types import TypedTuple
 from traitlets import Bool, Instance, Unicode, default
 
@@ -84,8 +86,8 @@ class BrowserLocker(TornadoLocker):
     ).tag(config=True)
 
     # runtime
-    _temp_profile_path: Path = Instance(Path, allow_none=True)
-    _browser_process: subprocess.Popen = Instance(subprocess.Popen, allow_none=True)
+    _temp_profile_path: Path | None = Instance(Path, allow_none=True)
+    _browser_process: psutil.Popen | None = Instance(psutil.Popen, allow_none=True)
 
     def cleanup(self) -> None:
         """Clean up the browser process and profile directory."""
@@ -93,14 +95,23 @@ class BrowserLocker(TornadoLocker):
         self.log.debug("[browser] cleanup process: %s", proc)
         self.log.debug("[browser] cleanup path: %s", path)
 
-        if proc and proc.returncode is None:
-            self.log.info("[browser] stopping browser")
-            proc.kill()
+        procs: list[psutil.Process] = (
+            [] if proc is None else [*proc.children(recursive=True), proc]
+        )
+        running = [p for p in procs if p.is_running()]
+
+        for p in running:
+            self.log.info("[browser] stopping browser process %s", p)
+            p.kill()
+
+        psutil.wait_procs(running)
+
         self._browser_process = None
 
         if path and path.exists():  # pragma: no cover
             self.log.info("[browser] clearing temporary profile path")
             shutil.rmtree(path, ignore_errors=True)
+
         self._temp_profile_path = None
 
         self.log.debug("[browser] cleanup process: %s", proc)
@@ -112,7 +123,7 @@ class BrowserLocker(TornadoLocker):
         """Open the browser to the lock page, and wait for it to finish."""
         args = [*self.browser_argv, self.lock_html_url]
         self.log.debug("[browser] browser args: %s", args)
-        self._browser_process = subprocess.Popen(args)  # noqa: ASYNC220
+        self._browser_process = psutil.Popen(args)
 
         try:
             while True:
