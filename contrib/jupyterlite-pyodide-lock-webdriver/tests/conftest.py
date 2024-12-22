@@ -255,8 +255,3 @@ def a_lite_config(a_lite_dir: Path) -> Path:
         a_lite_dir / JUPYTER_LITE_CONFIG,
         PyodideLockAddon=dict(enabled=True, locker="WebDriverLocker"),
     )
-
-
-def pytest_html_report_title(report: Any) -> None:
-    """Configure the ``pytest-html`` report title."""
-    report.title = "jupyterlite-pyodide-lock-webdriver"

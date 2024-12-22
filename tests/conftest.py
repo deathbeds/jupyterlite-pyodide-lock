@@ -271,8 +271,3 @@ def a_lite_config(a_lite_dir: Path) -> Path:
         PyodideLockAddon=dict(enabled=True),
         BrowserLocker=dict(temp_profile=True),
     )
-
-
-def pytest_html_report_title(report: Any) -> None:
-    """Configure the ``pytest-html`` report title."""
-    report.title = "jupyterlite-pyodide-lock"
