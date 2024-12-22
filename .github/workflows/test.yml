@@ -60,6 +60,7 @@ jobs:
           - {vm: ubuntu-latest,  test-env: test,        browser: chromium}
           - {vm: windows-latest, test-env: test-oldest, browser: firefox}
           - {vm: windows-latest, test-env: test,        browser: chrome}
+          - {vm: ubuntu-latest,  test-env: test-future, browser: firefox}
     env:
       JLPL_BROWSER: ${{ matrix.browser }}
     steps:
@@ -74,8 +75,8 @@ jobs:
         with:
           name: jlpl-${{ github.run_number }}-dist
           path: ./dist
-      - run: pixi run -e=${{ matrix.test-env }} test-core
-      - run: pixi run -e=${{ matrix.test-env }} test
+      - run: pixi run ${{ matrix.test-env }}-core
+      - run: pixi run ${{ matrix.test-env }}-webdriver
       - if: always()
         uses: actions/upload-artifact@v4
         with:
