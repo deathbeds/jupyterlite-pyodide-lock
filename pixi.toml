@@ -42,6 +42,8 @@ build = {cmd = "echo 🏗️", description = """
 🏗️  build ALL packages""", depends-on = [
   "build-pypi-core",
   "build-pypi-wd",
+  "build-wheel",
+  "build-twine",
 ]}
 test-max = {cmd = "echo 🚗", description = """
 ├ 🚗 run tests in the default test environment""", depends-on = [
@@ -202,15 +204,27 @@ outputs = [
   "dist/jupyterlite_pyodide_lock_webdriver-*.{tar.gz,whl}",
 ]
 
+[feature.tasks-build.tasks.build-twine]
+description = "├ check the built distributions for PyPI"
+cmd = "twine check --strict dist/*.whl dist/*.tar.gz"
+depends-on = ["build-pypi-core", "build-pypi-wd"]
+inputs = ["dist/"]
+
+[feature.tasks-build.tasks.build-wheel]
+description = "├ check the built wheel"
+cmd = "check-wheel-contents dist/*.whl"
+depends-on = ["build-pypi-core", "build-pypi-wd"]
+inputs = ["dist/*.whl"]
+
 # testing patterns #############################################################
 [tasks.pytest--]
-cmd = """export TEST_JLPL_REPORTS=$PIXI_PROJECT_ROOT/build/reports/$PIXI_ENVIRONMENT_NAME/$TEST_JLPL_PKG
-  && export COVERAGE_FILE=$TEST_JLPL_REPORTS/.coverage
-  && rm -rf $TEST_JLPL_REPORTS
-  && mkdir -p $TEST_JLPL_REPORTS
-  && cd $TEST_JLPL_CWD
+cmd = """export JLPL_TEST_REPORTS=$PIXI_PROJECT_ROOT/build/reports/$PIXI_ENVIRONMENT_NAME/$JLPL_TEST_PKG
+  && export COVERAGE_FILE=$JLPL_TEST_REPORTS/.coverage
+  && rm -rf $JLPL_TEST_REPORTS
+  && mkdir -p $JLPL_TEST_REPORTS
+  && cd $JLPL_TEST_CWD
   && pytest
-    -o cache_dir=$PIXI_PROJECT_ROOT/build/.cache/$TEST_JLPL_PKG/pytest
+    -o cache_dir=$PIXI_PROJECT_ROOT/build/.cache/$JLPL_TEST_PKG/pytest
     -vv
     -W error
     --color=yes
@@ -218,39 +232,39 @@ cmd = """export TEST_JLPL_REPORTS=$PIXI_PROJECT_ROOT/build/reports/$PIXI_ENVIRON
     --durations=5
     --cov-branch
     --cov-context=test
-    --cov-report=html:$TEST_JLPL_REPORTS/htmlcov
+    --cov-report=html:$JLPL_TEST_REPORTS/htmlcov
     --cov-report=term-missing:skip-covered
-    --cov=$TEST_JLPL_MOD
-    --html=$TEST_JLPL_REPORTS/pytest.html --self-contained-html
+    --cov=$JLPL_TEST_MOD
+    --html=$JLPL_TEST_REPORTS/pytest.html --self-contained-html
     --no-cov-on-fail
 """
 [tasks.pytest-core--]
-cmd = """export TEST_JLPL_PKG=jupyterlite-pyodide-lock
-  && export TEST_JLPL_MOD=jupyterlite_pyodide_lock
-  && export TEST_JLPL_CWD=.
+cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock
+  && export JLPL_TEST_MOD=jupyterlite_pyodide_lock
+  && export JLPL_TEST_CWD=.
   && pixi r pytest--"""
 [tasks.pytest-wd--]
-cmd = """export TEST_JLPL_PKG=jupyterlite-pyodide-lock-webdriver
-  && export TEST_JLPL_MOD=jupyterlite_pyodide_lock_webdriver
-  && export TEST_JLPL_CWD=contrib/jupyterlite-pyodide-lock-webdriver
+cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock-webdriver
+  && export JLPL_TEST_MOD=jupyterlite_pyodide_lock_webdriver
+  && export JLPL_TEST_CWD=contrib/jupyterlite-pyodide-lock-webdriver
   && pixi r pytest--"""
 
 # testing default ##############################################################
 [feature.tasks-test-max.tasks.test-max-pip]
-description = "├ prepare the default test environment with pip"
+description = "├─ prepare the default test environment with pip"
 cmd = "pixi r -e test-max pip-whl-all--"
 depends-on = ["build"]
 inputs = ["dist/*.whl"]
 outputs = ["build/pip-freeze/test.txt"]
 
 [feature.tasks-test-max.tasks.test-max-cli]
-description = "├ smoke test browsers in default test environment"
+description = "├─ smoke test browsers in default test environment"
 cmd = """jupyter-pyodide-lock browsers"""
 depends-on = ["test-max-pip"]
 inputs = ["build/pip-freeze/test.txt"]
 
 [feature.tasks-test-max.tasks.test-max-core]
-description = "├ test core in the default test environment"
+description = "├─ test core in the default test environment"
 cmd = "pixi r -e test-max pytest-core--"
 depends-on = ["test-max-pip", "test-max-cli"]
 inputs = ["pyproject.toml", "tests/**/*.py", "dist/*.whl"]
@@ -259,7 +273,7 @@ outputs = [
 ]
 
 [feature.tasks-test-max.tasks.test-max-wd]
-description = "├ test webdriver in the default test environment"
+description = "├─ test webdriver in the default test environment"
 depends-on = ["test-max-pip", "test-max-cli"]
 cmd = "pixi r -e test-max pytest-wd--"
 inputs = [
@@ -273,20 +287,20 @@ outputs = [
 
 # oldest supported testing #####################################################
 [feature.tasks-test-min.tasks.test-min-pip]
-description = "├ prepare the min test environment with pip"
+description = "├─ prepare the min test environment with pip"
 cmd = "pixi r -e test-min pip-whl-all--"
 depends-on = ["build"]
 inputs = ["dist/*.whl"]
 outputs = ["build/pip-freeze/test.txt"]
 
 [feature.tasks-test-min.tasks.test-min-cli]
-description = "├ smoke test browsers in min test environment"
+description = "├─ smoke test browsers in min test environment"
 cmd = "jupyter-pyodide-lock browsers"
 depends-on = ["test-min-pip"]
 inputs = ["build/pip-freeze/test.txt"]
 
 [feature.tasks-test-min.tasks.test-min-core]
-description = "├ test core in the min test environment"
+description = "├─ test core in the min test environment"
 cmd = "pixi r -e test-min pytest-core--"
 depends-on = ["test-min-pip", "test-min-cli"]
 inputs = ["pyproject.toml", "tests/**/*.py", "dist/*.whl"]
@@ -295,7 +309,7 @@ outputs = [
 ]
 
 [feature.tasks-test-min.tasks.test-min-wd]
-description = "├ test webdriver in the min test environment"
+description = "├─ test webdriver in the min test environment"
 depends-on = ["test-min-pip", "test-min-cli"]
 cmd = "pixi r -e test-min pytest-wd--"
 inputs = [
@@ -309,20 +323,20 @@ outputs = [
 
 # prerelease testing ###########################################################
 [feature.tasks-test-next.tasks.test-next-pip]
-description = "├ prepare the next test environment with pip"
+description = "├─ prepare the next test environment with pip"
 cmd = "pixi r -e test-next pip-whl-all--"
 depends-on = ["build"]
 inputs = ["dist/*.whl"]
 outputs = ["build/pip-freeze/test.txt"]
 
 [feature.tasks-test-next.tasks.test-next-cli]
-description = "├ smoke test browsers in next test environment"
+description = "├─ smoke test browsers in next test environment"
 cmd = "jupyter-pyodide-lock browsers"
 depends-on = ["test-next-pip"]
 inputs = ["build/pip-freeze/test.txt"]
 
 [feature.tasks-test-next.tasks.test-next-core]
-description = "├ test core in the next test environment"
+description = "├─ test core in the next test environment"
 cmd = "pixi r -e test-next pytest-core--"
 depends-on = ["test-next-pip", "test-next-cli"]
 inputs = ["pyproject.toml", "tests/**/*.py", "dist/*.whl"]
@@ -331,7 +345,7 @@ outputs = [
 ]
 
 [feature.tasks-test-next.tasks.test-next-wd]
-description = "├ test webdriver in the next test environment"
+description = "├─ test webdriver in the next test environment"
 depends-on = ["test-next-pip", "test-next-cli"]
 cmd = "pixi r -e test-next pytest-wd--"
 inputs = [
@@ -461,6 +475,8 @@ flit-core = ">=3.9,<4.0"
 [feature.deps-build.dependencies]
 python-build = "*"
 flit-core = ">=3.9,<4.0"
+check-wheel-contents = "*"
+twine = "*"
 
 [feature.deps-lint.dependencies]
 actionlint-with-all = "*"
