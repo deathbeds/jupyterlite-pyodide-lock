@@ -54,13 +54,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {vm: macos-13,       test-env: test-oldest, browser: firefox}
-          - {vm: macos-latest,   test-env: test,        browser: chrome}
-          - {vm: ubuntu-latest,  test-env: test-oldest, browser: firefox}
-          - {vm: ubuntu-latest,  test-env: test,        browser: chromium}
-          - {vm: windows-latest, test-env: test-oldest, browser: firefox}
-          - {vm: windows-latest, test-env: test,        browser: chrome}
-          - {vm: ubuntu-latest,  test-env: test-future, browser: firefox}
+          - {test-env: test-max,  vm: macos-latest,   browser: chrome}
+          - {test-env: test-max,  vm: ubuntu-latest,  browser: chromium}
+          - {test-env: test-max,  vm: windows-latest, browser: chrome}
+          - {test-env: test-min,  vm: macos-13,       browser: firefox}
+          - {test-env: test-min,  vm: ubuntu-latest,  browser: firefox}
+          - {test-env: test-min,  vm: windows-latest, browser: firefox}
+          - {test-env: test-next, vm: ubuntu-latest,  browser: firefox}
     env:
       JLPL_BROWSER: ${{ matrix.browser }}
     steps:
@@ -75,8 +75,9 @@ jobs:
         with:
           name: jlpl-${{ github.run_number }}-dist
           path: ./dist
+      - run: pixi run ${{ matrix.test-env }}-cli
       - run: pixi run ${{ matrix.test-env }}-core
-      - run: pixi run ${{ matrix.test-env }}-webdriver
+      - run: pixi run ${{ matrix.test-env }}-wd
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -85,7 +86,6 @@ jobs:
           path: |
             ./.pixi/task-cache-v0
             ./build/reports
-            ./contrib/*/build/reports
 
   docs:
     name: docs

@@ -15,6 +15,9 @@ import tomlkit
 if TYPE_CHECKING:
     from tomlkit.items import Table
 
+BASE_EPOCH = "test-max"
+EPOCHS = ["test-min", "test-next"]
+
 HERE = Path(__file__).parent
 ROOT = HERE.parent
 PT = ROOT / "pixi.toml"
@@ -28,22 +31,25 @@ def one_task(
     epoch: str, old_task_name: str, old_task: dict[str, Any]
 ) -> tuple[str, dict[str, Any]]:
     """Fix a single task."""
-    new_task_name = old_task_name.replace("test-", f"test-{epoch}-")
+    new_task_name = old_task_name.replace(BASE_EPOCH, epoch)
     new_task = dict(old_task)
     new_task.update({
-        "description": old_task["description"].replace("default", epoch),
-        "cmd": old_task["cmd"].replace("-e test", f"-e test-{epoch}"),
+        "description": old_task["description"].replace(
+            "default", epoch.replace("test-", "")
+        ),
+        "cmd": old_task["cmd"].replace(f"-e {BASE_EPOCH}", f"-e {epoch}"),
     })
 
     if "depends-on" in old_task:
         new_task["depends-on"] = [
-            d.replace("test-", f"test-{epoch}-") for d in old_task.get("depends-on", [])
+            d.replace(f"{BASE_EPOCH}-", f"{epoch}-")
+            for d in old_task.get("depends-on", [])
         ]
 
     for fs in ["inputs", "outputs"]:
         if fs in old_task:
             new_task[fs] = [
-                i.replace("/test/", f"/test-{epoch}/") for i in old_task.get(fs, [])
+                i.replace(f"/{BASE_EPOCH}/", f"/{epoch}/") for i in old_task.get(fs, [])
             ]
     return new_task_name, new_task
 
@@ -55,11 +61,11 @@ def main() -> int:
     old_ptd_json = json.dumps(ptd, **JSON_FMT)
     features: Table | None = ptd.get("feature")
     assert features  # noqa: S101
-    base_ft: Table | None = features.get("tasks-test")
+    base_ft: Table | None = features.get(f"tasks-{BASE_EPOCH}")
     assert base_ft  # noqa: S101
 
-    for epoch in ["oldest", "future"]:
-        new_feature_name = f"tasks-test-{epoch}"
+    for epoch in EPOCHS:
+        new_feature_name = f"tasks-{epoch}"
         new_tasks = tomlkit.table()
         for task_name, task in base_ft["tasks"].items():
             new_task_name, new_task = one_task(epoch, task_name, task)
