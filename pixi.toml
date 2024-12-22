@@ -18,7 +18,9 @@ ALL tasks to prepare for a release""", depends-on = [
   "build",
   "docs",
   "check",
-  "test-all",
+  "test-max",
+  "test-min",
+  "test-next",
 ], cmd = "echo 🚢"}
 test-all = {description = """
 🚀 run ALL tests""", depends-on = ["test", "test-min", "test-next"], cmd = "echo 🚀"}
@@ -30,30 +32,39 @@ fix = {description = """
   "fix-taplo",
   "fix-ipynb",
 ]}
-lint = {description = """
-⭐ run ALL linters""", cmd = "echo ⭐", depends-on = [
+lint = {cmd = "echo ⭐", description = """
+⭐ run ALL linters""", depends-on = [
   "lint-ruff",
   "lint-ipynb",
   "lint-actionlint",
 ]}
-build = {description = """
-🏗️  build ALL packages""", cmd = "echo 🏗️", depends-on = [
+build = {cmd = "echo 🏗️", description = """
+🏗️  build ALL packages""", depends-on = [
   "build-pypi-core",
   "build-pypi-wd",
 ]}
-test = {cmd = "echo 🧪", depends-on = ["test-max-cli", "test-max-core", "test-max-wd"]}
-test-min = {cmd = "echo 🧪", depends-on = [
+test-max = {cmd = "echo 🚗", description = """
+├ 🚗 run tests in the default test environment""", depends-on = [
+  "test-max-cli",
+  "test-max-core",
+  "test-max-wd",
+]}
+test-min = {cmd = "echo 🐎", description = """
+├ 🐎 run tests in the oldest supported environment""", depends-on = [
   "test-min-cli",
   "test-min-core",
   "test-min-wd",
 ]}
-test-next = {cmd = "echo 🧪", depends-on = [
+test-next = {cmd = "echo 🛸", description = """
+├ 🛸 run tests in the prerelease environment""", depends-on = [
   "test-next-cli",
   "test-next-core",
   "test-next-wd",
 ]}
-docs = {cmd = "echo 🖨️", depends-on = ["docs-lite", "docs-sphinx"]}
-check = {cmd = "echo 🤓", depends-on = ["check-links"]}
+docs = {cmd = "echo 🖨️", description = """
+├ 🖨️ build all documentation""", depends-on = ["docs-lite", "docs-sphinx"]}
+check = {cmd = "echo 🤓", description = """
+├ 🤓 check all build/test artifacts""", depends-on = ["check-links"]}
 
 # tasks that are customized per env
 pip-- = """rm -rf build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt
