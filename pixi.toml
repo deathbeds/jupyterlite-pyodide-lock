@@ -183,21 +183,23 @@ cwd = "contrib/jupyterlite-pyodide-lock-webdriver"
 
 # testing patterns #############################################################
 [tasks.pytest--]
-cmd = """export JLPL_REPORTS=$PIXI_PROJECT_ROOT/build/reports/$PIXI_ENVIRONMENT_NAME/$JLPL_PKG
-  && export COVERAGE_FILE=$JLPL_REPORTS/.coverage
-  && rm -rf $JLPL_REPORTS
-  && mkdir -p $JLPL_REPORTS
+cmd = """export JLPL_TEST_REPORTS=$PIXI_PROJECT_ROOT/build/reports/$PIXI_ENVIRONMENT_NAME/$JLPL_TEST_PKG
+  && export COVERAGE_FILE=$JLPL_TEST_REPORTS/.coverage
+  && rm -rf $JLPL_TEST_REPORTS
+  && mkdir -p $JLPL_TEST_REPORTSs
+  && cd $JLPL_TEST_CWD
   && pytest
-     -o cache_dir=$PIXI_PROJECT_ROOT/build/.cache/pytest
+    -o cache_dir=$PIXI_PROJECT_ROOT/build/.cache/$JLPL_TEST_PKG/pytest
     --cov-branch
     --cov-context=test
-    --cov-report=html:$JLPL_REPORTS/htmlcov
+    --cov-report=html:$JLPL_TEST_REPORTS/htmlcov
     --cov-report=term-missing:skip-covered
-    --cov=$JLPL_MODULE
-    --html=$JLPL_REPORTS/pytest.html --self-contained-html
+    --cov=$JLPL_TEST_MOD
+    --html=$JLPL_TEST_REPORTS/pytest.html --self-contained-html
     --no-cov-on-fail
 """
 
+# default testing ##############################################################
 [feature.tasks-test.tasks.test-pip]
 description = "├ prepare the default test environment with pip"
 cmd = "pixi r -e test pip-whl-core-- && pixi r -e test pip-whl-wd--"
@@ -213,29 +215,34 @@ depends-on = ["test-pip"]
 [feature.tasks-test.tasks.test-core]
 description = "├ test core in the default test environment"
 cmd = """
-  export JLPL_PKG=jupyterlite-pyodide-lock
-  && export JLPL_MODULE=jupyterlite_pyodide_lock
+  export JLPL_TEST_PKG=jupyterlite-pyodide-lock
+  && export JLPL_TEST_MOD=jupyterlite_pyodide_lock
+  && export JLPL_TEST_CWD=.
   && pixi r -e test pytest--
 """
-depends-on = ["test-browsers"]
-inputs = ["pyproject.toml", "{src,tests}/**/*.py"]
+depends-on = ["test-pip", "test-browsers"]
+inputs = ["pyproject.toml", "tests/**/*.py", "dist/*.whl"]
 outputs = [
   "build/reports/test/jupyterlite-pyodide-lock/{pytest.html,htmlcov/status.json}",
 ]
 
 [feature.tasks-test.tasks.test-webdriver]
+description = "├ test webdriver in the default test environment"
+depends-on = ["test-pip", "test-browsers"]
+cmd = """
+  export JLPL_TEST_PKG=jupyterlite-pyodide-lock-webdriver
+  && export JLPL_TEST_MOD=jupyterlite_pyodide_lock_webdriver
+  && export JLPL_TEST_CWD=contrib/jupyterlite-pyodide-lock-webdriver
+  && pixi r -e test pytest--"""
 inputs = [
-  "build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt",
+  "contrib/jupyterlite-pyodide-lock-webdriver/dist/*.whl",
   "contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
-  "contrib/jupyterlite-pyodide-lock-webdriver/{src,tests}/**/*.py",
-  "src/**/*.py",
+  "contrib/jupyterlite-pyodide-lock-webdriver/tests/**/*.py",
+  "dist/*.whl",
 ]
 outputs = [
-  "contrib/jupyterlite-pyodide-lock-webdriver/build/reports/{pytest.html,htmlcov/status.json}",
+  "build/reports/test/jupyterlite-pyodide-lock-webdriver/{pytest.html,htmlcov/status.json}",
 ]
-cmd = """
-pixi run -e $PIXI_ENVIRONMENT_NAME pip
-&& pytest"""
 
 # documenting ##################################################################
 [feature.tasks-docs.tasks.docs-pip]
