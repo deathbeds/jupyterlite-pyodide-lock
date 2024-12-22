@@ -189,30 +189,30 @@ cwd = "contrib/jupyterlite-pyodide-lock-webdriver"
 
 # testing patterns #############################################################
 [tasks.pytest--]
-cmd = """export JLPL_TEST_REPORTS=$PIXI_PROJECT_ROOT/build/reports/$PIXI_ENVIRONMENT_NAME/$JLPL_TEST_PKG
-  && export COVERAGE_FILE=$JLPL_TEST_REPORTS/.coverage
-  && rm -rf $JLPL_TEST_REPORTS
-  && mkdir -p $JLPL_TEST_REPORTS
-  && cd $JLPL_TEST_CWD
+cmd = """export TEST_JLPL_REPORTS=$PIXI_PROJECT_ROOT/build/reports/$PIXI_ENVIRONMENT_NAME/$TEST_JLPL_PKG
+  && export COVERAGE_FILE=$TEST_JLPL_REPORTS/.coverage
+  && rm -rf $TEST_JLPL_REPORTS
+  && mkdir -p $TEST_JLPL_REPORTS
+  && cd $TEST_JLPL_CWD
   && pytest
-    -o cache_dir=$PIXI_PROJECT_ROOT/build/.cache/$JLPL_TEST_PKG/pytest
+    -o cache_dir=$PIXI_PROJECT_ROOT/build/.cache/$TEST_JLPL_PKG/pytest
     --cov-branch
     --cov-context=test
-    --cov-report=html:$JLPL_TEST_REPORTS/htmlcov
+    --cov-report=html:$TEST_JLPL_REPORTS/htmlcov
     --cov-report=term-missing:skip-covered
-    --cov=$JLPL_TEST_MOD
-    --html=$JLPL_TEST_REPORTS/pytest.html --self-contained-html
+    --cov=$TEST_JLPL_MOD
+    --html=$TEST_JLPL_REPORTS/pytest.html --self-contained-html
     --no-cov-on-fail
 """
 [tasks.pytest-core--]
-cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock
-  && export JLPL_TEST_MOD=jupyterlite_pyodide_lock
-  && export JLPL_TEST_CWD=.
+cmd = """export TEST_JLPL_PKG=jupyterlite-pyodide-lock
+  && export TEST_JLPL_MOD=jupyterlite_pyodide_lock
+  && export TEST_JLPL_CWD=.
   && pixi r pytest--"""
 [tasks.pytest-wd--]
-cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock-webdriver
-  && export JLPL_TEST_MOD=jupyterlite_pyodide_lock_webdriver
-  && export JLPL_TEST_CWD=contrib/jupyterlite-pyodide-lock-webdriver
+cmd = """export TEST_JLPL_PKG=jupyterlite-pyodide-lock-webdriver
+  && export TEST_JLPL_MOD=jupyterlite_pyodide_lock_webdriver
+  && export TEST_JLPL_CWD=contrib/jupyterlite-pyodide-lock-webdriver
   && pixi r pytest--"""
 
 # default testing ##############################################################
