@@ -6,57 +6,83 @@ from __future__ import annotations
 
 import json
 import sys
+from difflib import unified_diff
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import tomli_w
-import tomllib
+import tomlkit
+
+if TYPE_CHECKING:
+    from tomlkit.items import Table
 
 HERE = Path(__file__).parent
 ROOT = HERE.parent
 PT = ROOT / "pixi.toml"
 UTF8 = {"encoding": "utf-8"}
-UTF8_NL = {**UTF8, "newline": "\n"}
+NL = "\n"
+UTF8_NL = {**UTF8, "newline": NL}
 JSON_FMT: Any = {"indent": 2, "sort_keys": True}
+
+
+def one_task(
+    epoch: str, old_task_name: str, old_task: dict[str, Any]
+) -> tuple[str, dict[str, Any]]:
+    """Fix a single task."""
+    new_task_name = old_task_name.replace("test-", f"test-{epoch}-")
+    new_task = dict(old_task)
+    new_task.update({
+        "description": old_task["description"].replace("default", epoch),
+        "cmd": old_task["cmd"].replace("-e test", f"-e test-{epoch}"),
+    })
+
+    if "depends-on" in old_task:
+        new_task["depends-on"] = [
+            d.replace("test-", f"test-{epoch}-") for d in old_task.get("depends-on", [])
+        ]
+
+    for fs in ["inputs", "outputs"]:
+        if fs in old_task:
+            new_task[fs] = [
+                i.replace("/test/", f"/test-{epoch}/") for i in old_task.get(fs, [])
+            ]
+    return new_task_name, new_task
 
 
 def main() -> int:
     """Update tasks in ``pixi.toml``."""
-    ptd = tomllib.loads(PT.read_text(**UTF8))
+    old_toml = PT.read_text(**UTF8)
+    ptd = tomlkit.loads(old_toml)
     old_ptd_json = json.dumps(ptd, **JSON_FMT)
+    features: Table | None = ptd.get("feature")
+    assert features  # noqa: S101
+    base_ft: Table | None = features.get("tasks-test")
+    assert base_ft  # noqa: S101
 
     for epoch in ["oldest", "future"]:
-        new_tasks: dict[str, Any]
-        for task_name, task in ptd["feature"]["tasks-test"]:
-            new_epoch = f"{task_name}-{epoch}"
-            new_task = new_tasks[new_epoch] = dict(task)
-            new_task.update({
-                "description": task["description"].replace("default", epoch),
-                "cmd": task["cmd"].replace("-e test", f"-e test-{epoch}"),
-            })
-            if "depends-on" in task:
-                new_task["depends-on"] = [
-                    d.replace("-test", f"-test-{epoch}")
-                    for d in task.get("depends-on", [])
-                ]
-            if "inputs" in task:
-                new_task["inputs"] = [
-                    i.replace("/test/", f"/{new_epoch}/")
-                    for i in task.get("inputs", [])
-                ]
-            if "outputs" in task:
-                new_task["outputs"] = [
-                    o.replace("/test/", f"/{new_epoch}/")
-                    for o in task.get("outputs", [])
-                ]
-
-        ptd["feature"][new_epoch] = {"tasks": new_tasks}
+        new_feature_name = f"tasks-test-{epoch}"
+        new_tasks = tomlkit.table()
+        for task_name, task in base_ft["tasks"].items():
+            new_task_name, new_task = one_task(epoch, task_name, task)
+            if new_task_name in new_tasks:
+                new_tasks[new_task_name] = new_task
+            else:
+                new_tasks.add(new_task_name, new_task)
+        new_feature = tomlkit.table()
+        new_feature.add("tasks", new_tasks)
+        features.pop(new_feature_name, None)
+        features[new_feature_name] = new_feature
 
     new_ptd_json = json.dumps(ptd, **JSON_FMT)
 
     if new_ptd_json != old_ptd_json:
-        sys.stderr.write("!!! wrote new `pixi.toml`\n")
-        PT.write_text(tomli_w.dumps(ptd), **UTF8_NL)
+        new_toml = tomlkit.dumps(ptd).strip() + NL
+        diff = unified_diff(
+            old_toml.strip().splitlines(), new_toml.strip().splitlines(), "OLD", "NEW"
+        )
+        sys.stderr.write(NL.join(diff))
+        sys.stderr.write(f"{NL}!!! writing new `pixi.toml`{NL}")
+        PT.write_text(new_toml, **UTF8_NL)
+        sys.stderr.write(f"{NL}>>> run `pixi run fix`{NL}")
         return 1
     return 0
 

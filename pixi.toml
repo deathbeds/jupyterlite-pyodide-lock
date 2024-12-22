@@ -43,14 +43,14 @@ build = {description = """
 ]}
 test = {cmd = "echo 🧪", depends-on = ["test-browsers", "test-core", "test-webdriver"]}
 test-oldest = {cmd = "echo 🧪", depends-on = [
-  "test-browsers-oldest",
-  "test-core-oldest",
-  "test-webdriver-oldest",
+  "test-oldest-browsers",
+  "test-oldest-core",
+  "test-oldest-webdriver",
 ]}
 test-future = {cmd = "echo 🧪", depends-on = [
-  "test-browsers-future",
-  "test-core-future",
-  "test-webdriver-future",
+  "test-future-browsers",
+  "test-future-core",
+  "test-future-webdriver",
 ]}
 docs = {cmd = "echo 🖨️", depends-on = ["docs-lite", "docs-sphinx"]}
 check = {cmd = "echo 🤓", depends-on = ["check-links"]}
@@ -192,7 +192,7 @@ cwd = "contrib/jupyterlite-pyodide-lock-webdriver"
 cmd = """export JLPL_TEST_REPORTS=$PIXI_PROJECT_ROOT/build/reports/$PIXI_ENVIRONMENT_NAME/$JLPL_TEST_PKG
   && export COVERAGE_FILE=$JLPL_TEST_REPORTS/.coverage
   && rm -rf $JLPL_TEST_REPORTS
-  && mkdir -p $JLPL_TEST_REPORTSs
+  && mkdir -p $JLPL_TEST_REPORTS
   && cd $JLPL_TEST_CWD
   && pytest
     -o cache_dir=$PIXI_PROJECT_ROOT/build/.cache/$JLPL_TEST_PKG/pytest
@@ -251,7 +251,79 @@ outputs = [
   "build/reports/test/jupyterlite-pyodide-lock-webdriver/{pytest.html,htmlcov/status.json}",
 ]
 
-# documenting ##################################################################
+# testing oldest supported #####################################################
+[feature.tasks-test-oldest.tasks.test-oldest-pip]
+description = "├ prepare the oldest test environment with pip"
+cmd = "pixi r -e test-oldest pip-whl-core-- && pixi r -e test-oldest pip-whl-wd--"
+depends-on = ["build-pypi-core", "build-pypi-wd"]
+inputs = ["dist/*.whl", "contrib/*/dist/*.whl"]
+outputs = ["build/pip-freeze/test.txt"]
+
+[feature.tasks-test-oldest.tasks.test-oldest-browsers]
+description = "├ smoke test browsers in oldest test environment"
+cmd = "jupyter-pyodide-lock browsers"
+depends-on = ["test-oldest-pip"]
+
+[feature.tasks-test-oldest.tasks.test-oldest-core]
+description = "├ test core in the oldest test environment"
+cmd = "pixi r -e test-oldest pytest-core--"
+depends-on = ["test-oldest-pip", "test-oldest-browsers"]
+inputs = ["pyproject.toml", "tests/**/*.py", "dist/*.whl"]
+outputs = [
+  "build/reports/test-oldest/jupyterlite-pyodide-lock/{pytest.html,htmlcov/status.json}",
+]
+
+[feature.tasks-test-oldest.tasks.test-oldest-webdriver]
+description = "├ test webdriver in the oldest test environment"
+depends-on = ["test-oldest-pip", "test-oldest-browsers"]
+cmd = "pixi r -e test-oldest pytest-wd--"
+inputs = [
+  "contrib/jupyterlite-pyodide-lock-webdriver/dist/*.whl",
+  "contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
+  "contrib/jupyterlite-pyodide-lock-webdriver/tests/**/*.py",
+  "dist/*.whl",
+]
+outputs = [
+  "build/reports/test-oldest/jupyterlite-pyodide-lock-webdriver/{pytest.html,htmlcov/status.json}",
+]
+
+# testing future supported #####################################################
+[feature.tasks-test-future.tasks.test-future-pip]
+description = "├ prepare the future test environment with pip"
+cmd = "pixi r -e test-future pip-whl-core-- && pixi r -e test-future pip-whl-wd--"
+depends-on = ["build-pypi-core", "build-pypi-wd"]
+inputs = ["dist/*.whl", "contrib/*/dist/*.whl"]
+outputs = ["build/pip-freeze/test.txt"]
+
+[feature.tasks-test-future.tasks.test-future-browsers]
+description = "├ smoke test browsers in future test environment"
+cmd = "jupyter-pyodide-lock browsers"
+depends-on = ["test-future-pip"]
+
+[feature.tasks-test-future.tasks.test-future-core]
+description = "├ test core in the future test environment"
+cmd = "pixi r -e test-future pytest-core--"
+depends-on = ["test-future-pip", "test-future-browsers"]
+inputs = ["pyproject.toml", "tests/**/*.py", "dist/*.whl"]
+outputs = [
+  "build/reports/test-future/jupyterlite-pyodide-lock/{pytest.html,htmlcov/status.json}",
+]
+
+[feature.tasks-test-future.tasks.test-future-webdriver]
+description = "├ test webdriver in the future test environment"
+depends-on = ["test-future-pip", "test-future-browsers"]
+cmd = "pixi r -e test-future pytest-wd--"
+inputs = [
+  "contrib/jupyterlite-pyodide-lock-webdriver/dist/*.whl",
+  "contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
+  "contrib/jupyterlite-pyodide-lock-webdriver/tests/**/*.py",
+  "dist/*.whl",
+]
+outputs = [
+  "build/reports/test-future/jupyterlite-pyodide-lock-webdriver/{pytest.html,htmlcov/status.json}",
+]
+
+# docs
 [feature.tasks-docs.tasks.docs-pip]
 description = "├ prepare the docs environment with pip"
 cmd = "pixi r -e docs pip-whl-all--"
@@ -377,6 +449,7 @@ ruff = "*"
 taplo = "*"
 nbformat = "*"
 tomli-w = "*"
+tomlkit = "*"
 
 [feature.deps-test.dependencies]
 pytest = ">=8,<9"
@@ -450,6 +523,7 @@ test-oldest = {features = [
   "deps-test",
   "deps-webdriver-oldest",
   "deps-webdriver",
+  "tasks-test-oldest",
 ]}
 test-future = {features = [
   "deps-pip",
@@ -458,6 +532,7 @@ test-future = {features = [
   "deps-run",
   "deps-test",
   "deps-webdriver",
+  "tasks-test-future",
 ]}
 dev = {features = [
   "deps-demo",
