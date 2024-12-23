@@ -44,6 +44,7 @@ build = {cmd = "echo 🏗️", description = """
   "build-pypi-wd",
   "build-wheel",
   "build-twine",
+  "build-hash",
 ]}
 test-max = {cmd = "echo 🚗", description = """
 ├ 🚗 run tests in the default test environment""", depends-on = [
@@ -183,7 +184,7 @@ outputs = ["contrib/jupyterlite-pyodide-lock-webdriver/LICENSE"]
 
 [feature.tasks-build.tasks.build-pypi-core]
 description = "├ build core PyPI distributions"
-cmd = """rm -rf dist/jupyterlite_pyodide_lock-*
+cmd = """(rm -rf dist/jupyterlite_pyodide_lock-* || echo "nothing to delete")
   && pyproject-build . --no-isolation -vv"""
 inputs = ["{LICENSE,pyproject.toml,README.md}", "src/**/*.{py,j2}"]
 outputs = ["dist/jupyterlite_pyodide_lock-*.{tar.gz,whl}"]
@@ -191,8 +192,9 @@ outputs = ["dist/jupyterlite_pyodide_lock-*.{tar.gz,whl}"]
 [feature.tasks-build.tasks.build-pypi-wd]
 description = "├ build webdriver PyPI distributions"
 cmd = """mkdir -p dist
-  && rm -rf dist/jupyterlite_pyodide_lock_webdriver-
+  && (rm -rf dist/jupyterlite_pyodide_lock_webdriver-* || echo "nothing to delete")
   && cd contrib/jupyterlite-pyodide-lock-webdriver
+  && rm -rf dist
   && pyproject-build . --no-isolation -vv
   && cp dist/* $PIXI_PROJECT_ROOT/dist"""
 depends-on = ["build-licenses"]
@@ -215,6 +217,21 @@ description = "├ check the built wheel"
 cmd = "check-wheel-contents dist/*.whl"
 depends-on = ["build-pypi-core", "build-pypi-wd"]
 inputs = ["dist/*.whl"]
+
+[feature.tasks-build.tasks.build-hash]
+description = "├ hash the built distributions"
+cmd = """
+rm -rf dist/SHA256SUMS
+  && python -c 'from hashlib import sha256; from pathlib import Path; d = Path("dist"); [
+    print(f"{sha256(p.read_bytes()).hexdigest()}  {p.relative_to(d).as_posix()}")
+    for p in sorted(d.rglob("*"))
+    if p.is_file() and p.name != "SHA256SUMS"
+  ]'
+  > dist/SHA256SUMS
+  && cat dist/SHA256SUMS"""
+depends-on = ["build-pypi-core", "build-pypi-wd"]
+inputs = ["dist", "!dist/SHA256SUMS"]
+outputs = ["dist/SHA256SUMS"]
 
 # testing patterns #############################################################
 [tasks.pytest--]

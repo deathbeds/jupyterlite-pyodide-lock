@@ -34,6 +34,10 @@ jobs:
         with:
           name: jlpl-${{ github.run_number }}-dist
           path: ./dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jlpl-${{ github.run_number }}-build
+          path: ./.pixi/task-cache-v0
 
   lint:
     runs-on: ubuntu-latest
@@ -75,6 +79,10 @@ jobs:
         with:
           name: jlpl-${{ github.run_number }}-dist
           path: ./dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: jlpl-${{ github.run_number }}-build
+          path: ./build
       - run: pixi run ${{ matrix.test-env }}-cli
       - run: pixi run ${{ matrix.test-env }}-core
       - run: pixi run ${{ matrix.test-env }}-wd
@@ -102,6 +110,10 @@ jobs:
         with:
           name: jlpl-${{ github.run_number }}-dist
           path: ./dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: jlpl-${{ github.run_number }}-build
+          path: ./build
       - run: pixi run docs-lite
       - run: pixi run docs-sphinx
       - uses: actions/upload-artifact@v4
