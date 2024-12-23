@@ -2,14 +2,19 @@
 # Copyright (c) jupyterlite-pyodide-lock contributors.
 # Distributed under the terms of the BSD-3-Clause License.
 
+from __future__ import annotations
+
 import re
 from collections.abc import Callable
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from tornado.httpclient import AsyncHTTPClient
 
 from .mime import ExtraMimeFiles
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
 
 TReplacer = bytes | Callable[[bytes], bytes]
 TRouteRewrite = tuple[str, TReplacer]

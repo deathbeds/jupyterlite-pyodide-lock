@@ -2,6 +2,8 @@
 # Copyright (c) jupyterlite-pyodide-lock contributors.
 # Distributed under the terms of the BSD-3-Clause License.
 
+from __future__ import annotations
+
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -17,8 +19,8 @@ class SolverHTML(RequestHandler):
     """Render a static HTML page to run ``micropip.freeze``."""
 
     context: dict[str, str]
-    log: "Logger"
-    template: "Template"
+    log: Logger
+    template: Template
 
     def initialize(self, context: dict[str, str], *args: Any, **kwargs: Any) -> None:
         """Initialize handler instance members."""

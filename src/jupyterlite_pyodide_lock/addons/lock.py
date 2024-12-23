@@ -2,6 +2,8 @@
 # Copyright (c) jupyterlite-pyodide-lock contributors.
 # Distributed under the terms of the BSD-3-Clause License.
 
+from __future__ import annotations
+
 import functools
 import json
 import operator
@@ -11,7 +13,6 @@ import re
 import urllib.parse
 from datetime import datetime, timezone
 from hashlib import sha256
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 import pkginfo
@@ -45,6 +46,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Generator
     from importlib.metadata import EntryPoint
     from logging import Logger
+    from pathlib import Path
 
     from jupyterlite_core.manager import LiteManager
     from jupyterlite_pyodide_kernel.addons.pyodide import PyodideAddon
@@ -66,7 +68,7 @@ class PyodideLockAddon(_BaseAddon):
 
     __all__: ClassVar = ["pre_status", "status", "post_init", "post_build"]
 
-    log: "Logger"
+    log: Logger
 
     # cli
     flags: ClassVar = {
@@ -163,7 +165,7 @@ class PyodideLockAddon(_BaseAddon):
 
     # API methods
 
-    def pre_status(self, manager: "LiteManager") -> "TTaskGenerator":
+    def pre_status(self, manager: LiteManager) -> TTaskGenerator:
         """Patch configuration of ``PyodideAddon`` if needed."""
         if not self.enabled or self.pyodide_addon.pyodide_url:
             return
@@ -175,7 +177,7 @@ class PyodideLockAddon(_BaseAddon):
             actions=[lambda: print("    PyodideAddon.pyodide_url was patched")],
         )
 
-    def status(self, manager: "LiteManager") -> "TTaskGenerator":
+    def status(self, manager: LiteManager) -> TTaskGenerator:
         """Report on the status of ``pyodide-lock``."""
 
         def _status() -> None:
@@ -207,7 +209,7 @@ class PyodideLockAddon(_BaseAddon):
 
         yield self.task(name="lock", actions=[_status])
 
-    def post_init(self, manager: "LiteManager") -> "TTaskGenerator":
+    def post_init(self, manager: LiteManager) -> TTaskGenerator:
         """Handle downloading of packages to the package cache."""
         if not self.enabled:  # pragma: no cover
             return
@@ -221,7 +223,7 @@ class PyodideLockAddon(_BaseAddon):
                 self.package_cache,
             )
 
-    def post_build(self, manager: "LiteManager") -> "TTaskGenerator":
+    def post_build(self, manager: LiteManager) -> TTaskGenerator:
         """Collect all the packages and generate a ``pyodide-lock.json`` file.
 
         This includes those provided by federated labextensions (such as
@@ -343,7 +345,7 @@ class PyodideLockAddon(_BaseAddon):
 
     # derived properties
     @property
-    def pyodide_addon(self) -> "PyodideAddon":
+    def pyodide_addon(self) -> PyodideAddon:
         """The manager's pyodide addon, which will be reconfigured if needed."""
         return self.manager._addons[PYODIDE_ADDON]  # noqa: SLF001
 
@@ -410,7 +412,7 @@ class PyodideLockAddon(_BaseAddon):
     # task generators
     def resolve_one_file_requirement(
         self, path_or_url: str | Path, cache_root: Path
-    ) -> "TTaskGenerator":
+    ) -> TTaskGenerator:
         """Download a wheel, and copy to the cache."""
         if re.findall(r"^https?://", path_or_url):
             url = urllib.parse.urlparse(path_or_url)
@@ -442,7 +444,7 @@ class PyodideLockAddon(_BaseAddon):
             else:  # pragma: no cover
                 raise FileNotFoundError(path_or_url)
 
-    def copy_wheel(self, wheel: Path) -> "TTaskGenerator":
+    def copy_wheel(self, wheel: Path) -> TTaskGenerator:
         """Copy one wheel to ``{output_dir}``."""
         dest = self.lock_output_dir / wheel.name
         if dest == wheel:  # pragma: no cover

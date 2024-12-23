@@ -1,7 +1,7 @@
 """Solve ``pyodide-lock`` with the browser manged as a naive subprocess."""
-
 # Copyright (c) jupyterlite-pyodide-lock contributors.
 # Distributed under the terms of the BSD-3-Clause License.
+
 from __future__ import annotations
 
 import asyncio

@@ -2,6 +2,8 @@
 # Copyright (c) jupyterlite-pyodide-lock contributors.
 # Distributed under the terms of the BSD-3-Clause License.
 
+from __future__ import annotations
+
 import asyncio
 import os
 import shutil
@@ -57,34 +59,36 @@ BROWSERS = {
 class WebDriverLocker(TornadoLocker):
     """A locker that uses the WebDriver standard to control a browser."""
 
-    browser = Unicode(help="an alias for a pre-configured browser").tag(
+    browser: str = Unicode(help="an alias for a pre-configured browser").tag(
         config=True,
     )
-    headless = Bool(default_value=True, help="run the browser in headless mode").tag(
-        config=True
-    )
-    browser_path = Unicode(
+    headless: bool = Bool(
+        default_value=True, help="run the browser in headless mode"
+    ).tag(config=True)
+    browser_path: str = Unicode(
         help="an absolute path to a browser, if not well-known or on PATH",
     ).tag(config=True)
-    webdriver_path = Unicode(
+    webdriver_path: str = Unicode(
         help="an absolute path to a driver, if not well-known or on PATH",
     ).tag(config=True)
-    webdriver_service_args = List(
+    webdriver_service_args: list[str] = List(
         Unicode(), help="arguments for the webdriver binary"
     ).tag(config=True)
-    webdriver_log_output = Unicode(help="a path to the webdriver log").tag(config=True)
-    webdriver_env = Dict(Unicode(), help="custom enviroment variable overrides").tag(
+    webdriver_log_output: str = Unicode(help="a path to the webdriver log").tag(
         config=True
     )
+    webdriver_env: dict[str, str] = Dict(
+        Unicode(), help="custom enviroment variable overrides"
+    ).tag(config=True)
 
     # runtime
-    _webdriver_options: "TAnyOptions" = Instance(
+    _webdriver_options: TAnyOptions = Instance(
         "selenium.webdriver.common.options.ArgOptions", allow_none=True
     )
-    _webdriver_service: "TAnyService" = Instance(
+    _webdriver_service: TAnyService = Instance(
         "selenium.webdriver.common.service.Service", allow_none=True
     )
-    _webdriver: "TAnyWebDriver" = Instance(
+    _webdriver: TAnyWebDriver = Instance(
         "selenium.webdriver.remote.webdriver.WebDriver", allow_none=True
     )
     _webdriver_task = Instance(
@@ -140,7 +144,7 @@ class WebDriverLocker(TornadoLocker):
         return os.environ.get(ENV_VAR_BROWSER, "").strip() or FIREFOX
 
     @default("_webdriver")
-    def _default_webdriver(self) -> "TAnyWebDriver":  # pragma: no cover
+    def _default_webdriver(self) -> TAnyWebDriver:  # pragma: no cover
         webdriver_class = BROWSERS[self.browser]["webdriver_class"]
         options = self._webdriver_options
         service = self._webdriver_service
@@ -169,7 +173,7 @@ class WebDriverLocker(TornadoLocker):
         return {}
 
     @default("_webdriver_options")
-    def _default_webdriver_options(self) -> "TAnyOptions":
+    def _default_webdriver_options(self) -> TAnyOptions:
         browser = self.browser
         options_klass: type[TAnyOptions] = BROWSERS[browser]["options_class"]
         options = options_klass()
@@ -181,7 +185,7 @@ class WebDriverLocker(TornadoLocker):
         return options
 
     @default("_webdriver_service")
-    def _default_webdriver_service(self) -> "TAnyService":
+    def _default_webdriver_service(self) -> TAnyService:
         browser = self.browser
         service_class: type[TAnyService] = BROWSERS[browser]["service_class"]
         service_kwargs = dict(

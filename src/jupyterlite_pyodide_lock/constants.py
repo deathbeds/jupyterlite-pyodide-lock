@@ -2,6 +2,8 @@
 # Copyright (c) jupyterlite-pyodide-lock contributors.
 # Distributed under the terms of the BSD-3-Clause License.
 
+from __future__ import annotations
+
 import os
 
 from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK, PYODIDE_VERSION

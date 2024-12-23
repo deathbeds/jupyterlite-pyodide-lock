@@ -2,6 +2,8 @@
 # Copyright (c) jupyterlite-pyodide-lock contributors.
 # Distributed under the terms of the BSD-3-Clause License.
 
+from __future__ import annotations
+
 import asyncio
 import json
 import os
@@ -44,7 +46,7 @@ class BaseLocker(LoggingConfigurable):
     lockfile = Instance(Path)
 
     # runtime
-    parent: "PyodideLockAddon" = Instance(
+    parent: PyodideLockAddon = Instance(
         "jupyterlite_pyodide_lock.addons.lock.PyodideLockAddon",
     )
     micropip_args = Dict()
