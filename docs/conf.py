@@ -80,7 +80,6 @@ suppress_warnings = ["autosectionlabel.*"]
 templates_path = ["_templates"]
 html_static_path = [
     "../dist",
-    "../contrib/jupyterlite-pyodide-lock-webdriver/dist",
     "../build/docs-app",
     "_static",
 ]
