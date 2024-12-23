@@ -212,20 +212,6 @@ def a_lite_config_with_widgets(
         ),
     )
 
-    if LINUX and os.environ.get("JLPL_BROWSER") in CHROMIUMLIKE:
-        patch_config(
-            a_lite_config,
-            BrowserLocker=dict(
-                extra_browser_argv=[
-                    "--no-sandbox",
-                    # "--disable-dev-shm-usage",   # noqa: ERA001
-                    # "--remote-debugging-port=0", # noqa: ERA001
-                    "--enable-logging=stderr",
-                    "--v=1",
-                ]
-            ),
-        )
-
     return a_lite_config
 
 
@@ -284,8 +270,25 @@ def the_pixi_version(the_pixi_manifest: dict[str, Any]) -> str:
 @pytest.fixture
 def a_lite_config(a_lite_dir: Path) -> Path:
     """Provide a configured ``jupyter_lite_config.json``."""
-    return patch_config(
+    config = patch_config(
         a_lite_dir / JUPYTER_LITE_CONFIG,
         PyodideLockAddon=dict(enabled=True),
         BrowserLocker=dict(temp_profile=True),
     )
+
+    if LINUX and os.environ.get("JLPL_BROWSER") in CHROMIUMLIKE:
+        print("patching chromium-like args to avoid segfaults")
+        patch_config(
+            a_lite_config,
+            BrowserLocker=dict(
+                extra_browser_argv=[
+                    "--no-sandbox",
+                    # "--disable-dev-shm-usage",   # noqa: ERA001
+                    # "--remote-debugging-port=0", # noqa: ERA001
+                    # "--enable-logging=stderr",   # noqa: ERA001
+                    # "--v=1",                     # noqa: ERA001
+                ]
+            ),
+        )
+
+    return config

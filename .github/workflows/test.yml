@@ -70,8 +70,6 @@ jobs:
           - {test-env: test-next, vm: ubuntu-latest , browser: firefox}
     env:
       JLPL_BROWSER: ${{ matrix.browser }}
-      # TODO: remove
-      PYTEST_ADDOPTS: -x -s
     steps:
       - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4

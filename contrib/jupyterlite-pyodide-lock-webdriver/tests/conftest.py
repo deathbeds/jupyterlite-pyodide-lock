@@ -18,10 +18,8 @@ from typing import TYPE_CHECKING, Any
 from jupyterlite_core.constants import JSON_FMT, JUPYTER_LITE_CONFIG, UTF8
 
 from jupyterlite_pyodide_lock.constants import (
-    CHROMIUMLIKE,
     ENV_VAR_ALL,
     FILES_PYTHON_HOSTED,
-    LINUX,
     PYODIDE_LOCK_STEM,
 )
 from jupyterlite_pyodide_lock.utils import warehouse_date_to_epoch
@@ -211,20 +209,6 @@ def a_lite_config_with_widgets(
             **(approach or {}),
         ),
     )
-
-    if LINUX and os.environ.get("JLPL_BROWSER") in CHROMIUMLIKE:
-        patch_config(
-            a_lite_config,
-            BrowserLocker=dict(
-                extra_browser_argv=[
-                    "--no-sandbox",
-                    # "--disable-dev-shm-usage",   # noqa: ERA001
-                    # "--remote-debugging-port=0", # noqa: ERA001
-                    "--enable-logging=stderr",
-                    "--v=1",
-                ]
-            ),
-        )
 
     return a_lite_config
 
