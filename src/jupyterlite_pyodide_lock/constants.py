@@ -103,9 +103,12 @@ BROWSER_BIN_ALIASES = {BROWSER_BIN[CHROME]: ["chrome", "Google Chrome"]}
 
 ENV_VARS_BROWSER_BINS = {BROWSER_BIN[CHROME]: ["CHROME_BIN"]}
 
+#: is this Linux
+LINUX = os.sys.platform[:3] == "lin"
 
 #: is this windows
 WIN = os.sys.platform[:3] == "win"
+
 
 #: default locations of Program Files on Windows
 WIN_PROGRAM_FILES_DIRS = {
