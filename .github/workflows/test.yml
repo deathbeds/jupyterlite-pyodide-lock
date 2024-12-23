@@ -31,7 +31,7 @@ jobs:
           cache: true
           environments: build
       - run: pixi run build
-      - run: mkdir -p build && echo ${{ github.run_number }} > build/.skip-dist
+      - run: mkdir -p build && echo ${{ github.run_number }} > .pixi/task-cache-v0/.skip-dist
       - name: upload dist
         uses: actions/upload-artifact@v4
         with:
@@ -41,9 +41,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-build
-          path: |
-            .pixi/task-cache-v0
-            build/.skip-dist
+          path: .pixi/task-cache-v0
 
   lint:
     runs-on: ubuntu-24.04
@@ -90,6 +88,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-build
+          path: .pixi/task-cache-v0
       - run: pixi run -v ${{ matrix.test-env }}-cli
       - run: pixi run ${{ matrix.test-env }}-core
       - run: pixi run ${{ matrix.test-env }}-wd
@@ -122,6 +121,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-build
+          path: .pixi/task-cache-v0
       - run: pixi run docs-lite
       - run: pixi run docs-sphinx
       - uses: actions/upload-artifact@v4
