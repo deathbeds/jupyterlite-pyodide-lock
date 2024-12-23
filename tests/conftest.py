@@ -270,16 +270,22 @@ def the_pixi_version(the_pixi_manifest: dict[str, Any]) -> str:
 @pytest.fixture
 def a_lite_config(a_lite_dir: Path) -> Path:
     """Provide a configured ``jupyter_lite_config.json``."""
-    config = patch_config(
-        a_lite_dir / JUPYTER_LITE_CONFIG,
+    config = a_lite_dir / JUPYTER_LITE_CONFIG
+
+    patch_config(
+        config,
         PyodideLockAddon=dict(enabled=True),
         BrowserLocker=dict(temp_profile=True),
     )
 
-    if LINUX and os.environ.get("JLPL_BROWSER") in CHROMIUMLIKE:
+    if (
+        LINUX
+        and os.environ.get("CI")
+        and os.environ.get("JLPL_BROWSER") in CHROMIUMLIKE
+    ):
         print("patching chromium-like args to avoid segfaults")
         patch_config(
-            a_lite_config,
+            config,
             BrowserLocker=dict(
                 extra_browser_argv=[
                     "--no-sandbox",
