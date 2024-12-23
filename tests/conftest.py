@@ -280,15 +280,7 @@ def a_lite_config(a_lite_dir: Path) -> Path:
         print("patching chromium-like args to avoid segfaults")
         patch_config(
             config,
-            BrowserLocker=dict(
-                extra_browser_argv=[
-                    "--no-sandbox",
-                    # "--disable-dev-shm-usage",   # noqa: ERA001
-                    # "--remote-debugging-port=0", # noqa: ERA001
-                    # "--enable-logging=stderr",   # noqa: ERA001
-                    # "--v=1",                     # noqa: ERA001
-                ]
-            ),
+            BrowserLocker=dict(extra_browser_argv=[C.CHROMIUM_NO_SANDBOX]),
         )
 
     return config

@@ -9,6 +9,7 @@ import os
 import shutil
 from typing import Any, cast
 
+from jupyterlite_core.trait_types import TypedTuple
 from traitlets import Bool, Dict, Instance, List, Unicode, default
 
 from jupyterlite_pyodide_lock.constants import ENV_VAR_BROWSER, FIREFOX
@@ -24,6 +25,9 @@ class WebDriverLocker(TornadoLocker):
     browser: str = Unicode(help="an alias for a pre-configured browser").tag(
         config=True,
     )  # type: ignore[assignment]
+    webdriver_option_arguments: list[str] = TypedTuple(
+        Unicode(), help="options to add to the webdriver browser"
+    ).tag(config=True)
     headless: bool = Bool(
         default_value=True, help="run the browser in headless mode"
     ).tag(config=True)  # type: ignore[assignment]
@@ -143,11 +147,14 @@ class WebDriverLocker(TornadoLocker):
     def _default_webdriver_options(self) -> ArgOptions:
         browser = self.browser
         options_klass: type[ArgOptions] = BROWSERS[browser]["options_class"]
-        options = options_klass()
+        options: ArgOptions = options_klass()
 
         if self.browser_path:  # pragma: no cover
             self.log.debug("[webdriver] %s path %s", browser, self.browser_path)
             options.binary_location = self.browser_path  # type: ignore[attr-defined]
+
+        for opt in self.webdriver_option_arguments:
+            options.add_argument(opt)
 
         return options
 

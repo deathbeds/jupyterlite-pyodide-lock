@@ -95,6 +95,9 @@ CHROME = "chrome"
 #: collection of chromium-like browsers
 CHROMIUMLIKE = {CHROMIUM, CHROME}
 
+#: unsafe, but often neccessary, CLI argument for chromium in CI
+CHROMIUM_NO_SANDBOX = "--no-sandbox"
+
 BROWSERS = [FIREFOX, CHROMIUM, CHROME]
 BROWSER_BIN = {
     CHROMIUM: "chromium-browser",

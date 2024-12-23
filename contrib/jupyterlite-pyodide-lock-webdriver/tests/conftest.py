@@ -249,7 +249,22 @@ def expect_no_diff(left_text: Path, right_text: Path, left: str, right: str) -> 
 @pytest.fixture
 def a_lite_config(a_lite_dir: Path) -> Path:
     """Provide a configured ``jupyter_lite_config.json``."""
-    return patch_config(
-        a_lite_dir / JUPYTER_LITE_CONFIG,
+    config = a_lite_dir / JUPYTER_LITE_CONFIG
+
+    patch_config(
+        config,
         PyodideLockAddon=dict(enabled=True, locker="WebDriverLocker"),
     )
+
+    if (
+        C.LINUX
+        and os.environ.get("CI")
+        and os.environ.get("JLPL_BROWSER") in C.CHROMIUMLIKE
+    ):
+        print("patching chromium-like args to avoid segfaults")
+        patch_config(
+            config,
+            WebDriverLocker=dict(webdriver_option_arguments=[C.CHROMIUM_NO_SANDBOX]),
+        )
+
+    return config
