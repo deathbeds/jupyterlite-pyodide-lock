@@ -71,7 +71,7 @@ jobs:
     env:
       JLPL_BROWSER: ${{ matrix.browser }}
       # TODO: remove
-      PYTEST_ADDOPTS: -x
+      PYTEST_ADDOPTS: -x -s
     steps:
       - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
