@@ -219,6 +219,8 @@ def a_lite_config_with_widgets(
                 extra_browser_argv=[
                     "--disable-dev-shm-usage",
                     "--remote-debugging-port=0",
+                    "--enable-logging=stderr",
+                    "--v=1",
                 ]
             ),
         )
