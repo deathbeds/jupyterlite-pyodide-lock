@@ -92,6 +92,9 @@ CHROMIUM = "chromium"
 #: browser alias for chrome
 CHROME = "chrome"
 
+#: collection of chromium-like browsers
+CHROMIUMLIKE = {CHROMIUM, CHROME}
+
 BROWSERS = [FIREFOX, CHROMIUM, CHROME]
 BROWSER_BIN = {
     CHROMIUM: "chromium-browser",
