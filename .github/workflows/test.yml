@@ -31,7 +31,7 @@ jobs:
           cache: true
           environments: build
       - run: pixi run build
-      - run: mkdir -p build && touch build/.skip-dist
+      - run: mkdir -p build && echo ${{ github.run_number }} > build/.skip-dist
       - name: upload dist
         uses: actions/upload-artifact@v4
         with:
@@ -41,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-build
-          path:
+          path: |
             .pixi/task-cache-v0
             build/.skip-dist
 
