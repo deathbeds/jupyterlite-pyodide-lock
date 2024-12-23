@@ -88,17 +88,14 @@ pip-e-all-- = """
 pip-e-core-- = """pixi r pip-- -e ."""
 pip-e-wd-- = """cd contrib/jupyterlite-pyodide-lock-webdriver && pixi r pip-- -e ."""
 
+pip-dist-- = "pixi r pip-- --find-links=dist --no-index"
 pip-whl-all-- = """
-  pixi r pip-check-- && pixi r pip-whl-core-- && pixi r pip-whl-wd-- && pixi r pip-check--
+  pixi r pip-check--
+  && pixi r pip-dist--
+    jupyterlite-pyodide-lock
+    jupyterlite-pyodide-lock-webdriver
+  && pixi r pip-check--
 """
-pip-whl-core-- = """pixi r pip--
-  jupyterlite-pyodide-lock
-  --find-links=dist
-  --no-index"""
-pip-whl-wd-- = """pixi r pip--
-  jupyterlite-pyodide-lock-webdriver
-  --find-links=contrib/jupyterlite-pyodide-lock-webdriver/dist
-  --no-index"""
 
 # real tasks
 [feature.tasks-lint.tasks.fix-deps]

@@ -89,7 +89,8 @@ jobs:
         with:
           name: jlpl-${{ github.run_number }}-build
           path: .pixi/task-cache-v0
-      - run: pixi run -v ${{ matrix.test-env }}-cli
+      - run: pixi run -v ${{ matrix.test-env }}-pip
+      - run: pixi run ${{ matrix.test-env }}-cli
       - run: pixi run ${{ matrix.test-env }}-core
       - run: pixi run ${{ matrix.test-env }}-wd
       - if: always()
