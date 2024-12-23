@@ -11,6 +11,7 @@ import json
 import os
 import shutil
 import subprocess
+import textwrap
 import urllib.request
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -29,6 +30,8 @@ except ImportError:
 import pytest
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     TLiteRunResult = tuple[int, str | None, str | None]
 
     def t_lite_runner(
@@ -178,7 +181,7 @@ def a_widget_approach(request: pytest.FixtureRequest) -> str:
 @pytest.fixture
 def a_lite_config_with_widgets(
     a_lite_dir: Path, a_lite_config: Path, a_widget_approach: str
-) -> Path:
+) -> Generator[Path, None, None]:
     """Patch a lite project to use ``ipywidgets``."""
     approach = WIDGETS_CONFIG[a_widget_approach]
 
@@ -206,7 +209,11 @@ def a_lite_config_with_widgets(
         ),
     )
 
-    return a_lite_config
+    yield a_lite_config
+
+    for log_path in a_lite_dir.glob("*.log"):
+        print(log_path)
+        print(textwrap.indent(log_path.read_text(**UTF8), "\t"))
 
 
 def patch_config(config_path: Path, **configurables: dict[str, Any]) -> Path:

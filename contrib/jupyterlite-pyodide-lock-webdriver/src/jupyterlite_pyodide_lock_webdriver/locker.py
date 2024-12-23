@@ -154,7 +154,10 @@ class WebDriverLocker(TornadoLocker):
             options.binary_location = self.browser_path  # type: ignore[attr-defined]
 
         for opt in self.webdriver_option_arguments:
+            self.log.debug("[webdriver] adding %s option %s", browser, opt)
             options.add_argument(opt)
+
+        self.log.debug("[webdriver] %s webdriver options: %s", browser, options)
 
         return options
 
