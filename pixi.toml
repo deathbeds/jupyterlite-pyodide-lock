@@ -184,14 +184,17 @@ outputs = ["contrib/jupyterlite-pyodide-lock-webdriver/LICENSE"]
 
 [feature.tasks-build.tasks.build-pypi-core]
 description = "├ build core PyPI distributions"
-cmd = """(rm -rf dist/jupyterlite_pyodide_lock-* || echo "nothing to delete")
+cmd = """
+  (cat build/.skip-dist && exit 0)
+  || (rm -rf dist/jupyterlite_pyodide_lock-* || echo "nothing to delete")
   && pyproject-build . --no-isolation -vv"""
 inputs = ["{LICENSE,pyproject.toml,README.md}", "src/**/*.{py,j2}"]
 outputs = ["dist/jupyterlite_pyodide_lock-*.{tar.gz,whl}"]
 
 [feature.tasks-build.tasks.build-pypi-wd]
 description = "├ build webdriver PyPI distributions"
-cmd = """mkdir -p dist
+cmd = """(cat build/.skip-dist && exit 0)
+  || mkdir -p dist
   && (rm -rf dist/jupyterlite_pyodide_lock_webdriver-* || echo "nothing to delete")
   && cd contrib/jupyterlite-pyodide-lock-webdriver
   && rm -rf dist

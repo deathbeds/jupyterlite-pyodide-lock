@@ -17,11 +17,7 @@ from typing import TYPE_CHECKING, Any
 
 from jupyterlite_core.constants import JSON_FMT, JUPYTER_LITE_CONFIG, UTF8
 
-from jupyterlite_pyodide_lock.constants import (
-    ENV_VAR_ALL,
-    FILES_PYTHON_HOSTED,
-    PYODIDE_LOCK_STEM,
-)
+from jupyterlite_pyodide_lock import constants as C  # noqa: N812
 from jupyterlite_pyodide_lock.utils import warehouse_date_to_epoch
 
 try:
@@ -54,7 +50,7 @@ ROOT = HERE.parent
 PPT = ROOT / "pyproject.toml"
 
 WIDGETS_WHEEL = "ipywidgets-8.1.2-py3-none-any.whl"
-WIDGETS_URL = f"{FILES_PYTHON_HOSTED}/packages/py3/i/ipywidgets/{WIDGETS_WHEEL}"
+WIDGETS_URL = f"{C.FILES_PYTHON_HOSTED}/packages/py3/i/ipywidgets/{WIDGETS_WHEEL}"
 WIDGET_ISO8601 = dict(
     before="2024-02-08T15:31:28Z",
     actual="2024-02-08T15:31:29.801655Z",
@@ -79,7 +75,7 @@ def pytest_configure(config: Any) -> None:
 
     config.stash[metadata_key].pop("JAVA_HOME", None)
 
-    for k in sorted([*os.environ, *ENV_VAR_ALL]):
+    for k in sorted([*os.environ, *C.ENV_VAR_ALL]):
         if k.startswith("JLPL_") or k.startswith("JUPYTERLITE_"):  # noqa: PIE810
             config.stash[metadata_key][k] = os.environ.get(k, "")
     return
@@ -197,7 +193,7 @@ def a_lite_config_with_widgets(
             fetch_dest = a_lite_dir / "../dist" / WIDGETS_WHEEL
 
     if not approach:
-        fetch_dest = a_lite_dir / "static" / PYODIDE_LOCK_STEM
+        fetch_dest = a_lite_dir / "static" / C.PYODIDE_LOCK_STEM
 
     if fetch_dest:
         fetch(WIDGETS_URL, fetch_dest)
