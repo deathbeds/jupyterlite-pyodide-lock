@@ -2,6 +2,8 @@
 # Copyright (c) jupyterlite-pyodide-lock contributors.
 # Distributed under the terms of the BSD-3-Clause License.
 
+from __future__ import annotations
+
 # the below is copied from ``jupyterlite-pyodide-lock``'s ``conftest.py``
 # shared fixtures ###
 import difflib
@@ -18,6 +20,7 @@ from jupyterlite_core.constants import JSON_FMT, JUPYTER_LITE_CONFIG, UTF8
 from jupyterlite_pyodide_lock.constants import (
     ENV_VAR_ALL,
     FILES_PYTHON_HOSTED,
+    LINUX,
     PYODIDE_LOCK_STEM,
 )
 from jupyterlite_pyodide_lock.utils import warehouse_date_to_epoch
@@ -110,7 +113,7 @@ def a_good_widget_lock_date_epoch() -> int:
 
 
 @pytest.fixture
-def lite_cli(a_lite_dir: Path) -> "TLiteRunner":
+def lite_cli(a_lite_dir: Path) -> TLiteRunner:
     """Provide a ``jupyter lite`` runner in a project."""
 
     def run(
@@ -119,7 +122,7 @@ def lite_cli(a_lite_dir: Path) -> "TLiteRunner":
         expect_stderr: str | None = None,
         expect_stdout: str | None = None,
         **popen_kwargs: Any,
-    ) -> "TLiteRunResult":
+    ) -> TLiteRunResult:
         a_lite_config = a_lite_dir / JUPYTER_LITE_CONFIG
         env = None
 
@@ -207,6 +210,12 @@ def a_lite_config_with_widgets(
             **(approach or {}),
         ),
     )
+
+    if LINUX and os.environ["JLPL_BROWSER"] == "chromium":
+        patch_config(
+            a_lite_config,
+            BrowserLocker=dict(extra_browser_argv=["--disable-dev-shm-usage"]),
+        )
 
     return a_lite_config
 

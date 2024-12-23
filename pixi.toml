@@ -168,7 +168,7 @@ cmd = """
   python _scripts/replace-between.py
     tests/conftest.py
     contrib/jupyterlite-pyodide-lock-webdriver/tests/conftest.py
-    "### shared fixtures ###" """
+    "# shared fixtures ###" """
 
 [feature.tasks-lint.tasks.lint-actionlint]
 description = "├ check GitHub actions with actionlint"

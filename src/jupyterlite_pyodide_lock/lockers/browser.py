@@ -65,7 +65,9 @@ class BrowserLocker(TornadoLocker):
             "'browser', 'headless', 'private_mode', 'temp_profile', and 'profile'"
         ),
     ).tag(config=True)
-
+    extra_browser_argv = TypedTuple(
+        Unicode(), help="additional non-URL arguments for the browser process."
+    ).tag(config=True)
     browser = Unicode(help="an alias for a pre-configured browser").tag(
         config=True,
     )
@@ -124,7 +126,7 @@ class BrowserLocker(TornadoLocker):
 
     async def fetch(self) -> None:
         """Open the browser to the lock page, and wait for it to finish."""
-        args = [*self.browser_argv, self.lock_html_url]
+        args = [*self.browser_argv, *self.extra_browser_argv, self.lock_html_url]
         self.log.debug("[browser] browser args: %s", args)
         self._browser_process = psutil.Popen(args)
 

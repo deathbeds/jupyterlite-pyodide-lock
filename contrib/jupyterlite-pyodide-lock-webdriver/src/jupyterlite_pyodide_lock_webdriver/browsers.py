@@ -21,7 +21,6 @@ from jupyterlite_pyodide_lock.constants import (
     CHROME,
     CHROMIUM,
     FIREFOX,
-    LINUX,
 )
 
 __all__ = ["ArgOptions", "Browser", "Service", "WebDriver"]
@@ -56,7 +55,6 @@ BROWSERS: dict[str, Browser] = {
         service_class=ChromeService,
         log_output="chromedriver.log",
         webdriver_path="chromedriver",
-        service_args=["--disable-dev-shm-usage"] if LINUX else [],
     ),
 }
 

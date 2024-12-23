@@ -2,7 +2,8 @@
 # Copyright (c) jupyterlite-pyodide-lock contributors.
 # Distributed under the terms of the BSD-3-Clause License.
 
-from pathlib import Path
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 import pyodide_lock
@@ -12,11 +13,13 @@ from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK
 from .conftest import expect_no_diff
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from .conftest import TLiteRunner
 
 
 def test_cli_good_build(
-    lite_cli: "TLiteRunner", a_lite_config_with_widgets: Path
+    lite_cli: TLiteRunner, a_lite_config_with_widgets: Path
 ) -> None:
     """Verify a build works, twice."""
     from jupyterlite_pyodide_lock.constants import PYODIDE_LOCK_STEM
