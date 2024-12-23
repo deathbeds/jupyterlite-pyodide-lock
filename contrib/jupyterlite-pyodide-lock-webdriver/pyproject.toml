@@ -50,9 +50,7 @@ test = [
 ]
 
 [tool.flit.sdist]
-include = [
-  "tests/",
-]
+include = ["LICENSE", "tests/"]
 
 [tool.coverage.run]
 disable_warnings = [
