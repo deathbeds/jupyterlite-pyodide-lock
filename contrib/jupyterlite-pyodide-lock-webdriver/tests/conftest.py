@@ -271,7 +271,13 @@ def a_lite_config(a_lite_dir: Path) -> Path:
         print("patching chromium-like args to avoid segfaults")
         patch_config(
             config,
-            WebDriverLocker=dict(webdriver_option_arguments=[C.CHROMIUM_NO_SANDBOX]),
+            WebDriverLocker=dict(
+                webdriver_option_arguments=[
+                    C.CHROMIUM_NO_SANDBOX,
+                    "--disable-dev-shm-usage",
+                    "--disable-gpu",
+                ]
+            ),
         )
 
     return config
