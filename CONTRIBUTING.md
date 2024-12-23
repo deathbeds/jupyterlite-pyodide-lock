@@ -70,5 +70,6 @@ pixi run check
 Some tasks run, and need to be stopped with <kbd>ctrl+c</kbd>:
 
 ```bash
-pixi run lab
+pixi run serve-lab
+pixi run serve-docs
 ```

@@ -227,6 +227,7 @@ cmd = """export JLPL_TEST_REPORTS=$PIXI_PROJECT_ROOT/build/reports/$PIXI_ENVIRON
     -o cache_dir=$PIXI_PROJECT_ROOT/build/.cache/$JLPL_TEST_PKG/pytest
     -vv
     -W error
+    --rootdir .
     --color=yes
     --tb=long
     --durations=5
@@ -235,8 +236,10 @@ cmd = """export JLPL_TEST_REPORTS=$PIXI_PROJECT_ROOT/build/reports/$PIXI_ENVIRON
     --cov-report=html:$JLPL_TEST_REPORTS/htmlcov
     --cov-report=term-missing:skip-covered
     --cov=$JLPL_TEST_MOD
-    --html=$JLPL_TEST_REPORTS/pytest.html --self-contained-html
     --no-cov-on-fail
+    --html=$JLPL_TEST_REPORTS/pytest.html --self-contained-html
+    -o generate_report_on_test=True
+    tests
 """
 [tasks.pytest-core--]
 cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock
@@ -402,6 +405,7 @@ depends-on = ["docs-sphinx"]
 
 # checking
 [feature.tasks-check.tasks.check-links]
+description = "├ check links in html"
 cmd = """
   rm -rf build/reports/check-links
   && mkdir -p build/reports/check-links
@@ -420,18 +424,32 @@ depends-on = ["docs-sphinx"]
 inputs = ["build/docs/**/*.html"]
 
 [feature.tasks-check.tasks.check-spelling]
+description = "├ check spelling in built documentation"
 cmd = "python _scripts/check-spelling.py"
 depends-on = ["docs-sphinx"]
 inputs = ["build/docs/**/*.html", "_scripts/check-spelling.py"]
 
 # interactive development ######################################################
 [feature.tasks-dev.tasks.dev-pip]
+description = "├ 🔁 prepare the dev environment"
 cmd = """pixi r -e dev pip-e-all--"""
 outputs = ["build/pip-freeze/dev.txt"]
 
-[feature.tasks-dev.tasks.lab]
+[feature.tasks-dev.tasks.dev-lab]
+description = "├ 🔁 serve JupyterLab in the dev environment"
 cmd = """jupyter lab --no-browser --debug"""
 depends-on = ["dev-pip"]
+
+[feature.tasks-dev.tasks.dev-docs]
+description = "├ 🔁 watch and serve the documentation with autoreload"
+cmd = """sphinx-autobuild -b html docs build/dev-docs
+    --write-all
+    --jobs 8
+    --color
+    --watch src
+    --watch pixi.toml
+"""
+depends-on = ["dev-pip", "docs-sphinx"]
 
 # dependencies #################################################################
 [feature.deps-run.dependencies]
@@ -520,6 +538,10 @@ packaging = "*"
 [feature.deps-check.dependencies]
 pytest-check-links = "*"
 
+[feature.deps-dev.dependencies]
+sphinx-autobuild = "*"
+watchfiles = "*"
+
 [feature.deps-demo.dependencies]
 ipywidgets = ">=8.1,<8.2"
 jupyterlab = ">=4.1,<4.4"
@@ -541,8 +563,8 @@ docs = {features = [
   "tasks-docs",
 ]}
 test-max = {features = [
-  "deps-pip",
   "deps-firefox",
+  "deps-pip",
   "deps-run-max",
   "deps-run",
   "deps-test",
@@ -550,9 +572,9 @@ test-max = {features = [
   "tasks-test-max",
 ]}
 test-min = {features = [
-  "deps-pip",
   "deps-firefox-min",
   "deps-firefox",
+  "deps-pip",
   "deps-run-min",
   "deps-run",
   "deps-test",
@@ -561,8 +583,8 @@ test-min = {features = [
   "tasks-test-min",
 ]}
 test-next = {features = [
-  "deps-pip",
   "deps-firefox",
+  "deps-pip",
   "deps-run-next",
   "deps-run",
   "deps-test",
@@ -570,11 +592,12 @@ test-next = {features = [
   "tasks-test-next",
 ]}
 dev = {features = [
+  "deps-build",
   "deps-demo",
-  "deps-pip",
+  "deps-dev",
   "deps-docs",
   "deps-lint",
-  "deps-build",
+  "deps-pip",
   "deps-run",
   "deps-test",
   "deps-webdriver",

@@ -151,6 +151,7 @@ ignore = [
 ]
 "**/*.ipynb" = [
   "CPY001",
+  "T201",
   "TRY004",
 ]
 "examples/*.ipynb" = [
