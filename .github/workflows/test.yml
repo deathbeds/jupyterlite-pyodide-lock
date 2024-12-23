@@ -31,14 +31,16 @@ jobs:
           cache: true
           environments: build
       - run: pixi run build
-      - uses: actions/upload-artifact@v4
+      - name: upload dist
+        uses: actions/upload-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-dist
-          path: ./dist
-      - uses: actions/upload-artifact@v4
+          path: dist
+      - name: upload build
+        uses: actions/upload-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-build
-          path: ./.pixi/task-cache-v0
+          path: .pixi/task-cache-v0
 
   lint:
     runs-on: ubuntu-24.04
@@ -78,15 +80,17 @@ jobs:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true
           environments: build ${{ matrix.test-env }}
-      - uses: actions/download-artifact@v4
+      - name: download dist
+        uses: actions/download-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-dist
-          path: ./dist
-      - uses: actions/download-artifact@v4
+          path: dist
+      - name: download build
+        uses: actions/download-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-build
-          path: ./build
-      - run: pixi run ${{ matrix.test-env }}-cli
+          path: build
+      - run: pixi run -v ${{ matrix.test-env }}-cli
       - run: pixi run ${{ matrix.test-env }}-core
       - run: pixi run ${{ matrix.test-env }}-wd
       - if: always()
@@ -95,8 +99,8 @@ jobs:
           name: |-
             jlpl-${{ github.run_number }}-${{ matrix.test-env }}-${{ matrix.vm }}
           path: |
-            ./.pixi/task-cache-v0
-            ./build/reports
+            .pixi/task-cache-v0
+            build/reports
 
   docs:
     name: docs
@@ -109,19 +113,21 @@ jobs:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true
           environments: build docs
-      - uses: actions/download-artifact@v4
+      - name: download dist
+        uses: actions/download-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-dist
-          path: ./dist
-      - uses: actions/download-artifact@v4
+          path: dist
+      - name: download builds
+        uses: actions/download-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-build
-          path: ./build
+          path: build
       - run: pixi run docs-lite
       - run: pixi run docs-sphinx
       - uses: actions/upload-artifact@v4
         with:
           name: |-
             jlpl-docs-${{ github.run_number }}
-          path: ./build/docs
+          path: build/docs
       - run: pixi run check
