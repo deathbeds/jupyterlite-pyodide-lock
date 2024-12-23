@@ -65,9 +65,9 @@ jobs:
           - {test-env: test-max,  vm: ubuntu-24.04 ,  browser: chromium}
           - {test-env: test-max,  vm: windows-latest, browser: chrome}
           - {test-env: test-min,  vm: macos-13,       browser: firefox}
-          - {test-env: test-min,  vm: ubuntu-24.04 ,  browser: firefox}
+          - {test-env: test-min,  vm: ubuntu-22.04 ,  browser: firefox}
           - {test-env: test-min,  vm: windows-latest, browser: firefox}
-          - {test-env: test-next, vm: ubuntu-24.04 ,  browser: firefox}
+          - {test-env: test-next, vm: ubuntu-latest , browser: firefox}
     env:
       JLPL_BROWSER: ${{ matrix.browser }}
       # TODO: remove

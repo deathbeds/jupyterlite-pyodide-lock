@@ -217,8 +217,9 @@ def a_lite_config_with_widgets(
             a_lite_config,
             BrowserLocker=dict(
                 extra_browser_argv=[
-                    "--disable-dev-shm-usage",
-                    "--remote-debugging-port=0",
+                    "--no-sandbox",
+                    # "--disable-dev-shm-usage",   # noqa: ERA001
+                    # "--remote-debugging-port=0", # noqa: ERA001
                     "--enable-logging=stderr",
                     "--v=1",
                 ]
