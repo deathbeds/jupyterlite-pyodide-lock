@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 
 
 RTD = "READTHEDOCS"
+NL = "\n"
 CONF_PY = Path(__file__)
 HERE = CONF_PY.parent
 ROOT = HERE.parent
@@ -33,9 +34,9 @@ if IS_RTD:
         """Customize the sphinx build lifecycle."""
 
         def _run_pixi(*_args: Any) -> None:
-            args = ["pixi", "run", "-v", "docs-rtd"]
+            args = ["pixi", "run", "docs-rtd"]
             env = {k: v for k, v in os.environ.items() if "PIXI_" not in k}
-            sys.stderr.write(f"ENV: {pformat(env)}")
+            sys.stderr.write(f"ENV:{NL}{pformat(env)}{NL}")
             subprocess.check_call(args, env=env, cwd=str(ROOT))  # noqa: S603
 
         app.connect("build-finished", _run_pixi)

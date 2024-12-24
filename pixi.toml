@@ -414,8 +414,10 @@ cmd = """python -c "
 import os;
 assert all(map(os.getenv, ['READTHEDOCS', 'READTHEDOCS_OUTPUT'])), 'not on ReadTheDocs'
 "
-  && rm -rf $READTHEDOCS_OUTPUT/html
-  && cp -r build/docs $READTHEDOCS_OUTPUT/html
+  && rm -rf "$READTHEDOCS_OUTPUT/html"
+  && mkdir -p "$READTHEDOCS_OUTPUT"
+  && cp -r build/docs "$READTHEDOCS_OUTPUT/html"
+  && ls -lathr "$READTHEDOCS_OUTPUT/html"
 """
 
 # checking
