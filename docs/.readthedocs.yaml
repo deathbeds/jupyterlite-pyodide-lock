@@ -1,7 +1,8 @@
 version: 2
 
 build:
-  os: ubuntu-24.04
+  # ubuntu-24.04 does not have `libasound2` (and likely others)
+  os: ubuntu-22.04
   # needed for `firefox`: precludes use of `commands` below
   # https://docs.readthedocs.io/en/stable/config-file/v2.html#build-apt-packages
   apt_packages:
