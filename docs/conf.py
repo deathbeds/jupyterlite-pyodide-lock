@@ -20,7 +20,7 @@ NL = "\n"
 CONF_PY = Path(__file__)
 HERE = CONF_PY.parent
 ROOT = HERE.parent
-PYPROJ = ROOT / "pyproject.toml"
+PYPROJ = ROOT / "py/jupyterlite-pyodide-lock/pyproject.toml"
 
 
 if not os.getenv("PIXI_PROJECT_ROOT"):

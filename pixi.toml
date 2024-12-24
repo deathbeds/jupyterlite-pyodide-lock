@@ -86,7 +86,7 @@ pip-e-all-- = """
   pixi r pip-check-- && pixi r pip-e-core-- && pixi r pip-e-wd-- && pixi r pip-check--
 """
 pip-e-core-- = """pixi r pip-- -e ."""
-pip-e-wd-- = """cd contrib/jupyterlite-pyodide-lock-webdriver && pixi r pip-- -e ."""
+pip-e-wd-- = """cd py/jupyterlite-pyodide-lock-webdriver && pixi r pip-- -e ."""
 
 pip-dist-- = "pixi r pip-- --find-links=dist --no-index"
 pip-whl-all-- = """
@@ -102,10 +102,10 @@ pip-whl-all-- = """
 description = "├ fix dependencies"
 cmd = """
   python _scripts/fix-deps.py
-    pyproject.toml
-    contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml"""
-inputs = ["pyproject.toml", "_scripts/fix-deps.py"]
-outputs = ["contrib/*/pyproject.toml"]
+    py/jupyterlite-pyodide-lock/pyproject.toml
+    py/jupyterlite-pyodide-lock-webdriver/pyproject.toml"""
+inputs = ["_scripts/fix-deps.py"]
+outputs = ["py/*/pyproject.toml"]
 
 [feature.tasks-lint.tasks.fix-tasks]
 description = "├ fix pixi tasks"
@@ -152,19 +152,22 @@ cmd = """
     --option=indent_string="  "
     pyproject.toml
     pixi.toml
-    contrib/*/pyproject.toml"""
+    py/*/pyproject.toml"""
 depends-on = ["fix-deps"]
-inputs = ["*.toml", "contrib/*/*.toml", "!**/.*"]
+inputs = ["*.toml", "py/*/*.toml", "!**/.*"]
 
 [feature.tasks-lint.tasks.fix-conftest]
 description = "├ add templated conftest"
 depends-on = ["fix-deps"]
-inputs = ["tests/conftest.py", "_scripts/replace-between.py"]
-outputs = ["contrib/jupyterlite-pyodide-lock-webdriver/tests/conftest.py"]
+inputs = [
+  "py/jupyterlite-pyodide-lock/tests/conftest.py",
+  "_scripts/replace-between.py",
+]
+outputs = ["py/jupyterlite-pyodide-lock-webdriver/tests/conftest.py"]
 cmd = """
   python _scripts/replace-between.py
-    tests/conftest.py
-    contrib/jupyterlite-pyodide-lock-webdriver/tests/conftest.py
+    py/jupyterlite-pyodide-lock/tests/conftest.py
+    py/jupyterlite-pyodide-lock-webdriver/tests/conftest.py
     "# shared fixtures ###" """
 
 [feature.tasks-lint.tasks.lint-actionlint]
@@ -173,34 +176,41 @@ cmd = "actionlint -shellcheck=shellcheck -pyflakes=pyflakes"
 inputs = [".github/workflows"]
 
 # building #####################################################################
+[feature.tasks-build.tasks.pyproject-build--]
+cmd = """(cat .pixi/task-cache-v0/.skip-dist && exit 0)
+  || mkdir -p dist
+  && (rm -rf dist/$JLPL_BLD_GLOB || echo "nothing to delete")
+  && cd py/$JLPL_BLD_PKG
+  && rm -rf dist
+  && pyproject-build . --no-isolation -vv
+  && cp dist/* $PIXI_PROJECT_ROOT/dist"""
+
 [feature.tasks-build.tasks.build-licenses]
 description = "├ ensure licenses in contrib packages"
-cmd = "cp LICENSE contrib/jupyterlite-pyodide-lock-webdriver/LICENSE"
+cmd = """
+  cp LICENSE py/jupyterlite-pyodide-lock-webdriver/LICENSE
+  && cp LICENSE py/jupyterlite-pyodide-lock/LICENSE
+"""
 inputs = ["LICENSE"]
-outputs = ["contrib/jupyterlite-pyodide-lock-webdriver/LICENSE"]
+outputs = ["py/*/LICENSE"]
 
 [feature.tasks-build.tasks.build-pypi-core]
 description = "├ build core PyPI distributions"
-cmd = """
-  (cat .pixi/task-cache-v0/.skip-dist && exit 0)
-  || (rm -rf dist/jupyterlite_pyodide_lock-* || echo "nothing to delete")
-  && pyproject-build . --no-isolation -vv"""
-inputs = ["{LICENSE,pyproject.toml,README.md}", "src/**/*.{py,j2}"]
+cmd = """export JLPL_BLD_PKG=jupyterlite-pyodide-lock
+  && export JLPL_BLD_GLOB='jupyterlite_pyodide_lock-*'
+  && pixi r pyproject-build--"""
+inputs = ["py/jupyterlite-pyodide-lock/**/*.{py.toml,md,j2}", "!**/{.*,__pycache__}"]
 outputs = ["dist/jupyterlite_pyodide_lock-*.{tar.gz,whl}"]
 
 [feature.tasks-build.tasks.build-pypi-wd]
 description = "├ build webdriver PyPI distributions"
-cmd = """(cat .pixi/task-cache-v0/.skip-dist && exit 0)
-  || mkdir -p dist
-  && (rm -rf dist/jupyterlite_pyodide_lock_webdriver-* || echo "nothing to delete")
-  && cd contrib/jupyterlite-pyodide-lock-webdriver
-  && rm -rf dist
-  && pyproject-build . --no-isolation -vv
-  && cp dist/* $PIXI_PROJECT_ROOT/dist"""
+cmd = """export JLPL_BLD_PKG=jupyterlite-pyodide-lock-webdriver
+  && export JLPL_BLD_GLOB='jupyterlite_pyodide_lock_webdriver-*'
+  && pixi r pyproject-build--"""
 depends-on = ["build-licenses"]
 inputs = [
-  "contrib/jupyterlite-pyodide-lock-webdriver/{LICENSE,pyproject.toml,README.md}",
-  "contrib/jupyterlite-pyodide-lock-webdriver/src/**/*.py",
+  "py/jupyterlite-pyodide-lock-webdriver/**/*.{py.toml,md,j2}",
+  "!**/{.*,__pycache__}",
 ]
 outputs = [
   "dist/jupyterlite_pyodide_lock_webdriver-*.{tar.gz,whl}",
@@ -261,12 +271,12 @@ cmd = """export JLPL_TEST_REPORTS=$PIXI_PROJECT_ROOT/build/reports/$PIXI_ENVIRON
 [tasks.pytest-core--]
 cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock
   && export JLPL_TEST_MOD=jupyterlite_pyodide_lock
-  && export JLPL_TEST_CWD=.
+  && export JLPL_TEST_CWD=py/jupyterlite-pyodide-lock
   && pixi r pytest--"""
 [tasks.pytest-wd--]
 cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock-webdriver
   && export JLPL_TEST_MOD=jupyterlite_pyodide_lock_webdriver
-  && export JLPL_TEST_CWD=contrib/jupyterlite-pyodide-lock-webdriver
+  && export JLPL_TEST_CWD=py/jupyterlite-pyodide-lock-webdriver
   && pixi r pytest--"""
 
 # testing default ##############################################################
@@ -287,7 +297,7 @@ inputs = ["build/pip-freeze/test-max.txt"]
 description = "├─ test core in the default test environment"
 cmd = "pixi r -e test-max pytest-core--"
 depends-on = ["test-max-pip", "test-max-cli"]
-inputs = ["pyproject.toml", "tests/**/*.py", "dist/*.whl"]
+inputs = ["pyproject.toml", "py/jupyterlite-pyodide-lock/tests/**/*.py", "dist/*.whl"]
 outputs = [
   "build/reports/test-max/jupyterlite-pyodide-lock/{pytest.html,htmlcov/status.json}",
 ]
@@ -297,8 +307,8 @@ description = "├─ test webdriver in the default test environment"
 depends-on = ["test-max-pip", "test-max-cli"]
 cmd = "pixi r -e test-max pytest-wd--"
 inputs = [
-  "contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
-  "contrib/jupyterlite-pyodide-lock-webdriver/tests/**/*.py",
+  "py/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
+  "py/jupyterlite-pyodide-lock-webdriver/tests/**/*.py",
   "dist/*.whl",
 ]
 outputs = [
@@ -323,7 +333,7 @@ inputs = ["build/pip-freeze/test-min.txt"]
 description = "├─ test core in the min test environment"
 cmd = "pixi r -e test-min pytest-core--"
 depends-on = ["test-min-pip", "test-min-cli"]
-inputs = ["pyproject.toml", "tests/**/*.py", "dist/*.whl"]
+inputs = ["pyproject.toml", "py/jupyterlite-pyodide-lock/tests/**/*.py", "dist/*.whl"]
 outputs = [
   "build/reports/test-min/jupyterlite-pyodide-lock/{pytest.html,htmlcov/status.json}",
 ]
@@ -333,8 +343,8 @@ description = "├─ test webdriver in the min test environment"
 depends-on = ["test-min-pip", "test-min-cli"]
 cmd = "pixi r -e test-min pytest-wd--"
 inputs = [
-  "contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
-  "contrib/jupyterlite-pyodide-lock-webdriver/tests/**/*.py",
+  "py/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
+  "py/jupyterlite-pyodide-lock-webdriver/tests/**/*.py",
   "dist/*.whl",
 ]
 outputs = [
@@ -359,7 +369,7 @@ inputs = ["build/pip-freeze/test-next.txt"]
 description = "├─ test core in the next test environment"
 cmd = "pixi r -e test-next pytest-core--"
 depends-on = ["test-next-pip", "test-next-cli"]
-inputs = ["pyproject.toml", "tests/**/*.py", "dist/*.whl"]
+inputs = ["pyproject.toml", "py/jupyterlite-pyodide-lock/tests/**/*.py", "dist/*.whl"]
 outputs = [
   "build/reports/test-next/jupyterlite-pyodide-lock/{pytest.html,htmlcov/status.json}",
 ]
@@ -369,8 +379,8 @@ description = "├─ test webdriver in the next test environment"
 depends-on = ["test-next-pip", "test-next-cli"]
 cmd = "pixi r -e test-next pytest-wd--"
 inputs = [
-  "contrib/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
-  "contrib/jupyterlite-pyodide-lock-webdriver/tests/**/*.py",
+  "py/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
+  "py/jupyterlite-pyodide-lock-webdriver/tests/**/*.py",
   "dist/*.whl",
 ]
 outputs = [
@@ -390,7 +400,7 @@ description = "├ build a demo site with jupyter-lite"
 cmd = """cd examples
   && jupyter-lite doit --debug -- pre_archive:report:SHA256SUMS"""
 depends-on = ["docs-pip"]
-inputs = ["examples", "src/**/*.py", "!**/.*"]
+inputs = ["examples", "py/**/*.py", "!**/.*"]
 outputs = ["build/docs-app/SHA256SUMS"]
 
 [feature.tasks-docs.tasks.docs-sphinx]
@@ -463,7 +473,7 @@ cmd = """sphinx-autobuild -b html docs build/dev-docs
     --write-all
     --jobs 8
     --color
-    --watch src
+    --watch py/src
     --watch pixi.toml
 """
 depends-on = ["dev-pip", "docs-sphinx"]

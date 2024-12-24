@@ -1,4 +1,4 @@
 
-```{include} ../../contrib/jupyterlite-pyodide-lock-webdriver/README.md
+```{include} ../../py/jupyterlite-pyodide-lock-webdriver/README.md
 
 ```

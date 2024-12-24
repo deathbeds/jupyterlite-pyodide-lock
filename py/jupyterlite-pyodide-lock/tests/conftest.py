@@ -1,10 +1,10 @@
-"""Test configuration and fixtures for ``jupyterlite-pyodide-lock-webdriver``."""
+"""Test configuration and fixtures for ``jupyterlite-pyodide-lock``."""
 # Copyright (c) jupyterlite-pyodide-lock contributors.
 # Distributed under the terms of the BSD-3-Clause License.
 
 from __future__ import annotations
 
-# the below is copied from ``jupyterlite-pyodide-lock``'s ``conftest.py``
+# the below is copied to ``contrib`` packages
 # shared fixtures ###
 import difflib
 import json
@@ -49,7 +49,8 @@ if TYPE_CHECKING:
 
 
 HERE = Path(__file__).parent
-ROOT = HERE.parent
+PKG = HERE.parent
+ROOT = PKG.parent.parent
 PPT = ROOT / "pyproject.toml"
 
 WIDGETS_WHEEL = "ipywidgets-8.1.2-py3-none-any.whl"
@@ -253,7 +254,22 @@ def expect_no_diff(left_text: Path, right_text: Path, left: str, right: str) -> 
 
 
 # shared fixtures ###
-# the above is copied from ``jupyterlite-pyodide-lock``'s ``conftest.py``
+# the above is copied to ``contrib`` packages
+PXT = ROOT / "pixi.toml"
+
+
+@pytest.fixture(scope="session")
+def the_pixi_manifest() -> dict[str, Any]:
+    """Provide the the pixi manifest data."""
+    return tomllib.loads(PXT.read_text(**UTF8))
+
+
+@pytest.fixture(scope="session")
+def the_pixi_version(the_pixi_manifest: dict[str, Any]) -> str:
+    """Provide the source of truth for the pixi version."""
+    import re
+
+    return re.findall(r"/v(.*?)/", the_pixi_manifest["$schema"])[0]
 
 
 @pytest.fixture
@@ -263,7 +279,8 @@ def a_lite_config(a_lite_dir: Path) -> Path:
 
     patch_config(
         config,
-        PyodideLockAddon=dict(enabled=True, locker="WebDriverLocker"),
+        PyodideLockAddon=dict(enabled=True),
+        BrowserLocker=dict(temp_profile=True),
     )
 
     if (
@@ -274,13 +291,7 @@ def a_lite_config(a_lite_dir: Path) -> Path:
         print("patching chromium-like args to avoid segfaults")
         patch_config(
             config,
-            WebDriverLocker=dict(
-                webdriver_option_arguments=[
-                    C.CHROMIUM_NO_SANDBOX,
-                    "--disable-dev-shm-usage",
-                    "--disable-gpu",
-                ]
-            ),
+            BrowserLocker=dict(extra_browser_argv=[C.CHROMIUM_NO_SANDBOX]),
         )
 
     return config

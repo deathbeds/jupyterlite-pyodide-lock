@@ -1,0 +1,68 @@
+[build-system]
+requires = [
+  "flit_core >=3.9,<4",
+]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "jupyterlite-pyodide-lock"
+version = "0.1.0a0"
+description = "Create pre-solved environments for jupyterlite-pyodide-kernel with pyodide-lock"
+license.text = "BSD-3-Clause"
+authors = [
+  {name = "jupyterlite-pyodide-lock contributors"},
+]
+readme = "README.md"
+classifiers = [
+  "Framework :: Jupyter",
+  "Framework :: Jupyter :: JupyterLab",
+  "Framework :: Jupyter :: JupyterLab :: 4",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+]
+requires-python = ">=3.10"
+dependencies = [
+  "jupyterlite-core >=0.3.0,<0.6.0",
+  "jupyterlite-pyodide-kernel >=0.3.1,<0.6.0 ; platform_machine != \"wasm32\"",
+  "pyodide-lock[wheel] >=0.1.0a4,<0.2.0",
+  "tornado >=6.1.0 ; platform_machine != \"wasm32\"",
+  "psutil >=6",
+]
+
+[project.urls]
+"Bug Tracker" = "https://github.com/deathbeds/jupyterlite-pyodide-lock/issues"
+Changelog = "https://github.com/deathbeds/jupyterlite-pyodide-lock/blob/main/CHANGELOG.md"
+Documentation = "https://jupyterlite-pyodide-lock.readthedocs.io"
+PyPI = "https://pypi.org/project/jupyterlite-pyodide-lock"
+Source = "https://github.com/deathbeds/jupyterlite-pyodide-lock/tree/main"
+
+[project.scripts]
+jupyter-pyodide-lock = "jupyterlite_pyodide_lock.app:main"
+
+[project.entry-points."jupyterlite.addon.v0"]
+pyodide-lock = "jupyterlite_pyodide_lock.addons.lock:PyodideLockAddon"
+
+[project.entry-points."jupyterlite_pyodide_lock.locker.v0"]
+BrowserLocker = "jupyterlite_pyodide_lock.lockers.browser:BrowserLocker"
+
+[project.optional-dependencies]
+test = [
+  "pytest >=8,<9",
+  "pytest-cov",
+  "pytest-html",
+]
+
+[tool.flit.sdist]
+include = ["LICENSE", "tests/"]
+
+[tool.coverage.run]
+disable_warnings = ["no-data-collected", "module-not-measured"]
+
+[tool.coverage.html]
+show_contexts = true
