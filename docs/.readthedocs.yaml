@@ -30,6 +30,7 @@ build:
       - pixi install --environment=build
       - pixi install --environment=docs
       - pixi run build
+      - pixi run docs-pip
       - pixi run docs-lite
       - pixi run docs-sphinx
 

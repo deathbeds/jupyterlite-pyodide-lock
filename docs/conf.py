@@ -8,7 +8,9 @@ import datetime
 import os
 import re
 import subprocess
+import sys
 from pathlib import Path
+from pprint import pformat
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -32,7 +34,12 @@ if IS_RTD:
 
         def _run_pixi(*_args: Any) -> None:
             args = ["pixi", "run", "-v", "docs-rtd"]
-            env = {k: v for k, v in os.environ.items() if k != RTD}
+            env = {
+                k: v
+                for k, v in sorted(os.environ.items())
+                if k != RTD and not k.startswith("PIXI_")
+            }
+            sys.stderr.write(f"ENV: {pformat(env)}")
             subprocess.check_call(args, env=env, cwd=str(ROOT))  # noqa: S603
 
         app.connect("build-finished", _run_pixi)
