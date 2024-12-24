@@ -1,4 +1,8 @@
 """A ``tornado`` handler for accepting ``micropip.freeze`` output and errors."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
+
+from __future__ import annotations
 
 import json
 from typing import TYPE_CHECKING, Any
@@ -13,9 +17,9 @@ if TYPE_CHECKING:  # pragma: no cover
 class MicropipFreeze(RequestHandler):
     """Accept raw ``micropip.freeze`` output from the client and write it to disk."""
 
-    locker: "BrowserLocker"
+    locker: BrowserLocker
 
-    def initialize(self, locker: "BrowserLocker", **kwargs: Any) -> None:
+    def initialize(self, locker: BrowserLocker, **kwargs: Any) -> None:
         """Initialize instance members."""
         self.locker = locker
         super().initialize(**kwargs)

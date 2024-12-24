@@ -1,4 +1,8 @@
 """A command line for ``pyodide-lock`` in JupyterLite."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
+
+from __future__ import annotations
 
 import contextlib
 import os

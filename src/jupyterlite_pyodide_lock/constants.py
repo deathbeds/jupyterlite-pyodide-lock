@@ -1,10 +1,14 @@
-"""Contants for jupyterlite-pyodide-lock."""
+"""Constants for jupyterlite-pyodide-lock."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
+
+from __future__ import annotations
 
 import os
 
 from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK, PYODIDE_VERSION
 
-__all__ = ["NAME", "LOCKER_ENTRYPOINT", "PYODIDE_LOCK_STEM", "PROXY", "LOCK_HTML"]
+__all__ = ["LOCKER_ENTRYPOINT", "LOCK_HTML", "NAME", "PROXY", "PYODIDE_LOCK_STEM"]
 
 #: this distribution name
 NAME = "jupyterlite-pyodide-lock"
@@ -77,7 +81,7 @@ WAREHOUSE_UPLOAD_FORMAT_ANY = [
     WAREHOUSE_UPLOAD_FORMAT_SHORT,
 ]
 
-### browsers ###
+# browsers ###
 
 #: browser alias for firefox
 FIREFOX = "firefox"
@@ -87,6 +91,12 @@ CHROMIUM = "chromium"
 
 #: browser alias for chrome
 CHROME = "chrome"
+
+#: collection of chromium-like browsers
+CHROMIUMLIKE = {CHROMIUM, CHROME}
+
+#: unsafe, but often neccessary, CLI argument for chromium in CI
+CHROMIUM_NO_SANDBOX = "--no-sandbox"
 
 BROWSERS = [FIREFOX, CHROMIUM, CHROME]
 BROWSER_BIN = {
@@ -99,9 +109,12 @@ BROWSER_BIN_ALIASES = {BROWSER_BIN[CHROME]: ["chrome", "Google Chrome"]}
 
 ENV_VARS_BROWSER_BINS = {BROWSER_BIN[CHROME]: ["CHROME_BIN"]}
 
+#: is this Linux
+LINUX = os.sys.platform[:3] == "lin"
 
 #: is this windows
 WIN = os.sys.platform[:3] == "win"
+
 
 #: default locations of Program Files on Windows
 WIN_PROGRAM_FILES_DIRS = {

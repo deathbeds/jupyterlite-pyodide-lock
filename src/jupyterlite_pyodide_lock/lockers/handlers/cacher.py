@@ -1,13 +1,20 @@
 """A ``tornado`` handler for proxying remote CDN files with a cache."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
+
+from __future__ import annotations
 
 import re
 from collections.abc import Callable
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from tornado.httpclient import AsyncHTTPClient
 
 from .mime import ExtraMimeFiles
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
 
 TReplacer = bytes | Callable[[bytes], bytes]
 TRouteRewrite = tuple[str, TReplacer]
@@ -33,14 +40,14 @@ class CachingRemoteFiles(ExtraMimeFiles):
         self.client = AsyncHTTPClient()
         self.rewrites = rewrites or {}
 
-    async def get(self, path: str, include_body: bool = True) -> None:
+    async def get(self, path: str, include_body: bool = True) -> None:  # noqa: FBT002, FBT001
         """Actually fetch a file."""
         cache_path = self.root / path
         if cache_path.exists():  # pragma: no cover
             cache_path.touch()
         else:
             await self.cache_file(path, cache_path)
-        return await super().get(path, include_body)
+        return await super().get(path, include_body=include_body)
 
     async def cache_file(self, path: str, cache_path: Path) -> None:
         """Get the file, and rewrite it."""

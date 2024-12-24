@@ -1,4 +1,8 @@
 """Tests of version information."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
+
+from __future__ import annotations
 
 from typing import Any
 

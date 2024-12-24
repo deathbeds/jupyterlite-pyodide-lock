@@ -1,4 +1,8 @@
 """A ``tornado`` handler with some extra MIME handling."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
+
+from __future__ import annotations
 
 import re
 from pathlib import Path
@@ -15,13 +19,13 @@ if TYPE_CHECKING:  # pragma: no cover
 class ExtraMimeFiles(StaticFileHandler):
     """Serve static files, with configurable MIME types."""
 
-    log: "Logger"
+    log: Logger
 
     #: map URL regex to content type
     mime_map: dict[str, str]
 
     def initialize(
-        self, log: "Logger", mime_map: dict[str, str] | None = None, **kwargs: Any
+        self, log: Logger, mime_map: dict[str, str] | None = None, **kwargs: Any
     ) -> None:
         """Initialize handler instance members."""
         super().initialize(**kwargs)

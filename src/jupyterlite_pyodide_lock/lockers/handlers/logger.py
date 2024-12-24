@@ -1,4 +1,8 @@
 """A handler that accepts log messages from the browser."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
+
+from __future__ import annotations
 
 import json
 from typing import TYPE_CHECKING, Any
@@ -12,7 +16,7 @@ if TYPE_CHECKING:  # pragma: no cover
 class Log(RequestHandler):
     """Log repeater from the browser."""
 
-    def initialize(self, log: "Logger", **kwargs: Any) -> None:
+    def initialize(self, log: Logger, **kwargs: Any) -> None:
         """Initialize handler instance members."""
         self.log = log
         super().initialize(**kwargs)

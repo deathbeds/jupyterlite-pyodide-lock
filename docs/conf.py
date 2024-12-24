@@ -1,4 +1,8 @@
 """documentation for ``jupyterlite-pyodide-lock``."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
+
+from __future__ import annotations
 
 import datetime
 import os
@@ -10,29 +14,30 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from sphinx.application import Sphinx
 
+
 RTD = "READTHEDOCS"
+NL = "\n"
 CONF_PY = Path(__file__)
 HERE = CONF_PY.parent
 ROOT = HERE.parent
 PYPROJ = ROOT / "pyproject.toml"
 
-if os.getenv(RTD) == "True":
+
+if not os.getenv("PIXI_PROJECT_ROOT"):
     # provide a fake root doc
     root_doc = "rtd"
 
-    def setup(app: "Sphinx") -> None:
+    def setup(app: Sphinx) -> None:
         """Customize the sphinx build lifecycle."""
 
         def _run_pixi(*_args: Any) -> None:
-            args = ["pixi", "run", "-v", "docs-rtd"]
-            env = {k: v for k, v in os.environ.items() if k != RTD}
+            args = ["pixi", "run", "docs-rtd"]
+            env = {k: v for k, v in os.environ.items() if "PIXI_" not in k}
             subprocess.check_call(args, env=env, cwd=str(ROOT))  # noqa: S603
 
         app.connect("build-finished", _run_pixi)
-else:
-    # exclude RTD
-    exclude_patterns = ["rtd.rst"]
 
+else:
     try:
         import tomllib
     except ImportError:
@@ -47,6 +52,7 @@ else:
     )
     REPO_INFO = re.search(RE_GH, PROJ_DATA["project"]["urls"]["Source"])
     NOW = datetime.datetime.now(tz=datetime.timezone.utc).date()
+    exclude_patterns = ["rtd.rst"]
 
     # metadata
     author = PROJ_DATA["project"]["authors"][0]["name"]
@@ -100,7 +106,6 @@ else:
     templates_path = ["_templates"]
     html_static_path = [
         "../dist",
-        "../contrib/jupyterlite-pyodide-lock-webdriver/dist",
         "../build/docs-app",
         "_static",
     ]
@@ -128,5 +133,3 @@ else:
 
     if REPO_INFO is not None:
         html_context = {**REPO_INFO.groupdict(), "doc_path": "docs"}
-
-# RTD will inject more config below here

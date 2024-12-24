@@ -12,16 +12,17 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PYTHONUNBUFFERED: "1"
-  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  PYTHONUNBUFFERED: 1
+  PIP_DISABLE_PIP_VERSION_CHECK: 1
+  FORCE_COLOR: 1
   JUPYTERLITE_NO_JUPYTER_SERVER: 1
   JUPYTERLITE_NO_JUPYTERLAB_SERVER: 1
   JLPL_TIMEOUT: 500
-  JLPL_PIXI_VERSION: 0.26.1
+  JLPL_PIXI_VERSION: 0.39.3
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: prefix-dev/setup-pixi@v0.8.1
@@ -30,13 +31,20 @@ jobs:
           cache: true
           environments: build
       - run: pixi run build
-      - uses: actions/upload-artifact@v4
+      - run: mkdir -p build && echo ${{ github.run_number }} > .pixi/task-cache-v0/.skip-dist
+      - name: upload dist
+        uses: actions/upload-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-dist
-          path: ./dist
+          path: dist
+      - name: upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: jlpl-${{ github.run_number }}-build
+          path: .pixi/task-cache-v0
 
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: prefix-dev/setup-pixi@v0.8.1
@@ -54,12 +62,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {vm: macos-13,       test-env: test-oldest, browser: firefox}
-          - {vm: macos-latest,   test-env: test,        browser: chrome}
-          - {vm: ubuntu-latest,  test-env: test-oldest, browser: firefox}
-          - {vm: ubuntu-latest,  test-env: test,        browser: chromium}
-          - {vm: windows-latest, test-env: test-oldest, browser: firefox}
-          - {vm: windows-latest, test-env: test,        browser: chrome}
+          - {test-env: test-max,  vm: macos-latest,   browser: chrome}
+          - {test-env: test-max,  vm: ubuntu-24.04 ,  browser: chromium}
+          - {test-env: test-max,  vm: windows-latest, browser: chrome}
+          - {test-env: test-min,  vm: macos-13,       browser: firefox}
+          - {test-env: test-min,  vm: ubuntu-22.04 ,  browser: firefox}
+          - {test-env: test-min,  vm: windows-latest, browser: firefox}
+          - {test-env: test-next, vm: ubuntu-latest , browser: firefox}
     env:
       JLPL_BROWSER: ${{ matrix.browser }}
     steps:
@@ -69,22 +78,29 @@ jobs:
         with:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true
-          environments: ${{ matrix.test-env }}
-      - uses: actions/download-artifact@v4
+          environments: build ${{ matrix.test-env }}
+      - name: download dist
+        uses: actions/download-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-dist
-          path: ./dist
-      - run: pixi run -e=${{ matrix.test-env }} test-core
-      - run: pixi run -e=${{ matrix.test-env }} test
+          path: dist
+      - name: download build
+        uses: actions/download-artifact@v4
+        with:
+          name: jlpl-${{ github.run_number }}-build
+          path: .pixi/task-cache-v0
+      - run: pixi run -v ${{ matrix.test-env }}-pip
+      - run: pixi run ${{ matrix.test-env }}-cli
+      - run: pixi run ${{ matrix.test-env }}-core
+      - run: pixi run ${{ matrix.test-env }}-wd
       - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: |-
             jlpl-${{ github.run_number }}-${{ matrix.test-env }}-${{ matrix.vm }}
           path: |
-            ./.pixi/task-cache-v0
-            ./build/reports
-            ./contrib/*/build/reports
+            .pixi/task-cache-v0
+            build/reports
 
   docs:
     name: docs
@@ -97,15 +113,21 @@ jobs:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true
           environments: build docs
-      - uses: actions/download-artifact@v4
+      - name: download dist
+        uses: actions/download-artifact@v4
         with:
           name: jlpl-${{ github.run_number }}-dist
-          path: ./dist
+          path: dist
+      - name: download builds
+        uses: actions/download-artifact@v4
+        with:
+          name: jlpl-${{ github.run_number }}-build
+          path: .pixi/task-cache-v0
       - run: pixi run docs-lite
       - run: pixi run docs-sphinx
       - uses: actions/upload-artifact@v4
         with:
           name: |-
             jlpl-docs-${{ github.run_number }}
-          path: ./build/docs
+          path: build/docs
       - run: pixi run check

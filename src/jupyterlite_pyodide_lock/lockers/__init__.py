@@ -1,4 +1,8 @@
 """`pyodide-lock.json` resolvers."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
+
+from __future__ import annotations
 
 import warnings
 from functools import lru_cache
@@ -13,7 +17,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 @lru_cache(1)
-def get_locker_entry_points(force: Any = None) -> dict[str, "EntryPoint"]:
+def get_locker_entry_points(force: Any = None) -> dict[str, EntryPoint]:
     """Discover (and cache) modern entrypoints as a ``dict`` with sorted keys.
 
     Pass some noise (like ``date.date``) to the ``force`` argument to reload.

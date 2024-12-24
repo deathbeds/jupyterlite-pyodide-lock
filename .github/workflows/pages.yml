@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 env:
-  JLPL_PIXI_VERSION: 0.26.1
+  JLPL_PIXI_VERSION: 0.39.3
 
 jobs:
   build:
@@ -23,9 +23,9 @@ jobs:
         with:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true
-          environments: docs
-      - run: pixi run -e docs docs-lite
-      - run: pixi run -e docs docs
+          environments: build docs
+      - run: pixi run docs-lite
+      - run: pixi run docs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build/docs

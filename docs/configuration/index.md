@@ -7,7 +7,7 @@ Configuring JupyterLite to use `pyodide-lock` requires adding some data to
 >
 > Starting with the [core](./core.ipynb)'s
 > `PyodideLockAddon` and the naive `BrowserLocker` is recommended.
-> The [`WebDriverLocker`](./webdriver.ipynb)'s is more appropriate
+> The [`WebDriverLocker`](./webdriver.ipynb) is more appropriate
 > for projects that already use [selenium](https://selenium-python.readthedocs.io/)
 > for browser automation.
 

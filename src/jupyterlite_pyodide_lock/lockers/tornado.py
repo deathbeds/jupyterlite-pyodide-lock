@@ -1,4 +1,8 @@
 """Host a tornado web application to solve``pyodide-lock.json`` ."""
+# Copyright (c) jupyterlite-pyodide-lock contributors.
+# Distributed under the terms of the BSD-3-Clause License.
+
+from __future__ import annotations
 
 import atexit
 import json
@@ -67,7 +71,7 @@ class TornadoLocker(BaseLocker):
     be proxied from the configured URL.
     """
 
-    log: "Logger"
+    log: Logger
 
     port = Int(help="the port on which to listen").tag(config=True)
     host = Unicode("127.0.0.1", help="the host on which to bind").tag(config=True)
@@ -78,12 +82,12 @@ class TornadoLocker(BaseLocker):
 
     # runtime
     _context: dict[str, Any] = Dict()
-    _web_app: "Application" = Instance("tornado.web.Application")
-    _http_server: "HTTPServer" = Instance(
+    _web_app: Application = Instance("tornado.web.Application")
+    _http_server: HTTPServer = Instance(
         "tornado.httpserver.HTTPServer", allow_none=True
     )
     _handlers: tuple[THandler, ...] = TypedTuple(Tuple(Unicode(), Type(), Dict()))
-    _solve_halted: bool = Bool(False)
+    _solve_halted: bool = Bool(default_value=False)
 
     # API methods
     async def resolve(self) -> bool | None:
@@ -102,7 +106,7 @@ class TornadoLocker(BaseLocker):
             self.cleanup()
 
         if not self.lockfile_cache.exists():
-            self.log.error("No lockfile was created at %s", self.lockfile)
+            self.log.exception("No lockfile was created at %s", self.lockfile)
             return False
 
         found = self.collect()
@@ -167,7 +171,7 @@ class TornadoLocker(BaseLocker):
             try:
                 found.update(self.collect_one_package(package))
             except Exception:  # pragma: no cover
-                self.log.error("Failed to collect %s: %s", name, package, exc_info=1)
+                self.log.exception("Failed to collect %s: %s", name, package)
 
         return found
 
@@ -263,7 +267,7 @@ class TornadoLocker(BaseLocker):
 
     # trait defaults
     @default("_web_app")
-    def _default_web_app(self) -> "Application":
+    def _default_web_app(self) -> Application:
         """Build the web application."""
         from tornado.web import Application
 
@@ -274,11 +278,11 @@ class TornadoLocker(BaseLocker):
         return {"debug": True, "autoreload": False}
 
     @default("_handlers")
-    def _default_handlers(self) -> "TRouteRule":
+    def _default_handlers(self) -> TRouteRule:
         return make_handlers(self)
 
     @default("_http_server")
-    def _default_http_server(self) -> "HTTPServer":
+    def _default_http_server(self) -> HTTPServer:
         from tornado.httpserver import HTTPServer
 
         return HTTPServer(self._web_app)

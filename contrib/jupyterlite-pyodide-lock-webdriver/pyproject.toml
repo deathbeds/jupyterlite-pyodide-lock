@@ -8,8 +8,9 @@ build-backend = "flit_core.buildapi"
 name = "jupyterlite-pyodide-lock-webdriver"
 version = "0.1.0a0"
 description = "A WebDriver strategy for jupyterlite-pyodide-kernel-lock"
+license.text = "BSD-3-Clause"
 authors = [
-  {name = "JupyterLite Contributors"},
+  {name = "jupyterlite-pyodide-lock contributors"},
 ]
 readme = "README.md"
 classifiers = [
@@ -22,15 +23,14 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
 ]
 requires-python = ">=3.10"
 dependencies = [
   "jupyterlite-pyodide-lock ==0.1.0a0",
   "selenium >=4.19",
 ]
-
-[project.license]
-file = "LICENSE"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/deathbeds/jupyterlite-pyodide-lock/issues"
@@ -50,35 +50,9 @@ test = [
 ]
 
 [tool.flit.sdist]
-include = [
-  "tests/",
-]
-
-[tool.pytest.ini_options]
-cache_dir = "build/.cache/pytest"
-generate_report_on_test = true
-testpaths = [
-  "tests",
-]
-addopts = [
-  "--html=build/reports/pytest.html",
-  "--self-contained-html",
-  "--cov-report=html:build/reports/htmlcov",
-  "--cov-report=term-missing:skip-covered",
-  "--color=yes",
-  "--cov=jupyterlite_pyodide_lock_webdriver",
-  "--cov-branch",
-  "--cov-context=test",
-  "--no-cov-on-fail",
-  "--cov-fail-under=100",
-  "-Werror",
-  "--tb=long",
-  "--durations=3",
-  "-vv",
-]
+include = ["LICENSE", "tests/"]
 
 [tool.coverage.run]
-data_file = "build/reports/.coverage"
 disable_warnings = [
   "no-data-collected",
   "module-not-measured",
