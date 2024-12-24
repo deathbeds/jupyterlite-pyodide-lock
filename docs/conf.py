@@ -8,9 +8,7 @@ import datetime
 import os
 import re
 import subprocess
-import sys
 from pathlib import Path
-from pprint import pformat
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -23,10 +21,9 @@ CONF_PY = Path(__file__)
 HERE = CONF_PY.parent
 ROOT = HERE.parent
 PYPROJ = ROOT / "pyproject.toml"
-IS_RTD = os.getenv(RTD) == "True"
 
 
-if IS_RTD:
+if not os.getenv("PIXI_PROJECT_ROOT"):
     # provide a fake root doc
     root_doc = "rtd"
 
@@ -36,7 +33,6 @@ if IS_RTD:
         def _run_pixi(*_args: Any) -> None:
             args = ["pixi", "run", "docs-rtd"]
             env = {k: v for k, v in os.environ.items() if "PIXI_" not in k}
-            sys.stderr.write(f"ENV:{NL}{pformat(env)}{NL}")
             subprocess.check_call(args, env=env, cwd=str(ROOT))  # noqa: S603
 
         app.connect("build-finished", _run_pixi)
