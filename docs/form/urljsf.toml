@@ -28,30 +28,34 @@ below_project = """
 {% import "_pixi_toml" as pt %}
 {% import "_jlc_json" as jl %}
 
-Your `jupyter_lite_config.json`:
-
-```
-{{ jl.jlc_json(data) | trim }}
-```
-
 Your `pixi.toml`:
 
 ```
 {{ pt.pixi_toml(data) | trim }}
 ```
+
+_Wheels from any JupyterLab extensions will be included in the lock file,
+and will affect the solve._
+
+Your `jupyter_lite_config.json`:
+
+```
+{{ jl.jlc_json(data) | trim }}
+```
 """
 
 _pixi_toml = '''
 {% macro pixi_toml(d) %}
+{% set deps = [
+  ["jupyterlite-pyodide-lock-recommended", d.build.jlpl]
+] %}
 
 {{
   {
     "project": {
       "name": d.project.name
     },
-    "dependencies": {
-      "jupyterlite-pyodide-lock-recommended": d.build.jlpl
-    },
+    "dependencies": deps | from_entries,
     "tasks": {
       "build": {
         "cmd": "cd lite && jupyter lite archive"
