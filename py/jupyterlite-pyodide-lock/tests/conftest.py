@@ -50,8 +50,7 @@ if TYPE_CHECKING:
 
 HERE = Path(__file__).parent
 PKG = HERE.parent
-ROOT = PKG.parent.parent
-PPT = ROOT / "pyproject.toml"
+PPT = PKG / "pyproject.toml"
 
 WIDGETS_WHEEL = "ipywidgets-8.1.2-py3-none-any.whl"
 WIDGETS_URL = f"{C.FILES_PYTHON_HOSTED}/packages/py3/i/ipywidgets/{WIDGETS_WHEEL}"
@@ -255,6 +254,8 @@ def expect_no_diff(left_text: Path, right_text: Path, left: str, right: str) -> 
 
 # shared fixtures ###
 # the above is copied to ``contrib`` packages
+
+ROOT = PKG.parent.parent
 PXT = ROOT / "pixi.toml"
 
 

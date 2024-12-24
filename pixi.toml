@@ -297,7 +297,7 @@ inputs = ["build/pip-freeze/test-max.txt"]
 description = "├─ test core in the default test environment"
 cmd = "pixi r -e test-max pytest-core--"
 depends-on = ["test-max-pip", "test-max-cli"]
-inputs = ["pyproject.toml", "py/jupyterlite-pyodide-lock/tests/**/*.py", "dist/*.whl"]
+inputs = ["py/jupyterlite-pyodide-lock/tests/**/*.py", "dist/*.whl"]
 outputs = [
   "build/reports/test-max/jupyterlite-pyodide-lock/{pytest.html,htmlcov/status.json}",
 ]
@@ -333,7 +333,7 @@ inputs = ["build/pip-freeze/test-min.txt"]
 description = "├─ test core in the min test environment"
 cmd = "pixi r -e test-min pytest-core--"
 depends-on = ["test-min-pip", "test-min-cli"]
-inputs = ["pyproject.toml", "py/jupyterlite-pyodide-lock/tests/**/*.py", "dist/*.whl"]
+inputs = ["py/jupyterlite-pyodide-lock/tests/**/*.py", "dist/*.whl"]
 outputs = [
   "build/reports/test-min/jupyterlite-pyodide-lock/{pytest.html,htmlcov/status.json}",
 ]
@@ -369,7 +369,7 @@ inputs = ["build/pip-freeze/test-next.txt"]
 description = "├─ test core in the next test environment"
 cmd = "pixi r -e test-next pytest-core--"
 depends-on = ["test-next-pip", "test-next-cli"]
-inputs = ["pyproject.toml", "py/jupyterlite-pyodide-lock/tests/**/*.py", "dist/*.whl"]
+inputs = ["py/jupyterlite-pyodide-lock/tests/**/*.py", "dist/*.whl"]
 outputs = [
   "build/reports/test-next/jupyterlite-pyodide-lock/{pytest.html,htmlcov/status.json}",
 ]
@@ -411,6 +411,7 @@ cmd = """cd docs
 depends-on = ["docs-lite"]
 inputs = [
   "*.md",
+  "pyproject.toml",
   "build/docs-app/SHA256SUMS",
   "dist/*.whl",
   "docs/**/*.{css,ipynb,md,py}",

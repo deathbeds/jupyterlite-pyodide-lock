@@ -4,9 +4,7 @@
 
 from __future__ import annotations
 
-import datetime
 import os
-import re
 import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -20,7 +18,7 @@ NL = "\n"
 CONF_PY = Path(__file__)
 HERE = CONF_PY.parent
 ROOT = HERE.parent
-PYPROJ = ROOT / "py/jupyterlite-pyodide-lock/pyproject.toml"
+PYPROJ = ROOT / "pyproject.toml"
 
 
 if not os.getenv("PIXI_PROJECT_ROOT"):
@@ -38,98 +36,25 @@ if not os.getenv("PIXI_PROJECT_ROOT"):
         app.connect("build-finished", _run_pixi)
 
 else:
-    try:
+
+    def load_from_pyproject_toml() -> dict[str, Any]:
+        """Read templated sphinx config."""
+        import json
+
         import tomllib
-    except ImportError:
-        import tomli as tomllib
+        from jinja2 import Template
 
-    PROJ_DATA = tomllib.loads(PYPROJ.read_text(encoding="utf-8"))
-    RE_GH = (
-        r"https://github.com"
-        r"/(?P<github_user>.*?)"
-        r"/(?P<github_repo>.*?)"
-        r"/tree/(?P<github_version>.*)"
-    )
-    REPO_INFO = re.search(RE_GH, PROJ_DATA["project"]["urls"]["Source"])
-    NOW = datetime.datetime.now(tz=datetime.timezone.utc).date()
-    exclude_patterns = ["rtd.rst"]
+        proj_data = tomllib.loads(PYPROJ.read_text(encoding="utf-8"))
+        spx_j2 = proj_data["tool"]["sphinx-j2"]
+        print(*spx_j2.keys())  # noqa: T201
+        ctx = {
+            k: tomllib.load((ROOT / f"{v}").open("rb"))
+            for k, v in spx_j2["context"].items()
+        }
+        config = json.loads(Template(json.dumps(spx_j2["template"])).render(**ctx))
+        config.update(
+            intersphinx_mapping={k: (v, None) for k, v in spx_j2["intersphinx"].items()}
+        )
+        return config
 
-    # metadata
-    author = PROJ_DATA["project"]["authors"][0]["name"]
-    project = PROJ_DATA["project"]["name"]
-    copyright = f"{NOW.year}, {author}"
-
-    # The full version, including alpha/beta/rc tags
-    release = PROJ_DATA["project"]["version"]
-
-    # The short X.Y version
-    version = ".".join(release.rsplit(".", 1))
-
-    # sphinx config
-    extensions = [
-        "sphinx.ext.autodoc",
-        "sphinx_autodoc_typehints",
-        "sphinx.ext.intersphinx",
-        "sphinx.ext.viewcode",
-        "myst_nb",
-        "sphinx.ext.autosectionlabel",
-        "sphinx_copybutton",
-        "autodoc_traits",
-    ]
-
-    # content
-    autoclass_content = "both"
-    always_document_param_types = True
-    typehints_defaults = "comma"
-    typehints_use_signature_return = True
-    autodoc_default_options = {
-        "members": True,
-        "show-inheritance": True,
-        "undoc-members": True,
-    }
-    autosectionlabel_prefix_document = True
-    myst_heading_anchors = 3
-
-    on_rtd = lambda pkg, proj: {pkg: (f"https://{proj}.readthedocs.io/en/stable", None)}
-
-    intersphinx_mapping = {
-        "python": ("https://docs.python.org/3", None),
-        **on_rtd("jupyterlite_core", "jupyterlite"),
-        **on_rtd("traitlets", "traitlets"),
-        **on_rtd("jupyterlite_pyodide_kernel", "jupyterlite-pyodide-kernel"),
-    }
-
-    # warnings
-    suppress_warnings = ["autosectionlabel.*"]
-
-    # theme
-    templates_path = ["_templates"]
-    html_static_path = [
-        "../dist",
-        "../build/docs-app",
-        "_static",
-    ]
-    html_theme = "pydata_sphinx_theme"
-    html_css_files = ["theme.css"]
-
-    html_theme_options = {
-        "github_url": PROJ_DATA["project"]["urls"]["Source"],
-        "use_edit_page_button": REPO_INFO is not None,
-        "logo": {"text": PROJ_DATA["project"]["name"]},
-        "icon_links": [
-            {
-                "name": "PyPI",
-                "url": PROJ_DATA["project"]["urls"]["PyPI"],
-                "icon": "fa-brands fa-python",
-            }
-        ],
-        "navigation_with_keys": False,
-        "pygments_light_style": "github-light-colorblind",
-        "pygments_dark_style": "github-dark-colorblind",
-        "header_links_before_dropdown": 10,
-    }
-
-    html_sidebars: dict[str, Any] = {"demo": []}
-
-    if REPO_INFO is not None:
-        html_context = {**REPO_INFO.groupdict(), "doc_path": "docs"}
+    globals().update(load_from_pyproject_toml())
