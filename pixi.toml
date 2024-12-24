@@ -417,7 +417,6 @@ assert all(map(os.getenv, ['READTHEDOCS', 'READTHEDOCS_OUTPUT'])), 'not on ReadT
   && rm -rf $READTHEDOCS_OUTPUT/html
   && cp -r build/docs $READTHEDOCS_OUTPUT/html
 """
-depends-on = ["docs-sphinx"]
 
 # checking
 [feature.tasks-check.tasks.check-links]

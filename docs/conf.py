@@ -34,11 +34,7 @@ if IS_RTD:
 
         def _run_pixi(*_args: Any) -> None:
             args = ["pixi", "run", "-v", "docs-rtd"]
-            env = {
-                k: v
-                for k, v in sorted(os.environ.items())
-                if k != RTD and not k.startswith("PIXI_")
-            }
+            env = {k: v for k, v in os.environ.items() if "PIXI_" not in k}
             sys.stderr.write(f"ENV: {pformat(env)}")
             subprocess.check_call(args, env=env, cwd=str(ROOT))  # noqa: S603
 
