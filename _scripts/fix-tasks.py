@@ -49,7 +49,10 @@ def one_task(
     for fs in ["inputs", "outputs"]:
         if fs in old_task:
             new_task[fs] = [
-                i.replace(f"/{BASE_EPOCH}/", f"/{epoch}/") for i in old_task.get(fs, [])
+                i.replace(f"/{BASE_EPOCH}/", f"/{epoch}/").replace(
+                    f"/{BASE_EPOCH}.", f"/{epoch}."
+                )
+                for i in old_task.get(fs, [])
             ]
     return new_task_name, new_task
 
@@ -83,7 +86,10 @@ def main() -> int:
     if new_ptd_json != old_ptd_json:
         new_toml = tomlkit.dumps(ptd).strip() + NL
         diff = unified_diff(
-            old_toml.strip().splitlines(), new_toml.strip().splitlines(), "OLD", "NEW"
+            new_ptd_json.strip().splitlines(),
+            old_ptd_json.strip().splitlines(),
+            "OLD",
+            "NEW",
         )
         sys.stderr.write(NL.join(diff))
         sys.stderr.write(f"{NL}!!! writing new `pixi.toml`{NL}")
