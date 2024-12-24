@@ -9,10 +9,14 @@ schema = "./project.schema.toml"
 [templates]
 url = """
 {% import "_pixi_toml" as pt %}
+{% import "_jlc_json" as jl %}
 
 {{
   {
-    "pixi.toml": pt.pixi_toml(data) | trim
+    "pixi.toml": pt.pixi_toml(data) | trim,
+    "lite": {
+      "jupyter_lite_config.json": jl.jlc_json(data) | trim
+    }
   } | to_zip_url
 }}
 """
@@ -20,10 +24,11 @@ submit_button = "Download Project Archive"
 download_filename = "{{ data.project.name }}.zip"
 
 below_build = """
+{% import "_jlc_json" as jl %}
 Your `jupyter_lite_config.json`:
 
 ```
-{{ {"foo": "bar"} | to_json }}
+{{ jl.jlc_json(data) | trim }}
 ```
 
 """
@@ -50,7 +55,11 @@ _pixi_toml = '''
     },
     "tasks": {
       "build": {
-        "cmd": "jupyter lite archive"
+        "cmd": "cd lite && jupyter lite archive"
+      },
+      "serve": {
+        "cmd": "cd lite/_output && python -m http.server -b 127.0.0.1",
+        "depends-on": ["build"]
       }
     }
   }
@@ -58,6 +67,23 @@ _pixi_toml = '''
   | replace(r/(\[.*?\]\n)+(\[.*?\]\n)/gm, "$2")
   | replace(r/\n\n(\n+)/g, "\n\n")
   | trim
+}}
+
+{% endmacro %}
+'''
+
+_jlc_json = '''
+{% macro jlc_json(d) %}
+
+{{
+  {
+    "PyodideLockAddon": {
+      "enabled": true,
+      "locker": "BrowserLocker",
+      "specs": d.pyodide.specs
+    }
+  }
+  | to_json
 }}
 
 {% endmacro %}

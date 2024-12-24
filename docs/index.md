@@ -1,9 +1,18 @@
-<section class="jlpl-hero">
+<div class="container"><div class="row">
+
+<section class="jlpl-hero col-md-5">
 
 🕹️ Try the [demo](./demo.md)
 
 </section>
 
+<section class="jlpl-hero col-md-5">
+
+🎛️ Start a JupyterLite project with a [form](./form/index.md)
+
+</section>
+
+</div></div>
 
 ```{include} ../README.md
 

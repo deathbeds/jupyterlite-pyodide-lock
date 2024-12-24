@@ -47,7 +47,7 @@ html_css_files = ["theme.css"]
 
 [template.html_sidebars]
 demo = []
-form = []
+"form/index" = []
 
 [template.html_theme_options]
 logo = {text = "{{ ppt.project.name }}"}
