@@ -50,7 +50,7 @@ _pixi_toml = '''
       "name": d.project.name
     },
     "dependencies": {
-      "jupyterlite-pyodide-lock-with-recommended": "0.1.0a0"
+      "jupyterlite-pyodide-lock-recommended": d.build.jlpl
     },
     "tasks": {
       "build": {

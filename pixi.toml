@@ -19,12 +19,15 @@ ALL tasks to prepare for a release""", depends-on = [
   "build",
   "docs",
   "check",
+  "test",
+], cmd = "echo 🚢"}
+test = {description = """
+🚀 run ALL tests""", depends-on = [
+  "test-meta",
   "test-max",
   "test-min",
   "test-next",
-], cmd = "echo 🚢"}
-test-all = {description = """
-🚀 run ALL tests""", depends-on = ["test", "test-min", "test-next"], cmd = "echo 🚀"}
+], cmd = "echo 🚀"}
 fix = {description = """
 🧹 fix ALL source files""", cmd = "echo 🧹", depends-on = [
   "fix-tasks",
@@ -131,7 +134,7 @@ description = "├ fix python with ruff"
 cmd = "ruff check --fix-only && ruff format"
 depends-on = ["fix-conftest"]
 inputs = [
-  "{_scripts,src,tests,docs,contrib}/**/*.{ipynb,py}",
+  "{_scripts,py,tests,docs,contrib}/**/*.{ipynb,py}",
   "pyproject.toml",
   "!**/.*",
 ]
@@ -140,7 +143,7 @@ inputs = [
 description = "├ check python with ruff"
 cmd = "ruff check && ruff format --check"
 inputs = [
-  "{_scripts,src,tests,docs,contrib}/**/*.{ipynb,py}",
+  "{_scripts,py,tests,docs,contrib}/**/*.{ipynb,py}",
   "pyproject.toml",
   "!**/.*",
 ]
@@ -302,6 +305,14 @@ cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock-webdriver
   && export JLPL_TEST_MOD=jupyterlite_pyodide_lock_webdriver
   && export JLPL_TEST_CWD=py/jupyterlite-pyodide-lock-webdriver
   && pixi r pytest--"""
+
+# meta testing
+[feature.tasks-test-repo.tasks.test-meta]
+cmd = """
+cd py/jupyterlite-pyodide-lock
+&& pytest -k test_repo -vv
+"""
+depends-on = ["test-max-pip"]
 
 # testing default ##############################################################
 [feature.tasks-test-max.tasks.test-max-pip]
@@ -637,6 +648,7 @@ test-max = {features = [
   "deps-run",
   "deps-test",
   "deps-webdriver",
+  "tasks-test-repo",
   "tasks-test-max",
 ]}
 test-min = {features = [

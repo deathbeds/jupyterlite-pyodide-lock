@@ -273,6 +273,12 @@ def the_pixi_version(the_pixi_manifest: dict[str, Any]) -> str:
     return re.findall(r"/v(.*?)/", the_pixi_manifest["$schema"])[0]
 
 
+@pytest.fixture(scope="session")
+def the_py_version(the_pyproject: dict[str, Any]) -> str:
+    """Provide the source of truth for the python version."""
+    return the_pyproject["project"]["version"]
+
+
 @pytest.fixture
 def a_lite_config(a_lite_dir: Path) -> Path:
     """Provide a configured ``jupyter_lite_config.json``."""
