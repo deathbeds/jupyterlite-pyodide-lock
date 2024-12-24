@@ -3,3 +3,10 @@
 title = "JupyterLite Build Configuration"
 description = "This form builds the input to `jupyter lite build`."
 type = "object"
+required = ["specs"]
+
+[properties.specs]
+description = "`pip`-compatible specs for python packages"
+type = "array"
+items = {type = "string"}
+minItems = 1
