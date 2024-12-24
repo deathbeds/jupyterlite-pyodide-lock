@@ -14,7 +14,7 @@ Configuring JupyterLite to use `pyodide-lock` requires adding some data to
 ## Locker-specific Configuration
 
 ```{toctree}
-:maxdepth: 3
+:maxdepth: 4
 
 core
 webdriver

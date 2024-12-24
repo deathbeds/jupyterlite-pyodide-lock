@@ -27,7 +27,7 @@ ENV_VAR_ALL = [ENV_VAR_BROWSER, ENV_VAR_LOCK_DATE_EPOCH, ENV_VAR_TIMEOUT]
 #: the entry point name for locker implementations
 LOCKER_ENTRYPOINT = f"{NAME.replace('-', '_')}.locker.v0"
 
-#: a base name for lock-related filesssss
+#: a base name for lock-related files
 PYODIDE_LOCK_STEM = PYODIDE_LOCK.split(".")[0]
 
 #: the URL prefix for proxies
@@ -95,7 +95,7 @@ CHROME = "chrome"
 #: collection of chromium-like browsers
 CHROMIUMLIKE = {CHROMIUM, CHROME}
 
-#: unsafe, but often neccessary, CLI argument for chromium in CI
+#: unsafe, but often necessary, CLI argument for chromium in CI
 CHROMIUM_NO_SANDBOX = "--no-sandbox"
 
 BROWSERS = [FIREFOX, CHROMIUM, CHROME]

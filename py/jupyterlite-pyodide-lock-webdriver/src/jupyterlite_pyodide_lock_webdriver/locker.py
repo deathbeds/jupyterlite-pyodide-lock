@@ -45,7 +45,7 @@ class WebDriverLocker(TornadoLocker):
         config=True
     )  # type: ignore[assignment]
     webdriver_env: dict[str, str] = Dict(
-        Unicode(), help="custom enviroment variable overrides"
+        Unicode(), help="custom environment variable overrides"
     ).tag(config=True)  # type: ignore[assignment]
 
     # runtime

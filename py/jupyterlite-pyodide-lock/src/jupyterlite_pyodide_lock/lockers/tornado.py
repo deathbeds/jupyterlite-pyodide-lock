@@ -62,7 +62,7 @@ class TornadoLocker(BaseLocker):
 
         * ``/log``
 
-    GET of a Warehhouse/pythonhosted CDN proxied to configured remote URLs:
+    GET of a Warehouse/pythonhosted CDN proxied to configured remote URLs:
 
         * ``/_proxy/pypi``
         * ``/_proxy/pythonhosted``

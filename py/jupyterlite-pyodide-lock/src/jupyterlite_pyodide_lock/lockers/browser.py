@@ -83,8 +83,8 @@ class BrowserLocker(TornadoLocker):
         allow_none=True,
     ).tag(config=True)
     temp_profile: bool = Bool(
-        default_value=False,
-        help="run the browser with a temporary profile: incompatible with ``profile``",
+        default_value=True,
+        help="run the browser with a temporary profile: clobbered by ``profile``",
     ).tag(config=True)
 
     # runtime

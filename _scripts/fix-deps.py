@@ -24,7 +24,7 @@ def fix_deps(
     upstream: Path,
     downstream: Path,
 ) -> int:
-    """Replace a pyproject.toml dependency from an upstream."""
+    """Replace a ``pyproject.toml`` dependency from an upstream."""
     up = loads(upstream.read_text(**UTF8))
     up_version = up["project"]["version"]
     up_name = up["project"]["name"]

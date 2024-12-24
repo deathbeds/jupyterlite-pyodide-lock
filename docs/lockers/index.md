@@ -1,7 +1,7 @@
 # Lockers
 
-The default `BrowserLocker` uses python's built-in process management tools to
-control browsers.
+The default [`BrowserLocker`](../configuration/core.html#BrowserLocker) uses
+python's built-in process management tools to control browsers.
 
 The following are separately-installable packages that require additional
 dependencies, but may be more appropriate for a given JupyterLite site.

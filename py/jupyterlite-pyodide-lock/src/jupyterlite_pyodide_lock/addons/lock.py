@@ -119,7 +119,7 @@ class PyodideLockAddon(_BaseAddon):
     packages: tuple[str] = TypedTuple(
         Unicode(),
         help=(
-            "URLs of packages, or local (folders of) packages for pyodide depdendencies"
+            "URLs of packages, or local (folders of) packages for pyodide dependencies"
         ),
     ).tag(config=True)
 
@@ -227,7 +227,7 @@ class PyodideLockAddon(_BaseAddon):
         """Collect all the packages and generate a ``pyodide-lock.json`` file.
 
         This includes those provided by federated labextensions (such as
-        ``jupyterlite-pyodide-kernel`` iteself), copied during
+        ``jupyterlite-pyodide-kernel`` itself), copied during
         ``build:federated_extensions``.
         """
         if not self.enabled:  # pragma: no cover

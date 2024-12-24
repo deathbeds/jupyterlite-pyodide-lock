@@ -27,7 +27,7 @@ logger = getLogger(__name__)
 
 
 def warehouse_date_to_epoch(iso8601_str: str) -> int:
-    """Convert a Warehouse upload date to a UNIX epoch timeestamp."""
+    """Convert a Warehouse upload date to a UNIX epoch timestamp."""
     formats = WAREHOUSE_UPLOAD_FORMAT_ANY
     for format_str in formats:
         try:
@@ -44,7 +44,7 @@ def warehouse_date_to_epoch(iso8601_str: str) -> int:
 
 
 def epoch_to_warehouse_date(epoch: int) -> str:
-    """Convert a UNIX epoch timeestamp to a Warehouse upload date."""
+    """Convert a UNIX epoch timestamp to a Warehouse upload date."""
     return datetime.fromtimestamp(epoch, tz=timezone.utc).strftime(
         WAREHOUSE_UPLOAD_FORMAT
     )

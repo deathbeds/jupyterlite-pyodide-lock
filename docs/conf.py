@@ -18,7 +18,7 @@ NL = "\n"
 CONF_PY = Path(__file__)
 HERE = CONF_PY.parent
 ROOT = HERE.parent
-PYPROJ = ROOT / "pyproject.toml"
+SPX_J2 = HERE / "sphinx-j2.toml"
 
 
 if not os.getenv("PIXI_PROJECT_ROOT"):
@@ -44,11 +44,10 @@ else:
         import tomllib
         from jinja2 import Template
 
-        proj_data = tomllib.loads(PYPROJ.read_text(encoding="utf-8"))
-        spx_j2 = proj_data["tool"]["sphinx-j2"]
+        spx_j2 = tomllib.loads(SPX_J2.read_text(encoding="utf-8"))
         print(*spx_j2.keys())  # noqa: T201
         ctx = {
-            k: tomllib.load((ROOT / f"{v}").open("rb"))
+            k: tomllib.load((HERE / f"{v}").open("rb"))
             for k, v in spx_j2["context"].items()
         }
         config = json.loads(Template(json.dumps(spx_j2["template"])).render(**ctx))

@@ -1,185 +1,76 @@
 # jupyterlite-pyodide-lock
 
-> Create pre-solved environments for jupyterlite-pyodide-kernel with pyodide-lock.
+> Build reproducible Jupyter Lite sites with [jupyterlite-pyodide-kernel][jlpk]
+> and [pyodide-lock][pl].
 
-## Installing
+View the full documentation on [ReadTheDocs][rtfd].
 
-> This package is not yet released. See `CONTRIBUTING.md` for development.
+[jlpk]: https://github.com/jupyterlite/pyodide-kernel
+[pl]: https://github.com/pyodide/pyodide-lock
+[rtfd]: https://jupyterlite-pyodide-lock.rtfd.org/en/latest
+
+## Example
+
+> **⚠️ EXPERIMENTAL**
 >
-> ```
-> pip install jupyterlite-pyodide-lock
-> ```
->
-> or mamba/conda:
->
-> ```bash
-> mamba install -c conda-forge jupyterlite-pyodide-lock
-> ```
+> These packages are not yet released. See the [GitHub repo][gh] for development
+> status.
 
-## Why Use This?
+[gh]: https://github.com/deathbeds/jupyterlite-pyodide-lock
 
-- in the browser
-  - fetches `pyodide-kernel`, its dependencies, and configured packages in parallel
-    while `pyodide` is starting, skpping `micropip.install` and its requests to
-    the PyPI API
-  - doesn't require `%pip install` for locked packages and their dependencies
-    - notebooks and scripts still need to be well-formed, e.g. `import my_package`
-    - once shipped, package versions loaded in the browser won't change over time
-- during a build
-  - doesn't require rebuilding a full custom `pyodide` distribution
-    - but will patch an custom deployed `pyodide`
-    - all downloaded wheels can be optionally shipped along with the application
-  - optionally clamp PyPI packages to a known timestamp to ensure newer packages
-    aren't found during a future solve
-  - supports multiple sources of custom wheels and dependencies
+To build an offline-hostable JupyterLite site:
 
-### Feature Comparison
+- Get `mamba`, `micromamba`, `conda`, or some other `$CONDA_EXE` (e.g. [Miniforge][mf])
+- Make an `environment.yml` with the `recommended` packages:
 
-A number of approaches are available for getting reproducible JupyterLite runtime
-python environments, either with `jupyterlite-pyodide-kernel` or other kernels.
-Choosing one requires some trades of simplicity, reproducibility, flexibility,
-and performance.
+  ```yaml
+  channels:
+    - conda-forge
+    # the next line will eventually be removed
+    - https://jupyterlite-pyodide-lock.rtfd.org/en/latest/_static
+  dependencies:
+    - jupyterlite-pyodide-lock-recommended ==0.1.0a0
+  ```
 
-> **Note**
->
-> Each tool is evolving, so the tables below should be verified against the
-> different tools when making a decision.
 
-<details>
+- Configure `jupyter_lite_config.json` to install packages:
 
-<summary>A <b>visitor</b> to a JupyterLite site's needs may be the top priority...</summary>
-
-|                               feature | `jupyterlite-pyodide-lock` | `piplite`    | [jupyterlite-xeus] | [micropip]  |
-| ------------------------------------: | -------------------------- | ------------ | ------------------ | ----------- |
-| needs separate `install` and `import` | no (for locked packages)   | yes (`%pip`) | no                 | no          |
-|           allows install by PyPI name | yes                        | yes          | no                 | yes         |
-|               allows install from URL | yes                        | yes          | no                 | yes         |
-|        blocks interaction per package | run cell                   | run cell     | start kernel       | run cell    |
-|                 caches in the browser | per package                | per package  | whole environment  | per package |
-
-</details>
-
-<details>
-
-<summary>An <b>author</b> of a JupyterLite site may have additional needs...</summary>
-
-|                                 feature | `jupyterlite-pyodide-lock`       | `piplite` | [jupyterlite-xeus]  | [pyodide-build]  |
-| --------------------------------------: | -------------------------------- | --------- | ------------------- | ---------------- |
-|     requires "heavy" build dependencies | real browser (and/or `selenium`) | no        | minimal, _see repo_ | many, _see repo_ |
-|                      ships local wheels | yes                              | yes       | maybe?              | yes              |
-|                ships noarch PyPI wheels | yes                              | yes       | yes                 | yes              |
-|         ships pyodide emscripten wheels | yes                              | yes       | no                  | yes              |
-|      ships arbitrary pyodide zip C libs | no                               | yes       | no                  | yes              |
-| locks multiple versions of same package | no                               | yes       | no                  | no               |
-|         optionally clamp to a timestamp | yes                              | no        | no                  | no               |
-
-</details>
-
-[jupyterlite-xeus]: https://github.com/jupyterlite/xeus
-[emscripten-forge]: https://github.com/emscripten-forge
-[pyodide-build]: https://github.com/pyodide/pyodide/tree/main/pyodide-build
-[micropip]: https://github.com/pyodide/micropip
-
-## Usage
-
-### Configure
-
-#### Requirements
-
-A number of ways to add requirements to the lock file are supported:
-
-- adding wheels in `{lite_dir}/static/pyodide-lock`
-- configuring `specs` as a list of PEP508 dependency specs
-- configuring `packages` as a list of
-  - URLs to remote wheels that will be downloaded and cached
-  - local paths relative to `lite_dir` of `.whl` files (or folders of wheels)
-
-```yaml
-# examples/jupyter_lite_config.json
-{ "PyodideLockAddon": { "enabled": true, "specs": [
-          # pep508 spec
-          "ipywidgets >=8.1,<8.2",
-        ], "packages": [
-          # a wheel
-          "../dist/ipywidgets-8.1.2-py3-none-any.whl",
-          # a folder of wheels
-          "../dist",
-        ] } }
-```
-
-#### Lockers
-
-The _Locker_ is responsible for starting a browser, executing `micopip.install`
-and `micropip.freeze` to try to get a viable lock file solution.
-
-```yaml
-{ "PyodideLockAddon": {
+  ```json
+  {
+    "PyodideLockAddon": {
       "enabled": true,
-      # the default locker: uses naive a `subprocess.Popen` approach
-      "locker": "browser",
-    }, "BrowserLocker": {
-      # requires `firefox` or `firefox.exe` on PATH
-      "browser": "firefox",
-      "headless": true,
-      "private_mode": true,
-      "temp_profile": true,
-    } }
-```
+      "offline": true,
+      "specs": ["ipywidgets >=8.1,<8.2"]
+    }
+  }
+  ```
 
-A convenience CLI options will show some information about detected browsers:
+- Activate the `jlpl` environment and run:
 
-```bash
-jupyter pyodide-lock browsers
-```
+  ```bash
+  jupyter lite archive
+  ```
 
-#### Reproducible Locks
+- In `_output`, there should be:
+  - `static/pyodide-lock`, containing a
+    - `pyodide-lock.json` and all the novel packages for
+    - `static/pyodide` a minimal subset of the `pyodide` distribution
 
-By configuring the _lock date_ to a UNIX epoch timestamp, artifacts from a PyPI
-index newer than that date will be filtered out before a lock is attempted.
+- Start an HTTP server of the built site:
 
-Combined with a fixed `pyodide_url` archive, this should prevent known packages
-and their dependencies from "drifting."
+  ```bash
+  cd _output
+  python -m http.server -b 127.0.0.1
+  ```
 
-```yaml
-{
-  "PyodideAddon":
-    {
-      "pyodide_url": f"https://github.com/pyodide/pyodide/releases/download/0.25.0/pyodide-core-0.25.0.tar.bz2",
-    },
-  "PyodideLockAddon": { "enabled": true, "lock_date_epoch": 1712980201 },
-}
-```
+- Open your browser to `https://127.0.0.1:8000`
 
-Alternately, this can be provided by environemnt variable:
+- In-browser `Python (Pyodide)` kernels should have all the packages installed,
+  ready to `import ipywidgets`.
 
-```bash
-JLPL_LOCK_DATE_EPOCH=$(date -u +%s) jupyter lite build
-```
+[mf]: https://github.com/conda-forge/miniforge
 
-<details>
+### Next Steps
 
-<summary>Getting a <code>lock_date_epoch</code></summary>
-
-As shown in the example above, `date` can provide this:
-
-```bash
-date -u +%s
-```
-
-Or `python`:
-
-```py
->>> from datetime import datetime, timezone
->>> int(datetime.now(tz=timezone.utc).timestamp())
-```
-
-...or `git`, for the last commit time of a file:
-
-```bash
-git log -1 --format=%ct requirements.txt
-```
-
-The latter approch, using version control metadata, is recommended, as it
-shifts the burden of bookkeeping to a verifiable source.
-
-</details>
+- add more packages and repeat
+- learn more on [ReadTheDocs][rtfd]
