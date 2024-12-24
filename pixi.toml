@@ -156,9 +156,11 @@ cmd = """
     --option=indent_string="  "
     pyproject.toml
     pixi.toml
-    py/*/pyproject.toml"""
+    py/*/*.toml
+    docs/*.toml
+    docs/form/*.toml"""
 depends-on = ["fix-deps"]
-inputs = ["*.toml", "py/*/*.toml", "!**/.*"]
+inputs = ["*.toml", "{py,docs}/**/*.toml", "!**/.*"]
 
 [feature.tasks-lint.tasks.fix-conftest]
 description = "├ add templated conftest"
@@ -597,6 +599,7 @@ requests = "*"
 sphinx = "*"
 sphinx-autodoc-typehints = "*"
 sphinx-copybutton = "*"
+urljsf = "*"
 
 [feature.deps-check.dependencies]
 pytest-check-links = "*"

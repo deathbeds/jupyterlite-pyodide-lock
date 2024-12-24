@@ -1,0 +1,67 @@
+"$schema" = "https://urljsf.rtfd.org/en/latest/_static/urljsf/schema/v0/form.schema.json"
+
+[forms.build]
+schema = "./build.schema.toml"
+
+[forms.project]
+schema = "./project.schema.toml"
+
+[templates]
+url = """
+{% import "_pixi_toml" as pt %}
+
+{{
+  {
+    "pixi.toml": pt.pixi_toml(data) | trim
+  } | to_zip_url
+}}
+"""
+submit_button = "Download Project Archive"
+download_filename = "{{ data.project.name }}.zip"
+
+below_build = """
+Your `jupyter_lite_config.json`:
+
+```
+{{ {"foo": "bar"} | to_json }}
+```
+
+"""
+
+below_project = """
+{% import "_pixi_toml" as pt %}
+Your `pixi.toml`:
+
+```
+{{ pt.pixi_toml(data) | trim }}
+```
+"""
+
+_pixi_toml = '''
+{% macro pixi_toml(d) %}
+
+{{
+  {
+    "project": {
+      "name": d.project.name
+    },
+    "dependencies": {
+      "jupyterlite-pyodide-lock-with-recommended": "0.1.0a0"
+    },
+    "tasks": {
+      "build": {
+        "cmd": "jupyter lite archive"
+      }
+    }
+  }
+  | to_toml
+  | replace(r/(\[.*?\]\n)+(\[.*?\]\n)/gm, "$2")
+  | replace(r/\n\n(\n+)/g, "\n\n")
+  | trim
+}}
+
+{% endmacro %}
+'''
+
+[nunjucks]
+filters = ["toml", "json", "zip", "yaml"]

@@ -79,6 +79,7 @@ and performance.
 :maxdepth: 2
 
 demo
+form/index
 configuration/index
 lockers/index
 changelog

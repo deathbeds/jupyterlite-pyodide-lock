@@ -5,7 +5,9 @@ _.+_
 (all|any|one)Of
 (Browser|Base|Tornado)Locker
 (e\.g\.|i\.e\.)
+(JSON|TOML|YAML)
 (platforms/pythons|and/or|Fix/lint)
+(xkcd|XKCD)
 [A-Z]+[\d]+
 [a-zA-Z\d_.]+\(
 @default
@@ -34,7 +36,6 @@ entrypoints
 firefox
 found_path
 ignore\[.*
-JSON
 Jupyter(|Lite)
 labextensions
 libs
@@ -80,6 +81,7 @@ tornado_settings
 TornadoLoacker
 trait_name
 traitlets
+urljsf
 Warehouse/pythonhosted
 WebAssembly
 webdriver|WebDriver

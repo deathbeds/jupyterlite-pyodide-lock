@@ -23,6 +23,7 @@ extensions = [
   "sphinx.ext.autosectionlabel",
   "sphinx_copybutton",
   "autodoc_traits",
+  "urljsf.sphinxext",
 ]
 suppress_warnings = ["autosectionlabel.*", "myst.xref_missing"]
 exclude_patterns = ["rtd.rst"]
@@ -44,10 +45,11 @@ html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static", "../dist", "../build/docs-app"]
 html_css_files = ["theme.css"]
 
-[tool.sphinx.html_sidebars]
+[template.html_sidebars]
 demo = []
+form = []
 
-[tool.sphinx.html_theme_options]
+[template.html_theme_options]
 logo = {text = "{{ ppt.project.name }}"}
 github_url = "{{ ppt.project.urls.Source }}"
 pygments_dark_style = "github-dark-colorblind"
@@ -56,3 +58,25 @@ navigation_with_keys = false
 icon_links = [
   {name = "PyPI", url = "{{ ppt.project.urls.PyPI }}", icon = "fa-brands fa-python", type = "fontawesome"},
 ]
+
+## urljsf
+[template.urljsf]
+no_bootstrap = true
+
+[template.urljsf.style]
+--bs-body-bg = "var(--pst-color-background)"
+--bs-body-color = "var(--pst-color-text-base)"
+--bs-border-color = "var(--pst-color-border)"
+--bs-card-bg = "var(--pst-color-surface)"
+--bs-card-cap-bg = "var(--pst-color-danger-bg)"
+--bs-danger-text-emphasis = "var(--pst-color-danger-highlight)"
+--bs-secondary-color = "var(--pst-color-text-base)"
+--bs-tertiary-bg = "var(--pst-color-on-background)"
+
+[template.urljsf.style.".list-group"]
+--bs-list-group-bg = "var(--pst-color-background)"
+--bs-list-group-color = "var(--pst-color-text-base)"
+--bs-list-group-border-color = "var(--pst-color-border)"
+
+[template.urljsf.style."h1, h2, h3, h4, h5, h6"]
+margin = "0"
