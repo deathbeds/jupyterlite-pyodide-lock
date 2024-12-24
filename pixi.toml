@@ -313,6 +313,7 @@ cd py/jupyterlite-pyodide-lock
 && pytest -k test_repo -vv
 """
 depends-on = ["test-max-pip"]
+inputs = ["py/*/pyproject.toml", "CHANGELOG", "docs/form", "pixi.toml", ".github"]
 
 # testing default ##############################################################
 [feature.tasks-test-max.tasks.test-max-pip]
@@ -430,6 +431,15 @@ depends-on = ["build"]
 inputs = ["dist/*.whl"]
 outputs = ["build/pip-freeze/docs.txt"]
 
+[feature.tasks-docs.tasks.docs-scour]
+description = "- optimize SVG for docs with scour"
+cmd = """export SCOUR_ARGS="scour --enable-id-stripping --enable-comment-stripping"
+  && cd docs/_static
+  && $SCOUR_ARGS icon-inkscape.svg icon.svg"""
+inputs = ["docs/_static/*-inkscape.svg"]
+outputs = ["docs/_static/*.svg", "docs/_static/*.svg", "!*inkscape.svg"]
+
+
 [feature.tasks-docs.tasks.docs-lite]
 description = "├ build a demo site with jupyter-lite"
 cmd = """cd examples
@@ -443,7 +453,7 @@ description = "├ build documentation with sphinx"
 cmd = """cd docs
   && export PYDEVD_DISABLE_FILE_VALIDATION=1
   && sphinx-build -W --keep-going --color -b html . ../build/docs"""
-depends-on = ["docs-lite"]
+depends-on = ["docs-lite", "docs-scour"]
 inputs = [
   "*.md",
   "py/*/*.toml",
@@ -607,6 +617,7 @@ pydata-sphinx-theme = "*"
 pypandoc = "*"
 python-libarchive-c = "*"
 requests = "*"
+scour = "*"
 sphinx = "*"
 sphinx-autodoc-typehints = "*"
 sphinx-copybutton = "*"

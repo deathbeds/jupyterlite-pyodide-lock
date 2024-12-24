@@ -505,6 +505,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/rich-13.9.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/rpds-py-0.22.3-py312h12e396e_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ruff-0.8.3-py312h2156523_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/scour-0.38.2-pyhd8ed1ab_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/linux-64/secretstorage-3.3.3-py312h7900ff3_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/selenium-4.27.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/selenium-manager-4.27.0-h8fae777_0.conda
@@ -745,6 +746,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/rich-13.9.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/rpds-py-0.22.3-py313h3c055b9_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/ruff-0.8.3-py313h2493e73_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/scour-0.38.2-pyhd8ed1ab_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/selenium-4.27.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/selenium-manager-4.27.0-h371c88c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/send2trash-1.8.3-pyh31c8845_1.conda
@@ -984,6 +986,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/rich-13.9.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/rpds-py-0.22.3-py313hdde674f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ruff-0.8.3-py313heab95af_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/scour-0.38.2-pyhd8ed1ab_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/selenium-4.27.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/selenium-manager-4.27.0-h0716509_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/send2trash-1.8.3-pyh31c8845_1.conda
@@ -1216,6 +1219,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/rich-13.9.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/rpds-py-0.22.3-py313hf3b5b86_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/ruff-0.8.3-py313h331c231_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/scour-0.38.2-pyhd8ed1ab_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/selenium-4.27.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/selenium-manager-4.27.0-ha073cba_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/send2trash-1.8.3-pyh5737063_1.conda
@@ -1476,6 +1480,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/rfc3986-validator-0.1.1-pyh9f0ad1d_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/rich-13.9.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/rpds-py-0.22.3-py312h12e396e_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/scour-0.38.2-pyhd8ed1ab_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/linux-64/secretstorage-3.3.3-py312h7900ff3_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/selenium-4.27.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/selenium-manager-4.27.0-h8fae777_0.conda
@@ -1704,6 +1709,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/rfc3986-validator-0.1.1-pyh9f0ad1d_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/rich-13.9.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/rpds-py-0.22.3-py313h3c055b9_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/scour-0.38.2-pyhd8ed1ab_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/selenium-4.27.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/selenium-manager-4.27.0-h371c88c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/send2trash-1.8.3-pyh31c8845_1.conda
@@ -1931,6 +1937,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/rfc3986-validator-0.1.1-pyh9f0ad1d_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/rich-13.9.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/rpds-py-0.22.3-py313hdde674f_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/scour-0.38.2-pyhd8ed1ab_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/selenium-4.27.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/selenium-manager-4.27.0-h0716509_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/send2trash-1.8.3-pyh31c8845_1.conda
@@ -2157,6 +2164,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/rfc3986-validator-0.1.1-pyh9f0ad1d_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/rich-13.9.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/rpds-py-0.22.3-py313hf3b5b86_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/scour-0.38.2-pyhd8ed1ab_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/selenium-4.27.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/selenium-manager-4.27.0-ha073cba_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/send2trash-1.8.3-pyh5737063_1.conda
@@ -8221,6 +8229,16 @@ packages:
   license_family: MIT
   size: 6918580
   timestamp: 1734067315832
+- conda: https://conda.anaconda.org/conda-forge/noarch/scour-0.38.2-pyhd8ed1ab_0.tar.bz2
+  sha256: db6fe6d0ba722e78f1aa41eaae7ed0d6fd30e4e024fb35e40460bb392006cff0
+  md5: 59d6742bdfe7b3d54c01c0d999e939f0
+  depends:
+  - python >=3.4
+  - six >=1.9.0
+  license: Apache-2.0
+  license_family: Apache
+  size: 53809
+  timestamp: 1606099747654
 - conda: https://conda.anaconda.org/conda-forge/linux-64/secretstorage-3.3.3-py312h7900ff3_3.conda
   sha256: c6d5d0bc7fb6cbfa3b8be8f2399a3c1308b3392a4e20bd1a0f29a828fda5ab20
   md5: 4840da9db2808db946a0d979603c6de4

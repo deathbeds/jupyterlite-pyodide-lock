@@ -44,6 +44,8 @@ myst_heading_anchors = 3
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static", "../dist", "../build/docs-app"]
 html_css_files = ["theme.css"]
+html_logo = "_static/icon.svg"
+html_favicon = "_static/icon.svg"
 
 [template.html_sidebars]
 demo = []
