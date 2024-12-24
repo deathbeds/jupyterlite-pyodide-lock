@@ -8,19 +8,19 @@ form_data = "./build.data.toml"
 schema = "./project.schema.toml"
 
 [templates]
-url = """
+url = '''
 {% import "_pixi_toml" as pt %}
 {% import "_jlc_json" as jl %}
+{% set ignore = [".pixi", "_output", "*.doit.*"] %}
 
 {{
   {
-    "pixi.toml": pt.pixi_toml(data) | trim,
-    "lite": {
-      "jupyter_lite_config.json": jl.jlc_json(data) | trim
-    }
+    ".gitignore": ignore | join("\n"),
+    "pixi.toml": (pt.pixi_toml(data) | trim).val,
+    "lite": { "jupyter_lite_config.json": (jl.jlc_json(data) | trim).val }
   } | to_zip_url
 }}
-"""
+'''
 submit_button = "Download Project Archive"
 download_filename = "{{ data.project.name }}.zip"
 
