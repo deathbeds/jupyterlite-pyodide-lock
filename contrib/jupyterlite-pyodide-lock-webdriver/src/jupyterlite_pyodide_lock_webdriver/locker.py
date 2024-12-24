@@ -12,8 +12,8 @@ from typing import Any, cast
 from jupyterlite_core.trait_types import TypedTuple
 from traitlets import Bool, Dict, Instance, List, Unicode, default
 
-from jupyterlite_pyodide_lock.constants import BROWSERS as CORE_BROWSERS
 from jupyterlite_pyodide_lock.constants import ENV_VAR_BROWSER, FIREFOX
+from jupyterlite_pyodide_lock.lockers.browser import BROWSERS as CORE_BROWSERS
 from jupyterlite_pyodide_lock.lockers.tornado import TornadoLocker
 from jupyterlite_pyodide_lock.utils import find_browser_binary
 
