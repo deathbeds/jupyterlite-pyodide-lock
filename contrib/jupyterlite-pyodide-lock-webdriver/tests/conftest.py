@@ -223,7 +223,10 @@ def patch_config(config_path: Path, **configurables: dict[str, Any]) -> Path:
         config = json.loads(config_path.read_text(**UTF8))
     for cls_name, values in configurables.items():
         config.setdefault(cls_name, {}).update(values)
-    config_path.write_text(json.dumps(config, **JSON_FMT), **UTF8)
+    json_text = json.dumps(config, **JSON_FMT)
+    config_path.write_text(json_text, **UTF8)
+    print("patched config")
+    print(json_text)
     return config_path
 
 

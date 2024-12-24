@@ -12,6 +12,7 @@ from typing import Any, cast
 from jupyterlite_core.trait_types import TypedTuple
 from traitlets import Bool, Dict, Instance, List, Unicode, default
 
+from jupyterlite_pyodide_lock.constants import BROWSERS as CORE_BROWSERS
 from jupyterlite_pyodide_lock.constants import ENV_VAR_BROWSER, FIREFOX
 from jupyterlite_pyodide_lock.lockers.tornado import TornadoLocker
 from jupyterlite_pyodide_lock.utils import find_browser_binary
@@ -153,7 +154,12 @@ class WebDriverLocker(TornadoLocker):
             self.log.debug("[webdriver] %s path %s", browser, self.browser_path)
             options.binary_location = self.browser_path  # type: ignore[attr-defined]
 
-        for opt in self.webdriver_option_arguments:
+        opts = [*self.webdriver_option_arguments]
+
+        if self.headless:
+            opts += CORE_BROWSERS[browser]["headless"]
+
+        for opt in opts:
             self.log.debug("[webdriver] adding %s option %s", browser, opt)
             options.add_argument(opt)
 
