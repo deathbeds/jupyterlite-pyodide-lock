@@ -160,8 +160,7 @@ cmd = """
     pyproject.toml
     pixi.toml
     py/*/*.toml
-    docs/*.toml
-    docs/form/*.toml"""
+    docs/*.toml"""
 depends-on = ["fix-deps"]
 inputs = ["*.toml", "{py,docs}/**/*.toml", "!**/.*"]
 
@@ -621,7 +620,6 @@ scour = "*"
 sphinx = "*"
 sphinx-autodoc-typehints = "*"
 sphinx-copybutton = "*"
-urljsf = "*"
 
 [feature.deps-check.dependencies]
 pytest-check-links = "*"

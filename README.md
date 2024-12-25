@@ -45,6 +45,9 @@ To build an offline-hostable JupyterLite site:
   }
   ```
 
+  - for locally-built (or pre-downloaded) wheels, configure `packages`, e.g.
+    `{"PyodideLockAddon": {"packages": ["some-noarch.whl", "dist/]}}`
+
 - Activate the `jlpl` environment and run:
 
   ```bash

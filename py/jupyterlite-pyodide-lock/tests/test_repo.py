@@ -17,7 +17,6 @@ PIXI_PATTERNS = {
 }
 
 PY_PATTERNS = {
-    "docs/form/build.data.toml": [r"""jlpl = "([^"]+)"""],
     "py/*/pyproject.toml": [r"""version = "([^"]+)"""],
     "CHANGELOG.md": [
         r"""## `([\d\.abcr]+?)`""",
@@ -42,7 +41,7 @@ def test_repo_py_version(the_py_version: str, glob: str) -> None:
 def _verify_patterns(
     what: str, version: str, glob: str, patterns: dict[str, list[str]]
 ) -> None:
-    """Verify some versions againt glob patterns."""
+    """Verify some versions against glob patterns."""
     paths = sorted(ROOT.glob(glob))
     assert paths, f"no paths matched {glob}"
     for path in paths:

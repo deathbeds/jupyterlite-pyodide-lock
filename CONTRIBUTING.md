@@ -42,16 +42,10 @@ See all the project info:
 pixi info
 ```
 
-See just the available top-level `pixi` tasks:
+See the available top-level `pixi` tasks:
 
 ```bash
 pixi task list
-```
-
-See just the tasks that run in e.g. the `test` environment:
-
-```bash
-pixi task list -e test
 ```
 
 ### Running Tasks
@@ -65,9 +59,10 @@ pixi run build
 pixi run lint
 pixi run docs
 pixi run check
+pixi run test   # this takes a pretty long time
 ```
 
-Some tasks run, and need to be stopped with <kbd>ctrl+c</kbd>:
+Some tasks run until stopped with <kbd>ctrl+c</kbd>:
 
 ```bash
 pixi run serve-lab
