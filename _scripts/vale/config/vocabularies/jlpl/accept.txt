@@ -32,9 +32,11 @@ discoverable
 emscripten
 endmacro
 entrypoints
+extra_exclude
 firefox
 found_path
 ignore\[.*
+IPython
 Jupyter(|Lite)
 labextensions
 libs
@@ -51,6 +53,7 @@ package_cache
 package_dir
 param
 pixi
+pkg_(name|info)
 pragma
 preload_packages
 preloaded

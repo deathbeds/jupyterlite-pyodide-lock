@@ -9,6 +9,13 @@
 .. automodule:: jupyterlite_pyodide_lock.addons.lock
 ```
 
+### PyodideLockOfflineAddon
+
+```{eval-rst}
+.. currentmodule:: jupyterlite_pyodide_lock
+.. automodule:: jupyterlite_pyodide_lock.addons.offline
+```
+
 ## Lockers
 
 ### BrowserLocker

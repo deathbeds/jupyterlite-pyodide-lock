@@ -13,7 +13,7 @@ from jupyterlite_core.addons import entry_points
 from jupyterlite_pyodide_lock.constants import LOCKER_ENTRYPOINT, NAME
 
 if TYPE_CHECKING:  # pragma: no cover
-    from importlib_metadata import EntryPoint
+    from importlib.metadata import EntryPoint
 
 
 @lru_cache(1)

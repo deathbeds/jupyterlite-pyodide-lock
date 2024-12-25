@@ -60,6 +60,9 @@ PYODIDE_CORE_URL = (
     f"pyodide-core-{PYODIDE_VERSION}.tar.bz2"
 )
 
+#: a regular expression for crudely detecting remote URLs
+RE_REMOTE_URL = r"^https?://"
+
 #: the default URL for python wheels
 FILES_PYTHON_HOSTED = "https://files.pythonhosted.org"
 

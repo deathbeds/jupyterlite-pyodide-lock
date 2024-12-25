@@ -19,75 +19,61 @@ import pkginfo
 from doit.tools import config_changed
 from jupyterlite_core.constants import JUPYTERLITE_JSON, LAB_EXTENSIONS, UTF8
 from jupyterlite_core.trait_types import TypedTuple
-from jupyterlite_pyodide_kernel.addons._base import _BaseAddon  # noqa: PLC2701
 from jupyterlite_pyodide_kernel.constants import (
     ALL_WHL,
     PKG_JSON_PIPLITE,
     PKG_JSON_WHEELDIR,
     PYODIDE_LOCK,
 )
-from traitlets import Bool, CInt, Enum, Unicode, default
+from traitlets import CInt, Enum, Unicode, default
 
 from jupyterlite_pyodide_lock import __version__
+from jupyterlite_pyodide_lock.addons._base import BaseAddon
 from jupyterlite_pyodide_lock.constants import (
     ENV_VAR_LOCK_DATE_EPOCH,
     LOAD_PYODIDE_OPTIONS,
     OPTION_LOCK_FILE_URL,
     OPTION_PACKAGES,
-    PYODIDE_ADDON,
     PYODIDE_CDN_URL,
     PYODIDE_CORE_URL,
     PYODIDE_LOCK_STEM,
+    RE_REMOTE_URL,
     WAREHOUSE_UPLOAD_FORMAT,
 )
 from jupyterlite_pyodide_lock.lockers import get_locker_entry_points
 
 if TYPE_CHECKING:  # pragma: no cover
-    from collections.abc import Generator
     from importlib.metadata import EntryPoint
     from logging import Logger
     from pathlib import Path
 
     from jupyterlite_core.manager import LiteManager
-    from jupyterlite_pyodide_kernel.addons.pyodide import PyodideAddon
 
+    from jupyterlite_pyodide_lock.addons._base import TTaskGenerator
     from jupyterlite_pyodide_lock.lockers._base import BaseLocker
-
-    TTaskGenerator = Generator[None, None, dict[str, Any]]
 
 LOCKERS = get_locker_entry_points()
 
 
-class PyodideLockAddon(_BaseAddon):
+class PyodideLockAddon(BaseAddon):
     """Patches a ``pyodide``  to include ``pyodide-kernel`` and custom packages.
 
     Can handle PEP508 specs, wheels, and their dependencies.
 
-    Special ``pyodide``-specific ``.zip`` packages are `not` supported.
+    Special ``pyodide``-specific ``.zip`` packages are not supported.
     """
 
-    __all__: ClassVar = ["pre_status", "status", "post_init", "post_build"]
+    #: advertise JupyterLite lifecycle hooks
+    __all__: ClassVar = ["status", "post_init", "post_build"]
 
     log: Logger
 
     # cli
-    flags: ClassVar = {
-        "pyodide-lock": (
-            {"PyodideLockAddon": {"enabled": True}},
-            "enable 'pyodide-lock' features",
-        ),
-    }
-
     aliases: ClassVar = {
         "pyodide-lock-date-epoch": "PyodideLockAddon.lock_date_epoch",
     }
 
-    # traits
-    enabled: bool = Bool(
-        default_value=False,
-        help="whether experimental 'pyodide-lock' integration is enabled",
-    ).tag(config=True)
-
+    # traitlets
     locker = Enum(
         default_value="BrowserLocker",
         values=[*LOCKERS.keys()],
@@ -104,16 +90,16 @@ class PyodideLockAddon(_BaseAddon):
             "a URL, folder, or path to a pyodide distribution, patched into"
             " ``PyodideAddon.pyodide_url``"
         ),
-    )
+    )  # type: ignore[assignment]
 
     pyodide_cdn_url: str = Unicode(
         default_value=PYODIDE_CDN_URL,
         help="the URL prefix for all packages not managed by ``pyodide-lock``",
-    )
+    )  # type: ignore[assignment]
 
     specs: tuple[str] = TypedTuple(
         Unicode(),
-        help="raw pep508 requirements for pyodide dependencies",
+        help="PEP-508 specifications for pyodide dependencies",
     ).tag(config=True)
 
     packages: tuple[str] = TypedTuple(
@@ -161,22 +147,9 @@ class PyodideLockAddon(_BaseAddon):
             "Trigger reproducible locks, clamping available "
             "package timestamps to this value"
         ),
-    ).tag(config=True)
+    ).tag(config=True)  # type: ignore[assignment]
 
-    # API methods
-
-    def pre_status(self, manager: LiteManager) -> TTaskGenerator:
-        """Patch configuration of ``PyodideAddon`` if needed."""
-        if not self.enabled or self.pyodide_addon.pyodide_url:
-            return
-
-        self.pyodide_addon.pyodide_url = self.pyodide_url
-
-        yield self.task(
-            name="patch:pyodide",
-            actions=[lambda: print("    PyodideAddon.pyodide_url was patched")],
-        )
-
+    # JupyterLite API methods
     def status(self, manager: LiteManager) -> TTaskGenerator:
         """Report on the status of ``pyodide-lock``."""
 
@@ -258,17 +231,21 @@ class PyodideLockAddon(_BaseAddon):
         }
 
         config_str = f"""
-            lock date:     {self.lock_date_epoch}
-            locker:        {self.locker}
-            locker_config: {self.locker_config}
-            args:          {pprint.pformat(args)}
+            args:                   {pprint.pformat(args)}
+            lock date:              {self.lock_date_epoch}
+            locker:                 {self.locker}
+            locker_config:          {self.locker_config}
+            offline:                {self.offline_includes}
+            offline_excludes:       {self.offline_excludes}
+            offline_extra_exclude:  {self.offline_extra_exclude}
+            offline_prune:          {self.offline_prune}
         """
 
         yield self.task(
             name="lock",
             uptodate=[config_changed(config_str)],
             actions=[(self.lock, [], args)],
-            file_dep=[
+            file_dep=[  # type: ignore[misc]
                 *args["packages"],
                 *lock_dep_wheels,
                 self.pyodide_addon.output_pyodide / PYODIDE_LOCK,
@@ -287,7 +264,7 @@ class PyodideLockAddon(_BaseAddon):
     # actions
     def lock(self, packages: list[Path], specs: list[str], lockfile: Path) -> bool:
         """Generate the lockfile."""
-        locker_ep: EntryPoint = LOCKERS.get(self.locker)
+        locker_ep: EntryPoint | None = LOCKERS.get(self.locker)
 
         if locker_ep is None:  # pragma: no cover
             return False
@@ -308,7 +285,9 @@ class PyodideLockAddon(_BaseAddon):
 
         if self.lockfile.exists():
             self.lockfile.unlink()
+
         locker.resolve_sync()
+
         return self.lockfile.exists()
 
     def patch_config(self, jupyterlite_json: Path) -> None:
@@ -345,29 +324,9 @@ class PyodideLockAddon(_BaseAddon):
 
     # derived properties
     @property
-    def pyodide_addon(self) -> PyodideAddon:
-        """The manager's pyodide addon, which will be reconfigured if needed."""
-        return self.manager._addons[PYODIDE_ADDON]  # noqa: SLF001
-
-    @property
     def well_known_packages(self) -> Path:
         """The location of ``.whl`` in the ``{lite_dir}`` to pick up."""
-        return self.manager.lite_dir / "static" / PYODIDE_LOCK_STEM
-
-    @property
-    def lockfile(self) -> Path:
-        """The ``pyodide-lock.json`` file in the ``{output_dir}``."""
-        return self.lock_output_dir / PYODIDE_LOCK
-
-    @property
-    def lock_output_dir(self) -> Path:
-        """The folder where the ``pyodide-lock.json`` and packages will be stored."""
-        return self.manager.output_dir / "static" / PYODIDE_LOCK_STEM
-
-    @property
-    def package_cache(self) -> Path:
-        """The root of the ``pyodide-lock`` cache."""
-        return self.manager.cache_dir / PYODIDE_LOCK_STEM
+        return self.lite_dir / "static" / f"{PYODIDE_LOCK_STEM}"
 
     @property
     def federated_wheel_dirs(self) -> list[Path]:
@@ -414,15 +373,15 @@ class PyodideLockAddon(_BaseAddon):
         self, path_or_url: str | Path, cache_root: Path
     ) -> TTaskGenerator:
         """Download a wheel, and copy to the cache."""
-        if re.findall(r"^https?://", path_or_url):
-            url = urllib.parse.urlparse(path_or_url)
+        if re.findall(RE_REMOTE_URL, f"{path_or_url}"):
+            url = urllib.parse.urlparse(f"{path_or_url}")
             name = f"""{url.path.split("/")[-1]}"""
             cached = cache_root / name
             if not cached.exists():
                 yield self.task(
                     name=f"fetch:{name}",
                     doc=f"fetch the wheel {name}",
-                    actions=[(self.fetch_one, [path_or_url, cached])],
+                    actions=[(self.fetch_one, [f"{path_or_url}", cached])],
                     targets=[cached],
                 )
             yield from self.copy_wheel(cached)
@@ -456,7 +415,7 @@ class PyodideLockAddon(_BaseAddon):
             actions=[(self.copy_one, [wheel, dest])],
         )
 
-    def get_packages(self) -> dict[str, Path]:
+    def get_packages(self) -> list[Path]:
         """Find all file-based packages to install with ``micropip``."""
         package_dirs = [
             *self.federated_wheel_dirs,
@@ -471,6 +430,9 @@ class PyodideLockAddon(_BaseAddon):
 
         for wheel in sorted(wheels, key=lambda x: x.name):
             metadata = pkginfo.get_metadata(str(wheel))
+            if not metadata:
+                self.log.error("[lock] failed to parse wheel metadata for %s", wheel)
+                continue
             named_packages[metadata.name] = wheel
 
         return sorted(named_packages.values())

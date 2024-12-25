@@ -9,7 +9,13 @@ warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
 ignore_missing_imports = true
-module = ["ipywidgets", "jsonpointer"]
+module = [
+  "ipywidgets",
+  "jsonpointer",
+  "jupyterlite_core.*",
+  "jupyterlite_pyodide_kernel.*",
+  "doit.*",
+]
 
 [tool.pylsp-mypy]
 enabled = true
@@ -78,7 +84,7 @@ ignore = [
 "*/jupyterlite_pyodide_lock_webdriver/locker.py" = [
   "BLE001",
 ]
-"*/lock.py" = [
+"*/addons/*.py" = [
   "ARG002",
   "T201",
   "BLE001",

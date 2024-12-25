@@ -79,8 +79,7 @@ and performance.
 
 demo
 configuration/index
-lockers/index
-changelog
 api/index
+changelog
 contributing
 ```
