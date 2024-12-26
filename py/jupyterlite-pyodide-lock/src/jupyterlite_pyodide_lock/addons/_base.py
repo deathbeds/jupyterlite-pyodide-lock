@@ -24,7 +24,7 @@ from jupyterlite_pyodide_lock.constants import (
     PYODIDE_LOCK_STEM,
 )
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from collections.abc import Generator
     from logging import Logger
 

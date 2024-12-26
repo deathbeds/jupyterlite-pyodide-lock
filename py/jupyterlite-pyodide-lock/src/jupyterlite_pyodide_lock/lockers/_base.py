@@ -16,7 +16,7 @@ from traitlets.config import LoggingConfigurable
 
 from jupyterlite_pyodide_lock.constants import ENV_VAR_TIMEOUT, FILES_PYTHON_HOSTED
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from jupyterlite_pyodide_lock.addons.lock import PyodideLockAddon
 
 

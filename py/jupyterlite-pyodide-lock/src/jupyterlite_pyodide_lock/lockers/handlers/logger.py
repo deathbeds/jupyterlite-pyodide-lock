@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from tornado.web import RequestHandler
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from logging import Logger
 
 

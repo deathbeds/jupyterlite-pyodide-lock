@@ -24,7 +24,7 @@ from .logger import Log
 from .mime import ExtraMimeFiles
 from .solver import SolverHTML
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from collections.abc import Callable
 
     from jupyterlite_pyodide_lock.lockers.browser import BrowserLocker

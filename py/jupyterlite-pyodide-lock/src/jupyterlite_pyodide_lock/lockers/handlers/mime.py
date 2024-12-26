@@ -12,7 +12,7 @@ from tornado.web import StaticFileHandler
 
 from jupyterlite_pyodide_lock.constants import FILE_EXT_MIME_MAP
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from logging import Logger
 
 

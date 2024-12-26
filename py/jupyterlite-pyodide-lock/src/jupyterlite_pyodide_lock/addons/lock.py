@@ -38,7 +38,7 @@ from jupyterlite_pyodide_lock.constants import (
 )
 from jupyterlite_pyodide_lock.lockers import get_locker_entry_points
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from importlib.metadata import EntryPoint
     from logging import Logger
     from pathlib import Path
@@ -268,6 +268,7 @@ class PyodideLockAddon(BaseAddon):
             name="patch",
             actions=[(self.patch_config, [jupyterlite_json, self.lockfile])],
             file_dep=[jupyterlite_json, self.lockfile],
+            uptodate=[config_changed(config_str)],
         )
 
     # actions
@@ -414,7 +415,7 @@ class PyodideLockAddon(BaseAddon):
 
         for wheel in sorted(wheels, key=lambda x: x.name):
             metadata = pkginfo.get_metadata(str(wheel))
-            if not metadata:
+            if not metadata:  # pragma: no cover
                 self.log.error("[lock] failed to parse wheel metadata for %s", wheel)
                 continue
             named_packages[metadata.name] = wheel

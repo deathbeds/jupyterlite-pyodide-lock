@@ -29,7 +29,7 @@ from jupyterlite_pyodide_lock.constants import (
 from ._base import BaseLocker
 from .handlers import make_handlers
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from logging import Logger
 
     from tornado.httpserver import HTTPServer

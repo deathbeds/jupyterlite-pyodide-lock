@@ -12,7 +12,6 @@
   },
   "PyodideLockOfflineAddon": {
     "enabled": true,
-    "prune": true,
     "extra_includes": ["^ipywidgets$"]
   },
   "BrowserLocker": {

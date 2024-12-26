@@ -8,7 +8,14 @@ import os
 
 from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK, PYODIDE_VERSION
 
-__all__ = ["LOCKER_ENTRYPOINT", "LOCK_HTML", "NAME", "PROXY", "PYODIDE_LOCK_STEM"]
+__all__ = [
+    "LOCKER_ENTRYPOINT",
+    "LOCK_HTML",
+    "NAME",
+    "PROXY",
+    "PYODIDE_LOCK_OFFLINE",
+    "PYODIDE_LOCK_STEM",
+]
 
 #: this distribution name
 NAME = "jupyterlite-pyodide-lock"
@@ -29,6 +36,9 @@ LOCKER_ENTRYPOINT = f"{NAME.replace('-', '_')}.locker.v0"
 
 #: a base name for lock-related files
 PYODIDE_LOCK_STEM = PYODIDE_LOCK.split(".")[0]
+
+#: the default name for a re-solved offline lockfile
+PYODIDE_LOCK_OFFLINE = f"{PYODIDE_LOCK}-offline.json"
 
 #: the URL prefix for proxies
 PROXY = "_proxy"

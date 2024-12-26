@@ -62,12 +62,16 @@ def test_cli_good_build(
     lite_cli: TLiteRunner, a_lite_config_with_widgets: Path
 ) -> None:
     """Verify a build works, twice."""
-    from jupyterlite_pyodide_lock.constants import PYODIDE_LOCK_STEM
+    from jupyterlite_pyodide_lock.constants import (
+        PYODIDE_LOCK_OFFLINE,
+        PYODIDE_LOCK_STEM,
+    )
 
     a_lite_dir = a_lite_config_with_widgets.parent
     out = a_lite_dir / "_output"
     lock_dir = out / "static" / PYODIDE_LOCK_STEM
     lock = lock_dir / PYODIDE_LOCK
+    lock_offline = lock_dir / PYODIDE_LOCK_OFFLINE
 
     lite_cli("build", "--debug")
     lock_text = lock.read_text(**UTF8)
@@ -79,6 +83,26 @@ def test_cli_good_build(
     relock_text = lock.read_text(**UTF8)
 
     expect_no_diff(lock_text, relock_text, "build", "rebuild")
+
+    patch_config(
+        a_lite_config_with_widgets,
+        PyodideLockOfflineAddon={"enabled": True, "extra_includes": ["ipywidgets"]},
+    )
+    lite_cli("build", "--debug")
+    pyodide_lock.PyodideLockSpec.from_json(lock_offline)
+    offline_text = lock_offline.read_text(**UTF8)
+    assert "https://" in offline_text
+
+    patch_config(
+        a_lite_config_with_widgets,
+        PyodideLockOfflineAddon={
+            "prune": True,
+        },
+    )
+    lite_cli("build", "--debug")
+    pyodide_lock.PyodideLockSpec.from_json(lock_offline)
+    pruned_text = lock_offline.read_text(**UTF8)
+    assert "https://" not in pruned_text
 
 
 def test_cli_bad_build(lite_cli: TLiteRunner, a_lite_config: Path) -> None:

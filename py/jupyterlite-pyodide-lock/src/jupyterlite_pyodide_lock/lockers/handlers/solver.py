@@ -11,7 +11,7 @@ from jupyterlite_core.constants import UTF8
 from tornado.template import Template
 from tornado.web import RequestHandler
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from logging import Logger
 
 

@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 from jupyterlite_core.constants import JSON_FMT, UTF8
 from tornado.web import RequestHandler
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from jupyterlite_pyodide_lock.lockers.browser import BrowserLocker
 
 

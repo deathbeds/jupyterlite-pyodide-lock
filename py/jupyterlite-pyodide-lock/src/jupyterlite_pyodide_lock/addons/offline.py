@@ -10,6 +10,7 @@ import urllib.parse
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any, ClassVar
 
+from doit.tools import config_changed
 from jupyterlite_core.constants import JSON_FMT, JUPYTERLITE_JSON, UTF8
 from jupyterlite_core.trait_types import TypedTuple
 from jupyterlite_pyodide_kernel.constants import PYODIDE
@@ -18,9 +19,13 @@ from traitlets import Bool, Unicode, default
 
 from jupyterlite_pyodide_lock import __version__
 from jupyterlite_pyodide_lock.addons._base import BaseAddon
-from jupyterlite_pyodide_lock.constants import PYODIDE_LOCK_STEM, RE_REMOTE_URL
+from jupyterlite_pyodide_lock.constants import (
+    PYODIDE_LOCK_OFFLINE,
+    PYODIDE_LOCK_STEM,
+    RE_REMOTE_URL,
+)
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from logging import Logger
     from pathlib import Path
 
@@ -92,7 +97,7 @@ class PyodideLockOfflineAddon(BaseAddon):
     @property
     def offline_lockfile(self) -> Path:
         """A convenience property for a derived offline ``pyodide-lock`` output."""
-        return self.lockfile.parent / f"{PYODIDE_LOCK_STEM}-offline.json"
+        return self.lockfile.parent / PYODIDE_LOCK_OFFLINE
 
     # JupyterLite API methods
     def status(self, manager: LiteManager) -> TTaskGenerator:
@@ -102,12 +107,12 @@ class PyodideLockOfflineAddon(BaseAddon):
             from textwrap import indent
 
             lines = [
-                f"""version:      {__version__}""",
                 f"""enabled:      {self.enabled}""",
                 f"""includes:     {"  ".join(self.includes)}""",
                 f""" + extra:     {"  ".join(self.extra_includes)}""",
                 f"""excludes:     {"  ".join(self.excludes)}""",
                 f""" - extra:     {"  ".join(self.extra_excludes)}""",
+                f"""version:      {__version__}""",
             ]
             print(indent("\n".join(lines), "    "), flush=True)
 
@@ -118,11 +123,18 @@ class PyodideLockOfflineAddon(BaseAddon):
         if not self.enabled:  # pragma: no cover
             return
 
+        config_str = f"""
+            includes:  {self.includes} {self.extra_includes}
+            excludes:  {self.excludes} {self.extra_excludes}
+            prune:     {self.prune}
+        """
+
         yield dict(
             name="offline",
             actions=[self.resolve_offline],
             file_dep=[self.lockfile],
             targets=[self.offline_lockfile],
+            uptodate=[config_changed(config_str)],
         )
 
         jupyterlite_json = self.output_dir / JUPYTERLITE_JSON
@@ -131,6 +143,7 @@ class PyodideLockOfflineAddon(BaseAddon):
             name="patch",
             actions=[(self.patch_config, [jupyterlite_json, self.offline_lockfile])],
             file_dep=[jupyterlite_json, self.lockfile, self.offline_lockfile],
+            uptodate=[config_changed(config_str)],
         )
 
     # offline logic
