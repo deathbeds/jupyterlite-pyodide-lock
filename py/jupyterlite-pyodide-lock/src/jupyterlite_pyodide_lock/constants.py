@@ -38,7 +38,7 @@ LOCKER_ENTRYPOINT = f"{NAME.replace('-', '_')}.locker.v0"
 PYODIDE_LOCK_STEM = PYODIDE_LOCK.split(".")[0]
 
 #: the default name for a re-solved offline lockfile
-PYODIDE_LOCK_OFFLINE = f"{PYODIDE_LOCK}-offline.json"
+PYODIDE_LOCK_OFFLINE = f"{PYODIDE_LOCK_STEM}-offline.json"
 
 #: the URL prefix for proxies
 PROXY = "_proxy"

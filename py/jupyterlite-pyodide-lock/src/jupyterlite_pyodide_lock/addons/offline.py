@@ -194,7 +194,7 @@ class PyodideLockOfflineAddon(BaseAddon):
             dest_url = f"../../static/{PYODIDE}/{whl_name}"
 
         if not dest.exists():
-            if not cache_whl.exists():
+            if not cache_whl.exists():  # pragma: no cover
                 self.fetch_one(pkg_info["file_name"], cache_whl)
             self.copy_one(cache_whl, dest)
 
