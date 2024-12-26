@@ -12,7 +12,6 @@ import pprint
 import re
 import urllib.parse
 from datetime import datetime, timezone
-from hashlib import sha256
 from typing import TYPE_CHECKING, Any, ClassVar
 
 import pkginfo
@@ -31,9 +30,6 @@ from jupyterlite_pyodide_lock import __version__
 from jupyterlite_pyodide_lock.addons._base import BaseAddon
 from jupyterlite_pyodide_lock.constants import (
     ENV_VAR_LOCK_DATE_EPOCH,
-    LOAD_PYODIDE_OPTIONS,
-    OPTION_LOCK_FILE_URL,
-    OPTION_PACKAGES,
     PYODIDE_CDN_URL,
     PYODIDE_CORE_URL,
     PYODIDE_LOCK_STEM,
@@ -64,7 +60,7 @@ class PyodideLockAddon(BaseAddon):
     """
 
     #: advertise JupyterLite lifecycle hooks
-    __all__: ClassVar = ["status", "post_init", "post_build"]
+    __all__: ClassVar = ["pre_status", "status", "post_init", "post_build"]
 
     log: Logger
 
@@ -150,6 +146,19 @@ class PyodideLockAddon(BaseAddon):
     ).tag(config=True)  # type: ignore[assignment]
 
     # JupyterLite API methods
+
+    def pre_status(self, manager: LiteManager) -> TTaskGenerator:
+        """Patch configuration of ``PyodideAddon`` if needed."""
+        if not self.enabled or self.pyodide_addon.pyodide_url:
+            return
+
+        self.pyodide_addon.pyodide_url = self.pyodide_url
+
+        yield self.task(
+            name="patch:pyodide",
+            actions=[lambda: print("    PyodideAddon.pyodide_url was patched")],
+        )
+
     def status(self, manager: LiteManager) -> TTaskGenerator:
         """Report on the status of ``pyodide-lock``."""
 
@@ -209,6 +218,7 @@ class PyodideLockAddon(BaseAddon):
         out = self.pyodide_addon.output_pyodide
         out_lockfile = out / PYODIDE_LOCK
         out_lock = json.loads(out_lockfile.read_text(**UTF8))
+
         lock_dep_wheels = []
 
         for dep in self.bootstrap_wheels:
@@ -235,10 +245,6 @@ class PyodideLockAddon(BaseAddon):
             lock date:              {self.lock_date_epoch}
             locker:                 {self.locker}
             locker_config:          {self.locker_config}
-            offline:                {self.offline_includes}
-            offline_excludes:       {self.offline_excludes}
-            offline_extra_exclude:  {self.offline_extra_exclude}
-            offline_prune:          {self.offline_prune}
         """
 
         yield self.task(
@@ -253,11 +259,15 @@ class PyodideLockAddon(BaseAddon):
             targets=[self.lockfile],
         )
 
-        jupyterlite_json = self.manager.output_dir / JUPYTERLITE_JSON
+        if self.pyodide_lock_offline_addon.enabled:
+            self.log.warning("[lock] deferring patch to PyodideLockOfflineAddon")
+            return
+
+        jupyterlite_json = self.output_dir / JUPYTERLITE_JSON
 
         yield self.task(
             name="patch",
-            actions=[(self.patch_config, [jupyterlite_json])],
+            actions=[(self.patch_config, [jupyterlite_json, self.lockfile])],
             file_dep=[jupyterlite_json, self.lockfile],
         )
 
@@ -290,31 +300,6 @@ class PyodideLockAddon(BaseAddon):
 
         return self.lockfile.exists()
 
-    def patch_config(self, jupyterlite_json: Path) -> None:
-        """Update the runtime ``jupyter-lite-config.json``."""
-        self.log.debug("[lock] patching %s for pyodide-lock", jupyterlite_json)
-
-        settings = self.get_pyodide_settings(jupyterlite_json)
-        rel = self.lockfile.relative_to(self.manager.output_dir).as_posix()
-        lock_hash = sha256(self.lockfile.read_bytes()).hexdigest()
-        load_pyodide_options = settings.setdefault(LOAD_PYODIDE_OPTIONS, {})
-
-        preload = [
-            *load_pyodide_options.get(OPTION_PACKAGES, []),
-            *self.preload_packages,
-            *self.extra_preload_packages,
-        ]
-
-        load_pyodide_options.update(
-            {
-                OPTION_LOCK_FILE_URL: f"./{rel}?sha256={lock_hash}",
-                OPTION_PACKAGES: sorted(set(preload)),
-            },
-        )
-
-        self.set_pyodide_settings(jupyterlite_json, settings)
-        self.log.info("[lock] patched %s for pyodide-lock", jupyterlite_json)
-
     # traitlets
     @default("lock_date_epoch")
     def _default_lock_date_epoch(self) -> int | None:
@@ -332,7 +317,7 @@ class PyodideLockAddon(BaseAddon):
     def federated_wheel_dirs(self) -> list[Path]:
         """The locations of wheels referenced by federated labextensions."""
         pkg_jsons: list[Path] = []
-        extensions = self.manager.output_dir / LAB_EXTENSIONS
+        extensions = self.output_dir / LAB_EXTENSIONS
         for glob in ["*/package.json", "@*/*/package.json"]:
             pkg_jsons += [*extensions.glob(glob)]
 

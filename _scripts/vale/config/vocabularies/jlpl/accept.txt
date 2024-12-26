@@ -1,3 +1,4 @@
+
 _.+_
 --?.+
 .+…
@@ -28,17 +29,21 @@ CLI
 CLI
 configs?
 configurables
+dep_included
+deps
 discoverable
 emscripten
 endmacro
 entrypoints
 extra_exclude
+extra_includes
 firefox
 found_path
 ignore\[.*
 IPython
 Jupyter(|Lite)
 labextensions
+leaf_included
 libs
 lifecycle
 lock_dir
@@ -49,6 +54,7 @@ Miniforge
 noarch
 noqa
 osx
+out_dir
 package_cache
 package_dir
 param
@@ -65,6 +71,7 @@ pyodide
 PyPI
 pytest
 pythonhosted
+raw_packages
 ReadTheDocs
 REPLite
 repo

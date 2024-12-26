@@ -48,6 +48,12 @@ OPTION_PACKAGES = "packages"
 #: the entry point name of ``PyodideAddon``
 PYODIDE_ADDON = "jupyterlite-pyodide-kernel-pyodide"
 
+#: the entry point name of ``PyodideLockAddon``
+PYODIDE_LOCK_ADDON = "jupyterlite-pyodide-lock"
+
+#: the entry point name of ``PyodideLockAddon``
+PYODIDE_LOCK_OFFLINE_ADDON = "jupyterlite-pyodide-lock-offline"
+
 #: the default fallback URL prefix for pyodide packages
 PYODIDE_CDN_URL = f"https://cdn.jsdelivr.net/pyodide/v{PYODIDE_VERSION}/full"
 

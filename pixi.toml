@@ -16,10 +16,11 @@ all = {description = """
 ALL tasks to prepare for a release""", depends-on = [
   "fix",
   "lint",
-  "build",
+  "build-pypi",
   "docs",
   "check",
   "test",
+  "build",
 ], cmd = "echo 🚢"}
 test = {description = """
 🚀 run ALL tests""", depends-on = [
@@ -44,12 +45,17 @@ lint = {cmd = "echo ⭐", description = """
 ]}
 build = {cmd = "echo 🏗️", description = """
 🏗️  build ALL packages""", depends-on = [
+  "build-pypi",
+  "build-rattler",
+  "build-hash",
+]}
+build-pypi = {cmd = "echo 🐍", description = """
+🐍 build ALL PyPI distributions
+""", depends-on = [
   "build-pypi-core",
   "build-pypi-wd",
   "build-wheel",
   "build-twine",
-  "build-rattler",
-  "build-hash",
 ]}
 test-max = {cmd = "echo 🚗", description = """
 ├ 🚗 run tests in the default test environment""", depends-on = [
@@ -207,7 +213,10 @@ description = "├ build core PyPI distributions"
 cmd = """export JLPL_BLD_PKG=jupyterlite-pyodide-lock
   && export JLPL_BLD_GLOB='jupyterlite_pyodide_lock-*'
   && pixi r pyproject-build--"""
-inputs = ["py/jupyterlite-pyodide-lock/**/*.{py.toml,md,j2}", "!**/{.*,__pycache__}"]
+inputs = [
+  "py/jupyterlite-pyodide-lock/**/*.{py,toml,md,j2}",
+  "!**/{.*,__pycache__,dist}",
+]
 outputs = ["dist/jupyterlite_pyodide_lock-*.{tar.gz,whl}"]
 
 [feature.tasks-build.tasks.build-pypi-wd]
@@ -217,8 +226,8 @@ cmd = """export JLPL_BLD_PKG=jupyterlite-pyodide-lock-webdriver
   && pixi r pyproject-build--"""
 depends-on = ["build-licenses"]
 inputs = [
-  "py/jupyterlite-pyodide-lock-webdriver/**/*.{py.toml,md,j2}",
-  "!**/{.*,__pycache__}",
+  "py/jupyterlite-pyodide-lock-webdriver/**/*.{py,toml,md,j2}",
+  "!**/{.*,__pycache__,dist}",
 ]
 outputs = [
   "dist/jupyterlite_pyodide_lock_webdriver-*.{tar.gz,whl}",
@@ -426,7 +435,7 @@ outputs = [
 [feature.tasks-docs.tasks.docs-pip]
 description = "├ prepare the docs environment with pip"
 cmd = "pixi r -e docs pip-whl-all--"
-depends-on = ["build"]
+depends-on = ["build-pypi"]
 inputs = ["dist/*.whl"]
 outputs = ["build/pip-freeze/docs.txt"]
 

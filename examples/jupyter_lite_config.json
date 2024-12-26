@@ -10,6 +10,11 @@
       "ipywidgets >=8.1.2,<8.2"
     ]
   },
+  "PyodideLockOfflineAddon": {
+    "enabled": true,
+    "prune": true,
+    "extra_includes": ["^ipywidgets$"]
+  },
   "BrowserLocker": {
     "private_mode": true,
     "temp_profile": true

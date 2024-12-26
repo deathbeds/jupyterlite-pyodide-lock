@@ -5,8 +5,6 @@
 
 View the full documentation on [ReadTheDocs][rtfd].
 
-## Example
-
 > **⚠️ EXPERIMENTAL**
 >
 > These packages are not yet released. See the [GitHub repo][gh] for development
@@ -17,23 +15,33 @@ View the full documentation on [ReadTheDocs][rtfd].
 
 ## Overview
 
+`jupyterlite-pyodide-lock` avoids **run time** `pyodide` and `jupyterlite` package
+management ambiguity by using a full web browser at **build time**  to customize a
+`pyodide-lock.json`.
+
+
+## Motivation
+
 By default, a `pyodide` distribution provides a precise set of package versions
-known to work together in the browser.
+known to work together in the browser, described in its `pyodide-lock.json`.
 
-`micropip` gives site users the ability to install packages from PyPI, made more
-familiar to IPython users with the `%pip` magic provided by `jupyterlite-pyodide-kernel`,
-which itself uses `micropip` to provide additional packages to enable interactive
-computing.
+Among these packages is `micropip`, which gives site users the ability to install
+packages _not_ included in `pyodide-lock.json`. These may be distributed with an
+HTML page, downloaded from PyPI, or anywhere on the internet.
+`jupyterlite-pyodide-kernel` uses this capability to install itself, and its
+dependencies.
 
-`micropip` (and `%pip`) are powerful for interactive usage, but can cause significant
-headaches when upstream versions (or their dependencies) change in ways that either
-no longer work with `pyodide`, or no longer match the expected versions of JupyterLab
-extensions in a deployed JupyterLite site.
+At run time, `piplite` provides a `micropip`-based shim for the IPython `%pip`
+magic, the most portable approach for interactive package management in Notebook documents.
 
-`jupyterlite-pyodide-lock` provides a way to use your browser to perform a
-validated solve at _build time_, creating a `pyodide-lock.json` which precisely
-controls the _run time_ behavior of package downloading and installation.
+`micropip` (and `%pip`) are powerful for interactive usage, but can cause
+headaches when upstream versions (or their dependencies) change in ways that
+either no longer provide the same API expected by the exact versions of `pyodide`,
+`pyodide-kernel`, and JupyterLab extensions in a deployed JupyterLite site.
 
+`jupyterlite-pyodide-lock` gives content authors tools to manage the effective
+`pyodide` distribution, making it easier to build, verify, and maintain predictable,
+interactive computing environments for future site visitors.
 
 [jlpk]: https://github.com/jupyterlite/pyodide-kernel
 [pl]: https://github.com/pyodide/pyodide-lock
