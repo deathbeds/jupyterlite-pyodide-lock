@@ -26,7 +26,6 @@ from jupyterlite_pyodide_kernel.constants import (
 )
 from traitlets import CInt, Enum, Unicode, default
 
-from jupyterlite_pyodide_lock import __version__
 from jupyterlite_pyodide_lock.addons._base import BaseAddon
 from jupyterlite_pyodide_lock.constants import (
     ENV_VAR_LOCK_DATE_EPOCH,
@@ -166,7 +165,6 @@ class PyodideLockAddon(BaseAddon):
             from textwrap import indent
 
             lines = [
-                f"""version:      {__version__}""",
                 f"""enabled:      {self.enabled}""",
                 f"""all lockers:  {", ".join(LOCKERS.keys())}""",
                 f"""lock date:    {self.lock_date_epoch}""",
