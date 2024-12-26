@@ -106,7 +106,7 @@ class BrowserLocker(TornadoLocker):
             self.log.info("[browser] stopping browser process %s", p)
             try:
                 p.kill()
-            except psutil.NoSuchProcess:
+            except psutil.NoSuchProcess:  # pragma: no cover
                 self.log.debug("[browser] was already stopped %s", p)
 
         psutil.wait_procs(r for r in running if r.is_running())
