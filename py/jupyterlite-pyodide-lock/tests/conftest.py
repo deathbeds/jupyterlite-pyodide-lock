@@ -9,6 +9,7 @@ from __future__ import annotations
 import difflib
 import json
 import os
+import pprint
 import shutil
 import subprocess
 import textwrap
@@ -125,12 +126,12 @@ def lite_cli(a_lite_dir: Path) -> TLiteRunner:
         env = None
 
         print(
-            "[env] well-known:",
-            {
+            "[env] well-known:\n",
+            pprint.pformat({
                 k: os.getenv(k)
-                for k in sorted(os.environ.keys())
-                if k.startswith("JLPL_") or k.startswith("JUPYTERLITE_")  # noqa: PIE810
-            },
+                for k in sorted(os.environ)
+                if k.startswith(("JLPL_", "JUPYTERLITE_"))
+            }),
         )
 
         if "env" in popen_kwargs:

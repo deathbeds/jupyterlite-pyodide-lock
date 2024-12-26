@@ -16,6 +16,7 @@ from jupyterlite_pyodide_kernel.constants import PYODIDE
 from packaging.utils import canonicalize_name
 from traitlets import Bool, Unicode, default
 
+from jupyterlite_pyodide_lock import __version__
 from jupyterlite_pyodide_lock.addons._base import BaseAddon
 from jupyterlite_pyodide_lock.constants import PYODIDE_LOCK_STEM, RE_REMOTE_URL
 
@@ -101,6 +102,7 @@ class PyodideLockOfflineAddon(BaseAddon):
             from textwrap import indent
 
             lines = [
+                f"""version:      {__version__}""",
                 f"""enabled:      {self.enabled}""",
                 f"""includes:     {"  ".join(self.includes)}""",
                 f""" + extra:     {"  ".join(self.extra_includes)}""",

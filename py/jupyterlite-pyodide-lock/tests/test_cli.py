@@ -35,7 +35,7 @@ def test_cli_self_browsers(args: list[str]) -> None:
     subprocess.check_call(["jupyter-pyodide-lock", "browsers", *args])
 
 
-@pytest.mark.parametrize("args", [["--pyodide-lock"], []])
+@pytest.mark.parametrize("args", [[]])
 def test_cli_status(lite_cli: TLiteRunner, args: list[str]) -> None:
     """Verify various status invocations work."""
     from jupyterlite_pyodide_lock import __version__

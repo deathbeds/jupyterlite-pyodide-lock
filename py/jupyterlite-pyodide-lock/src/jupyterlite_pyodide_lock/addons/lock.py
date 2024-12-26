@@ -26,6 +26,7 @@ from jupyterlite_pyodide_kernel.constants import (
 )
 from traitlets import CInt, Enum, Unicode, default
 
+from jupyterlite_pyodide_lock import __version__
 from jupyterlite_pyodide_lock.addons._base import BaseAddon
 from jupyterlite_pyodide_lock.constants import (
     ENV_VAR_LOCK_DATE_EPOCH,
@@ -145,7 +146,6 @@ class PyodideLockAddon(BaseAddon):
     ).tag(config=True)  # type: ignore[assignment]
 
     # JupyterLite API methods
-
     def pre_status(self, manager: LiteManager) -> TTaskGenerator:
         """Patch configuration of ``PyodideAddon`` if needed."""
         if not self.enabled or self.pyodide_addon.pyodide_url:
@@ -168,6 +168,7 @@ class PyodideLockAddon(BaseAddon):
                 f"""enabled:      {self.enabled}""",
                 f"""all lockers:  {", ".join(LOCKERS.keys())}""",
                 f"""lock date:    {self.lock_date_epoch}""",
+                f"""version:      {__version__}""",
             ]
 
             if self.lock_date_epoch:
@@ -208,7 +209,7 @@ class PyodideLockAddon(BaseAddon):
 
         This includes those provided by federated labextensions (such as
         ``jupyterlite-pyodide-kernel`` itself), copied during
-        ``build:federated_extensions``.
+        ``build:federated_extensions``, which will be left in-place.
         """
         if not self.enabled:  # pragma: no cover
             return
