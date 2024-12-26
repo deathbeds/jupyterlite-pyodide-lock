@@ -1,4 +1,28 @@
 # repo-level configuration for `jupyterlite-pyodide-lock*`
+
+# coverage #####################################################################
+[tool.coverage.run]
+disable_warnings = ["no-data-collected", "module-not-measured"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "except ImportError as err:",
+  "except ImportError:",
+  "if TYPE_CHECKING:",
+  """if __name__ == "__main__":""",
+  "pragma: no cover",
+]
+
+[tool.coverage.html]
+show_contexts = true
+
+[tool.coverage.paths]
+source = [
+  "py/*/src",
+  "*/site-packages",
+]
+
+# mypy #########################################################################
 [tool.mypy]
 cache_dir = "build/.cache/mypy"
 python_version = "3.10"
@@ -22,6 +46,7 @@ enabled = true
 dmypy = true
 live_mode = false
 
+# ruff #########################################################################
 [tool.ruff]
 preview = true
 target-version = "py310"
