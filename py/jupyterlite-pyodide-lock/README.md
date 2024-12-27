@@ -86,7 +86,7 @@ their dependencies from "drifting."
 }
 ```
 
-Alternately, this can be provided by environemnt variable:
+Alternately, this can be provided by environment variable:
 
 ```bash
 JLPL_LOCK_DATE_EPOCH=$(date -u +%s) jupyter lite build
@@ -109,13 +109,13 @@ Or `python`:
 >>> int(datetime.now(tz=timezone.utc).timestamp())
 ```
 
-...or `git`, for the last commit time of a file:
+... or `git`, for the last commit time of a file:
 
 ```bash
 git log -1 --format=%ct requirements.txt
 ```
 
-The latter approch, using version control metadata, is recommended, as it shifts the
+The latter approach, using version control metadata, is recommended, as it shifts the
 burden of bookkeeping to a verifiable source.
 
 </details>
