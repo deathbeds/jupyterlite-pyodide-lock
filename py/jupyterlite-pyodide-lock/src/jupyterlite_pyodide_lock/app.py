@@ -22,6 +22,7 @@ from .utils import find_browser_binary, get_browser_search_path
 
 class BrowsersApp(DescribedMixin, JupyterApp):
     """An app that lists discoverable browsers."""
+
     version: str = Unicode(default_value=__version__)
 
     format: str = Unicode(allow_none=True).tag(config=True)
@@ -77,6 +78,7 @@ class BrowsersApp(DescribedMixin, JupyterApp):
 
 class PyodideLockApp(DescribedMixin, JupyterApp):
     """Tools for working with 'pyodide-lock' in JupyterLite."""
+
     version: str = Unicode(default_value=__version__)
 
     subcommands: ClassVar = {
