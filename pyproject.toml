@@ -16,12 +16,6 @@ exclude_lines = [
 [tool.coverage.html]
 show_contexts = true
 
-[tool.coverage.paths]
-source = [
-  "py/*/src",
-  "*/site-packages",
-]
-
 # mypy #########################################################################
 [tool.mypy]
 cache_dir = "build/.cache/mypy"
