@@ -8,7 +8,7 @@
 ## Preflight
 
 - [ ] I read `CONTRIBUTING.md`
-- [ ] I ran `pixi run pr` locally:
+- [ ] I ran `pixi run pr` locally and it passed
 
 ## References
 
