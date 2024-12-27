@@ -4,7 +4,7 @@ context:
   pt: ${{ load_from_file("pixi.toml") }}
   v: ${{ load_from_file("pixi.toml").project.version }}
   wd: webdriver
-  python_min: "3.10"
+  python_min: '3.10'
 
 recipe:
   name: ${{ jlpl }}-split
@@ -25,7 +25,8 @@ outputs:
     build:
       noarch: python
       script:
-        - python -m pip install . -vv --no-deps --no-build-isolation --disable-pip-version-check
+        - |
+          python -m pip install . -vv --no-deps --no-build-isolation --disable-pip-version-check
       python:
         entry_points:
           - ${{ jlpl }} = "${{ jlpl_m }}.app:main"
@@ -59,7 +60,8 @@ outputs:
     build:
       noarch: python
       script:
-        - python -m pip install . -vv --no-deps --no-build-isolation --disable-pip-version-check
+        - |
+          python -m pip install . -vv --no-deps --no-build-isolation --disable-pip-version-check
     requirements:
       host:
         - flit-core >=3.9.0,<4
@@ -126,4 +128,5 @@ about:
   homepage: https://github.com/deathbeds/jupyterlite-pyodide-lock
   license: BSD-3-Clause
   license_file: LICENSE
-  summary: Create pre-solved environments for jupyterlite-pyodide-kernel with pyodide-lock
+  summary:
+    Create pre-solved environments for jupyterlite-pyodide-kernel with pyodide-lock

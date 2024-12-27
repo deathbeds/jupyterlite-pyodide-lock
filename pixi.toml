@@ -199,7 +199,7 @@ cmd = """prettier
   --cache
   --cache-location=build/.cache/prettier
   "*.md"
-  "{.github,py,docs,examples}/**/*.{yml,md,json}"
+  "{.github,_scripts,docs,examples,py,recipe}/**/*.{yml,yaml,md,json}"
   """
 
 [feature.tasks-lint.tasks.fix-prettier]
@@ -208,7 +208,7 @@ cmd = "pixi r prettier-- --write --list-different"
 inputs = [
   "*.md",
   ".github",
-  "{.github,_scripts,docs,examples,py}/**/*.{yml,md,json,css}",
+  "{.github,_scripts,docs,examples,py,recipe}/**/*.{yml,md,json,css}",
 ]
 
 [feature.tasks-lint.tasks.lint-prettier]
@@ -216,7 +216,7 @@ description = "├ check web-adjacent files with prettier"
 cmd = "pixi r prettier-- --check"
 inputs = [
   "*.md",
-  "{.github,_scripts,docs,examples,py}/**/*.{yml,md,json,css}",
+  "{.github,_scripts,docs,examples,py,recipe}/**/*.{yml,md,json,css}",
 ]
 
 [feature.tasks-lint.tasks.mdlint--]
