@@ -35,7 +35,7 @@ dependencies = [
 [project.urls]
 "Bug Tracker" = "https://github.com/deathbeds/jupyterlite-pyodide-lock/issues"
 Changelog = "https://github.com/deathbeds/jupyterlite-pyodide-lock/blob/main/CHANGELOG.md"
-Documentation = "https://jupyterlite-pyodide-lock.readthedocs.io"
+Documentation = "https://jupyterlite-pyodide-lock.rtfd.org"
 PyPI = "https://pypi.org/project/jupyterlite-pyodide-lock"
 Source = "https://github.com/deathbeds/jupyterlite-pyodide-lock/tree/main"
 

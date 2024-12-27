@@ -33,4 +33,4 @@ labels: maintenance
 [main]:
   https://github.com/deathbeds/jupyterlite-pyodide-lock/actions?query=branch%3Amain+event%3Apush
 [pypi]: https://pypi.org/project/jupyterlite-pyodide-lock/#history
-[rtd]: https://jupyterlite-pyodide-lock.readthedocs.io/en/latest
+[rtd]: https://jupyterlite-pyodide-lock.rtfd.org/en/latest
