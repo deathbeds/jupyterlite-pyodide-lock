@@ -1,0 +1,29 @@
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+
+env:
+  JLPL_PIXI_VERSION: 0.39.3
+
+jobs:
+  rtd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const {repo, issue} = context;
+            const {number} = issue;
+            const url = (
+              `https://jupyterlite-pyodide-lock--${number}.org.readthedocs.build/en/${number}`
+            );
+            github.rest.issues.createComment({
+              issue_number: number,
+              owner: repo.owner,
+              repo: repo.repo,
+              body: `> View Docs on [ReadTheDocs](${url})`
+            });
