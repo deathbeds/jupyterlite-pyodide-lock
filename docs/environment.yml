@@ -1,5 +1,6 @@
 channels:
   - conda-forge
   - nodefaults
+
 dependencies:
   - pixi ==0.39.3

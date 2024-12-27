@@ -1,0 +1,132 @@
+context:
+  jlpl: jupyterlite-pyodide-lock
+  jlpl_m: jupyterlite_pyodide_lock
+  pt: ${{ load_from_file("pixi.toml") }}
+  v: ${{ load_from_file("pixi.toml").project.version }}
+  wd: webdriver
+  python_min: '3.10'
+
+recipe:
+  name: ${{ jlpl }}-split
+
+build:
+  number: ${{ number }}
+  noarch: python
+
+outputs:
+  - about:
+      summary: |
+        Build reproducible JupyterLite sites with `pyodide-lock` and your web browser
+    package:
+      name: ${{ jlpl }}
+      version: ${{ v }}
+    source:
+      path: ../dist/${{ jlpl_m }}-${{ v }}.tar.gz
+    build:
+      noarch: python
+      script:
+        - |
+          python -m pip install . -vv --no-deps --no-build-isolation --disable-pip-version-check
+      python:
+        entry_points:
+          - ${{ jlpl }} = "${{ jlpl_m }}.app:main"
+    requirements:
+      host:
+        - flit-core >=3.9.0,<4
+        - pip
+        - python ${{ python_min }}.*
+      run:
+        - python >=${{ python_min }}
+        - jupyterlite-core >=0.3.0,<0.6.0
+        - jupyterlite-pyodide-kernel >=0.3.1,<0.6.0
+        - psutil >=6
+        - pyodide-lock-with-wheel >=0.1.0a4,<0.2.0
+        - tornado >=6.1.0
+    tests:
+      - python:
+          python_version: ${{ python_min }}.*
+          pip_check: true
+          imports:
+            - ${{ jlpl_m }}
+
+  - about:
+      summary: |
+        Build reproducible JupyterLite sites with `pyodide-lock` and `selenium`
+    package:
+      name: ${{ jlpl }}-webdriver
+      version: ${{ v }}
+    source:
+      path: ../dist/${{ jlpl_m  }}_${{ wd }}-${{ v }}.tar.gz
+    build:
+      noarch: python
+      script:
+        - |
+          python -m pip install . -vv --no-deps --no-build-isolation --disable-pip-version-check
+    requirements:
+      host:
+        - flit-core >=3.9.0,<4
+        - pip
+        - python ${{ python_min }}.*
+      run:
+        - ${{ pin_subpackage(jlpl, exact=True) }}
+        - python >=${{ python_min }}
+        - selenium >=4.19
+    tests:
+      - python:
+          python_version: ${{ python_min }}.*
+          pip_check: true
+          imports:
+            - ${{ jlpl_m }}_${{ wd }}
+
+  - about:
+      summary: |
+        A tested `firefox` and `geckodriver` for building JupyterLite sites with `pyodide-lock`
+    package:
+      name: ${{ jlpl }}-with-firefox
+      version: ${{ v }}
+    source:
+      path: ../dist/${{ jlpl_m  }}-${{ v }}.tar.gz
+    build:
+      noarch: generic
+    requirements:
+      run:
+        - ${{ pin_subpackage(jlpl, exact=True) }}
+        - firefox >=128
+        - geckodriver
+    tests:
+      - python:
+          python_version: ${{ python_min }}.*
+          pip_check: true
+          imports:
+            - ${{ jlpl_m }}
+
+  - about:
+      summary: |
+        Recommended packages for building reproducible JupyterLite sites with `pyodide-lock`
+    package:
+      name: ${{ jlpl }}-recommended
+      version: ${{ v }}
+    source:
+      path: ../dist/${{ jlpl_m  }}-${{ v }}.tar.gz
+    build:
+      noarch: generic
+    requirements:
+      run:
+        - ${{ pin_subpackage(jlpl, exact=True) }}
+        - ${{ pin_subpackage(jlpl ~ "-with-firefox", exact=True) }}
+        - jupyterlite-core-with-libarchive
+        - jupyterlite-core-with-contents
+        - jupyterlite-core-with-lab
+    tests:
+      - python:
+          python_version: ${{ python_min }}.*
+          pip_check: true
+          imports:
+            - ${{ jlpl_m }}
+
+about:
+  homepage: https://github.com/deathbeds/jupyterlite-pyodide-lock
+  license: BSD-3-Clause
+  license_file: LICENSE
+  summary:
+    Create pre-solved environments for jupyterlite-pyodide-kernel with pyodide-lock

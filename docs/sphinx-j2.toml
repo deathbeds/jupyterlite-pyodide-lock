@@ -1,0 +1,60 @@
+# sphinx #######################################################################
+[context]
+ppt = "../py/jupyterlite-pyodide-lock/pyproject.toml"
+
+[intersphinx]
+python = "https://docs.python.org/3"
+jupyterlite_core = "https://jupyterlite.readthedocs.io/en/stable"
+traitlets = "https://traitlets.readthedocs.io/en/stable"
+jupyterlite_pyodide_kernel = "https://jupyterlite-pyodide-kernel.readthedocs.io/en/stable"
+
+[template]
+author = "{{ ppt.project.authors[0].name }}"
+project = "{{ ppt.project.name }}"
+copyright = "2024, {{ ppt.project.authors[0].name }}"
+release = "{{ ppt.project.version }}"
+version = "{{ ppt.project.version }}"
+extensions = [
+  "sphinx.ext.autodoc",
+  "sphinx_autodoc_typehints",
+  "sphinx.ext.intersphinx",
+  "sphinx.ext.viewcode",
+  "myst_nb",
+  "sphinx.ext.autosectionlabel",
+  "sphinx_copybutton",
+  "autodoc_traits",
+]
+suppress_warnings = ["autosectionlabel.*", "myst.xref_missing"]
+exclude_patterns = ["rtd.rst"]
+language = "en"
+
+## autodoc
+autoclass_content = "both"
+always_document_param_types = true
+typehints_defaults = "comma"
+typehints_use_signature_return = true
+autodoc_default_options = {members = true, show-inheritance = true, undoc-members = true}
+autosectionlabel_prefix_document = true
+
+## myst
+myst_heading_anchors = 3
+
+## theme
+html_theme = "pydata_sphinx_theme"
+html_static_path = ["_static", "../dist", "../build/docs-app"]
+html_css_files = ["theme.css"]
+html_logo = "_static/icon.svg"
+html_favicon = "_static/icon.svg"
+
+[template.html_sidebars]
+demo = []
+
+[template.html_theme_options]
+logo = {text = "{{ ppt.project.name }}"}
+github_url = "{{ ppt.project.urls.Source }}"
+pygments_dark_style = "github-dark-colorblind"
+pygments_light_style = "github-light-colorblind"
+navigation_with_keys = false
+icon_links = [
+  {name = "PyPI", url = "{{ ppt.project.urls.PyPI }}", icon = "fa-brands fa-python", type = "fontawesome"},
+]

@@ -1,0 +1,53 @@
+[build-system]
+requires = [
+  "flit_core >=3.9,<4",
+]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "jupyterlite-pyodide-lock-webdriver"
+version = "0.1.0a0"
+description = "A WebDriver strategy for jupyterlite-pyodide-kernel-lock"
+license.text = "BSD-3-Clause"
+authors = [
+  {name = "jupyterlite-pyodide-lock contributors"},
+]
+readme = "README.md"
+classifiers = [
+  "Framework :: Jupyter",
+  "Framework :: Jupyter :: JupyterLab",
+  "Framework :: Jupyter :: JupyterLab :: 4",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+]
+requires-python = ">=3.10"
+dependencies = [
+  "jupyterlite-pyodide-lock ==0.1.0a0",
+  "selenium >=4.19",
+]
+
+[project.urls]
+"Bug Tracker" = "https://github.com/deathbeds/jupyterlite-pyodide-lock/issues"
+Changelog = "https://github.com/deathbeds/jupyterlite-pyodide-lock/blob/main/CHANGELOG.md"
+Documentation = "https://jupyterlite-pyodide-lock.readthedocs.io"
+PyPI = "https://pypi.org/project/jupyterlite-pyodide-lock"
+Source = "https://github.com/deathbeds/jupyterlite-pyodide-lock/tree/main"
+
+[project.entry-points."jupyterlite_pyodide_lock.locker.v0"]
+WebDriverLocker = "jupyterlite_pyodide_lock_webdriver.locker:WebDriverLocker"
+
+[project.optional-dependencies]
+test = [
+  "pytest >=8,<9",
+  "pytest-cov",
+  "pytest-html",
+]
+
+[tool.flit.sdist]
+include = ["LICENSE", "tests/"]

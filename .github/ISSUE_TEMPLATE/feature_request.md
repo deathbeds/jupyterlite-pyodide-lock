@@ -5,9 +5,9 @@ labels: enhancement
 ---
 
 <!--
-Welcome! Before creating a new issue:
-* Search for relevant issues
-* Search the documentation
+  Welcome! Before creating a new issue:
+  - [ ] Search for relevant issues
+  - [ ] Search the documentation
 -->
 
 ## Elevator Pitch
@@ -20,4 +20,7 @@ Welcome! Before creating a new issue:
 
 ## Design Ideas
 
-<!-- Share any kind of design ideas (e.g. ASCII art, links, screenshots) that might help us understand -->
+<!--
+  Share any kind of design ideas (e.g. mermaid, ASCII art, links, screenshots)
+  that might help us understand
+-->

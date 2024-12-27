@@ -1,16 +1,34 @@
 # Contributing
 
+Thank you for considering a contribution to `jupyterlite-pyodide-lock`.
+
+We use [pixi] for local development and GitHub [issues][issues] and [pull requests][prs]
+to collaboration.
+
+[issues]: (https://github.com/deathbeds/jupyterlite-pyodide-lock/issues)
+[prs]: https://github.com/deathbeds/jupyterlite-pyodide-lock/pulls
+
+## Pull Requests
+
+Before making a [pull request][prs], please ensure:
+
+- you've got a local [setup](#set-up)
+- the following command runs without error:
+
+```bash
+pixi run pr
+```
+
 ## Local Development
 
-### Set up
+### Set Up
 
-This project is developed locally and in CI with [pixi],
-a relatively new approach to `conda` package management and task running.
+This project is developed locally and in CI with [pixi], a relatively new approach to
+`conda` package management and task running.
 
-> ** Note **
+> **Note**
 >
 > Refer to `pixi.toml#/$schema` for the current development version
-
 
 [pixi]: https://pixi.sh/latest/#installation
 
@@ -33,7 +51,6 @@ mamba install -c conda-forge "pixi ==0.39.3"  # replace `mamba` with your CONDA_
 
 <br />
 
-
 ### Tasks and Environments
 
 See all the project info:
@@ -42,16 +59,10 @@ See all the project info:
 pixi info
 ```
 
-See just the available top-level `pixi` tasks:
+See the available top-level `pixi` tasks:
 
 ```bash
 pixi task list
-```
-
-See just the tasks that run in e.g. the `test` environment:
-
-```bash
-pixi task list -e test
 ```
 
 ### Running Tasks
@@ -65,9 +76,10 @@ pixi run build
 pixi run lint
 pixi run docs
 pixi run check
+pixi run test   # this takes a pretty long time
 ```
 
-Some tasks run, and need to be stopped with <kbd>ctrl+c</kbd>:
+Some tasks run until stopped with <kbd>ctrl+c</kbd>:
 
 ```bash
 pixi run serve-lab

@@ -1,0 +1,7 @@
+{
+  "prettier": {
+    "proseWrap": "always",
+    "singleQuote": true,
+    "printWidth": 88
+  }
+}

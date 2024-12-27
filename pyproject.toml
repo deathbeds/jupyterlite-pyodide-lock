@@ -1,67 +1,22 @@
-[build-system]
-requires = [
-  "flit_core >=3.9,<4",
-]
-build-backend = "flit_core.buildapi"
+# repo-level configuration for `jupyterlite-pyodide-lock*`
 
-[project]
-name = "jupyterlite-pyodide-lock"
-version = "0.1.0a0"
-description = "Create pre-solved environments for jupyterlite-pyodide-kernel with pyodide-lock"
-license.text = "BSD-3-Clause"
-authors = [
-  {name = "jupyterlite-pyodide-lock contributors"},
-]
-readme = "README.md"
-classifiers = [
-  "Framework :: Jupyter",
-  "Framework :: Jupyter :: JupyterLab",
-  "Framework :: Jupyter :: JupyterLab :: 4",
-  "License :: OSI Approved :: BSD License",
-  "Programming Language :: Python",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "Typing :: Typed",
-]
-requires-python = ">=3.10"
-dependencies = [
-  "jupyterlite-core >=0.3.0,<0.6.0",
-  "jupyterlite-pyodide-kernel >=0.3.1,<0.6.0 ; platform_machine != \"wasm32\"",
-  "pyodide-lock[wheel] >=0.1.0a4,<0.2.0",
-  "tornado >=6.1.0 ; platform_machine != \"wasm32\"",
-  "psutil >=6",
+# coverage #####################################################################
+[tool.coverage.run]
+disable_warnings = ["no-data-collected", "module-not-measured"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "except ImportError as err:",
+  "except ImportError:",
+  "if TYPE_CHECKING:",
+  """if __name__ == "__main__":""",
+  "pragma: no cover",
 ]
 
+[tool.coverage.html]
+show_contexts = true
 
-[project.urls]
-"Bug Tracker" = "https://github.com/deathbeds/jupyterlite-pyodide-lock/issues"
-Changelog = "https://github.com/deathbeds/jupyterlite-pyodide-lock/blob/main/CHANGELOG.md"
-Documentation = "https://jupyterlite-pyodide-lock.readthedocs.io"
-PyPI = "https://pypi.org/project/jupyterlite-pyodide-lock"
-Source = "https://github.com/deathbeds/jupyterlite-pyodide-lock/tree/main"
-
-[project.scripts]
-jupyter-pyodide-lock = "jupyterlite_pyodide_lock.app:main"
-
-[project.entry-points."jupyterlite.addon.v0"]
-pyodide-lock = "jupyterlite_pyodide_lock.addons.lock:PyodideLockAddon"
-
-[project.entry-points."jupyterlite_pyodide_lock.locker.v0"]
-BrowserLocker = "jupyterlite_pyodide_lock.lockers.browser:BrowserLocker"
-
-[project.optional-dependencies]
-test = [
-  "pytest >=8,<9",
-  "pytest-cov",
-  "pytest-html",
-]
-
-[tool.flit.sdist]
-include = ["LICENSE", "tests/"]
-
+# mypy #########################################################################
 [tool.mypy]
 cache_dir = "build/.cache/mypy"
 python_version = "3.10"
@@ -72,41 +27,26 @@ warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
 ignore_missing_imports = true
-module = ["ipywidgets", "jsonpointer"]
+module = [
+  "ipywidgets",
+  "jsonpointer",
+  "jupyterlite_core.*",
+  "jupyterlite_pyodide_kernel.*",
+  "doit.*",
+]
 
 [tool.pylsp-mypy]
 enabled = true
 dmypy = true
 live_mode = false
 
-[tool.coverage.run]
-disable_warnings = ["no-data-collected", "module-not-measured"]
-
-[tool.coverage.html]
-show_contexts = true
-
-[tool.doit]
-backend = "sqlite3"
-verbosity = 2
-par_type = "thread"
-dodoFile = "_scripts/dodo.py"
-
+# ruff #########################################################################
 [tool.ruff]
 preview = true
 target-version = "py310"
 line-length = 88
-extend-include = [
-  "*.ipynb",
-]
-include = [
-  "_scripts/*.py",
-  "contrib/*/src/**/*.py",
-  "contrib/*/tests/**/*.py",
-  "docs/**/*.py",
-  "examples/**/*.ipynb",
-  "src/**/*.py",
-  "tests/**/*.py",
-]
+extend-include = ["*.ipynb"]
+include = ["_scripts/*.py", "py/**/*.py", "docs/**/*.py", "examples/**/*.ipynb"]
 cache-dir = "build/.cache/ruff"
 
 [tool.ruff.lint]
@@ -115,7 +55,10 @@ flake8-copyright.notice-rgx = '''
 # Copyright \(c\) jupyterlite-pyodide-lock contributors\.
 # Distributed under the terms of the BSD-3-Clause License\.
 '''
-isort.known-first-party = ["urljsf"]
+isort.known-first-party = [
+  "jupyterlite_pyodide_lock",
+  "jupyterlite_pyodide_lock_webdriver",
+]
 
 ignore = [
   "ANN401",
@@ -160,7 +103,7 @@ ignore = [
 "*/jupyterlite_pyodide_lock_webdriver/locker.py" = [
   "BLE001",
 ]
-"*/lock.py" = [
+"*/addons/*.py" = [
   "ARG002",
   "T201",
   "BLE001",
@@ -190,5 +133,12 @@ ignore = [
   "S603",
   "S607",
   "S404",
+  "T201",
+]
+"**/vale/check.py" = [
+  "INP001",
+  "RUF017",
+  "S404",
+  "S603",
   "T201",
 ]
