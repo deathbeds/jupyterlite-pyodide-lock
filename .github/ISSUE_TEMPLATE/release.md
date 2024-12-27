@@ -24,6 +24,5 @@ labels: maintenance
   - [ ] handle `conda-forge` feedstock tasks
   - [ ] validate on binder via simplest-possible gists
   - [ ] bump to next development version
-  - [ ] bump the `CACHE_EPOCH`
   - [ ] rebuild `pixi.lock`
   - [ ] update release procedures with lessons learned

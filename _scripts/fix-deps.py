@@ -7,11 +7,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from tomli_w import dumps
-
-try:
-    from tomllib import loads
-except ImportError:
-    from tomli import loads
+from tomllib import loads
 
 PARSER = ArgumentParser()
 PARSER.add_argument("upstream", type=Path)

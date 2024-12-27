@@ -5,10 +5,17 @@
 from __future__ import annotations
 
 import re
+import sys
+from collections import defaultdict
+from typing import TYPE_CHECKING
 
 import pytest
 
 from .conftest import ROOT, UTF8
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
 
 PIXI_PATTERNS = {
     ".github/workflows/*.yml": [r"JLPL_PIXI_VERSION: ([^\s]+)"],
@@ -17,11 +24,15 @@ PIXI_PATTERNS = {
 }
 
 PY_PATTERNS = {
+    "README.md": [
+        r"""^\s+jupyterlite-pyodide-lock ==(.*)$""",
+        r"""^\s+- jupyterlite-pyodide-lock-recommended ==(.*)$""",
+    ],
     "py/*/pyproject.toml": [r"""version = "([^"]+)"""],
     "CHANGELOG.md": [
-        r"""## `([\d\.abcr]+?)`""",
-        r"""## `jupyterlite-pyodide-lock ([\d\.abcr]+?)`""",
-        r"""## `jupyterlite-pyodide-lock-webdriver ([\d\.abcr]+?)`""",
+        r"""^## `([\d\.abcr]+?)`""",
+        r"""^### `jupyterlite-pyodide-lock ([\d\.abcr]+?)`""",
+        r"""^### `jupyterlite-pyodide-lock-webdriver ([\d\.abcr]+?)`""",
     ],
 }
 
@@ -44,11 +55,19 @@ def _verify_patterns(
     """Verify some versions against glob patterns."""
     paths = sorted(ROOT.glob(glob))
     assert paths, f"no paths matched {glob}"
+    fails: dict[Path, list[str]] = defaultdict(list)
+
     for path in paths:
         text = path.read_text(**UTF8)
         print(text)
         for pattern in patterns[glob]:
-            matches = re.findall(pattern, text)
-            assert {*matches} == {version}, (
-                f"{what} {version} is missing from {path.relative_to(ROOT)}"
-            )
+            matches = re.findall(pattern, text, flags=re.MULTILINE)
+            if {*matches} != {version}:
+                fails[path].append(f" - missing {what} {version} [{pattern}]")
+
+    if fails:
+        for path, path_fails in fails.items():
+            print(path, file=sys.stderr)
+            print("\n".join(path_fails), file=sys.stderr)
+
+    assert not fails, "some versions don't match"

@@ -43,7 +43,7 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
   ```text
   jupyterlite-core ==0.4.5
   jupyterlite-pyodide-kernel ==0.4.6
-  jupyterlite-pyodide-lock ==0.1.0a0
+  jupyterlite-pyodide-lock ==0.1.0
   ```
 
 - Run:
@@ -108,7 +108,7 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
     - ipywidgets ==8.1.5
     - jupyterlite-core ==0.4.5
     - jupyterlite-pyodide-kernel ==0.4.6
-    - jupyterlite-pyodide-lock-recommended ==0.1.0a0
+    - jupyterlite-pyodide-lock-recommended ==0.1.0
   ```
 
   - _the `-recommended` package includes `firefox` and `geckodriver`_
