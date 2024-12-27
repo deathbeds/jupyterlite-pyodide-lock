@@ -156,7 +156,7 @@ class WebDriverLocker(TornadoLocker):
 
         opts = [*self.webdriver_option_arguments]
 
-        if self.headless:
+        if self.headless:  # pragma: no cover
             opts += CORE_BROWSERS[browser]["headless"]
 
         for opt in opts:

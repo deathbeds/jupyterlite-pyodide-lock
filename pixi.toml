@@ -280,7 +280,9 @@ outputs = ["dist/SHA256SUMS"]
 
 # testing patterns #############################################################
 [tasks.pytest--]
-cmd = """export JLPL_TEST_REPORTS=$PIXI_PROJECT_ROOT/build/reports/$PIXI_ENVIRONMENT_NAME/$JLPL_TEST_PKG
+cmd = """
+  export JLPL_REPORT_ROOT=$PIXI_PROJECT_ROOT/build/reports
+  && export JLPL_TEST_REPORTS=$JLPL_REPORT_ROOT/$PIXI_ENVIRONMENT_NAME/$JLPL_TEST_PKG
   && export COVERAGE_FILE=$JLPL_TEST_REPORTS/.coverage
   && export COVERAGE_RCFILE=$(pwd)/pyproject.toml
   && rm -rf $JLPL_TEST_REPORTS
@@ -300,19 +302,22 @@ cmd = """export JLPL_TEST_REPORTS=$PIXI_PROJECT_ROOT/build/reports/$PIXI_ENVIRON
     --cov-report=term-missing:skip-covered
     --cov=$JLPL_TEST_MOD
     --no-cov-on-fail
+    --cov-fail-under=$JLPL_TEST_COV_FAIL_UNDER
     --html=$JLPL_TEST_REPORTS/pytest.html --self-contained-html
     -o generate_report_on_test=True
     tests
-"""
+    || exit 1"""
 [tasks.pytest-core--]
 cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock
   && export JLPL_TEST_MOD=jupyterlite_pyodide_lock
   && export JLPL_TEST_CWD=py/jupyterlite-pyodide-lock
+  && export JLPL_TEST_COV_FAIL_UNDER=100
   && pixi r pytest--"""
 [tasks.pytest-wd--]
 cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock-webdriver
   && export JLPL_TEST_MOD=jupyterlite_pyodide_lock_webdriver
   && export JLPL_TEST_CWD=py/jupyterlite-pyodide-lock-webdriver
+  && export JLPL_TEST_COV_FAIL_UNDER=100
   && pixi r pytest--"""
 
 # meta testing
