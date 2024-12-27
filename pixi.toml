@@ -23,7 +23,7 @@ all = {cmd = "echo 🚢", description = """
   "build",
 ]}
 pr = {cmd = "echo 🧲", description = """
-🧲 run ALL pull-request preflight tasks""", depends-on = [
+🧲 run ALL pull request preflight tasks""", depends-on = [
   "fix",
   "lint",
   "check",
@@ -533,12 +533,14 @@ outputs = ["build/docs-app/SHA256SUMS"]
 
 [feature.tasks-docs.tasks.docs-sphinx]
 description = "├ build documentation with sphinx"
-cmd = """cd docs
+cmd = """rm -rf build/docs
+  && cd docs
   && export PYDEVD_DISABLE_FILE_VALIDATION=1
   && sphinx-build -W --keep-going --color -b html . ../build/docs"""
 depends-on = ["docs-lite", "docs-scour"]
 inputs = [
   "*.md",
+  "pixi.toml",
   "py/*/*.toml",
   "py/*/src/**/*.py",
   "build/docs-app/SHA256SUMS",
