@@ -6,7 +6,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "jupyterlite-pyodide-lock-webdriver"
-version = "0.1.0"
+version = "0.1.1"
 description = "A WebDriver strategy for jupyterlite-pyodide-kernel-lock"
 license.text = "BSD-3-Clause"
 authors = [
@@ -28,7 +28,7 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-  "jupyterlite-pyodide-lock ==0.1.0",
+  "jupyterlite-pyodide-lock ==0.1.1",
   "selenium >=4.19",
 ]
 

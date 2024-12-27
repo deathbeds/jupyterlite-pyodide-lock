@@ -62,6 +62,8 @@ def _verify_patterns(
         print(text)
         for pattern in patterns[glob]:
             matches = re.findall(pattern, text, flags=re.MULTILINE)
+            if path.name == "CHANGELOG.md":
+                matches = matches[:1]
             if {*matches} != {version}:
                 fails[path].append(f" - missing {what} {version} [{pattern}]")
 
