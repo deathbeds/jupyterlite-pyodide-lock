@@ -81,7 +81,7 @@ dependencies like [widgets](#widgets-example) are consistent over time.
   python -m http.server -b 127.0.0.1
   ```
 
-- visit your site at `http://127.0.0.1:8000/`
+- visit the site at `http://127.0.0.1:8000/`
 - make a new Notebook
   - use basic `python` features
 
@@ -106,8 +106,17 @@ dependencies like [widgets](#widgets-example) are consistent over time.
     - nodefaults
   dependencies:
     - ipywidgets ==8.1.5
+    - jupyterlite-core ==0.4.5
+    - jupyterlite-pyodide-kernel ==0.4.6
     - jupyterlite-pyodide-lock-recommended ==0.1.0a0
   ```
+
+  - _the `-recommended` package includes `firefox` and `geckodriver`_
+  - _optionally use a tool like [`conda-lock`][conda-lock] or [`pixi`][pixi] to
+    create a lockfile for the build environment_
+
+[conda-lock]: https://github.com/conda-incubator/conda-lock
+[pixi]: https://github.com/prefix-dev/pixi
 
 - Run:
   ```bash
@@ -155,7 +164,7 @@ dependencies like [widgets](#widgets-example) are consistent over time.
   python -m http.server -b 127.0.0.1
   ```
 
-- visit your site at `http://127.0.0.1:8000/`
+- visit the site at `http://127.0.0.1:8000/`
 - make a new Notebook
 
   - see that `ipywidgets` can be imported, and widgets work:
