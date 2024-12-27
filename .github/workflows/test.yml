@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: ["*"]
+    branches: ['*']
   workflow_dispatch:
 
 concurrency:
@@ -31,7 +31,9 @@ jobs:
           cache: true
           environments: build
       - run: pixi run build
-      - run: mkdir -p build && echo ${{ github.run_number }} > .pixi/task-cache-v0/.skip-dist
+      - run: |-
+          mkdir -p build && echo ${{ github.run_number }} \
+          > .pixi/task-cache-v0/.skip-dist
       - name: upload dist
         uses: actions/upload-artifact@v4
         with:
@@ -62,13 +64,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {test-env: test-max,  vm: macos-latest,   browser: chrome}
-          - {test-env: test-max,  vm: ubuntu-24.04 ,  browser: chromium}
-          - {test-env: test-max,  vm: windows-latest, browser: chrome}
-          - {test-env: test-min,  vm: macos-13,       browser: firefox}
-          - {test-env: test-min,  vm: ubuntu-22.04 ,  browser: firefox}
-          - {test-env: test-min,  vm: windows-latest, browser: firefox}
-          - {test-env: test-next, vm: ubuntu-latest , browser: firefox}
+          - { test-env: test-max, vm: macos-latest, browser: chrome }
+          - { test-env: test-max, vm: ubuntu-24.04, browser: chromium }
+          - { test-env: test-max, vm: windows-latest, browser: chrome }
+          - { test-env: test-min, vm: macos-13, browser: firefox }
+          - { test-env: test-min, vm: ubuntu-22.04, browser: firefox }
+          - { test-env: test-min, vm: windows-latest, browser: firefox }
+          - { test-env: test-next, vm: ubuntu-latest, browser: firefox }
     env:
       JLPL_BROWSER: ${{ matrix.browser }}
     steps:

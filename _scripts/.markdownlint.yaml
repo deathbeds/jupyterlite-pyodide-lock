@@ -1,0 +1,9 @@
+default: true
+
+line-length:
+    code_blocks: false
+    line_length: 88
+
+# specific rules ###############################################################
+MD033:
+    allowed_elements: [kbd, details, summary, i, code, br]

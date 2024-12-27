@@ -4,13 +4,12 @@
 
 ### Set up
 
-This project is developed locally and in CI with [pixi],
-a relatively new approach to `conda` package management and task running.
+This project is developed locally and in CI with [pixi], a relatively new approach to
+`conda` package management and task running.
 
-> ** Note **
+> **Note**
 >
 > Refer to `pixi.toml#/$schema` for the current development version
-
 
 [pixi]: https://pixi.sh/latest/#installation
 
@@ -32,7 +31,6 @@ mamba install -c conda-forge "pixi ==0.39.3"  # replace `mamba` with your CONDA_
 </details>
 
 <br />
-
 
 ### Tasks and Environments
 

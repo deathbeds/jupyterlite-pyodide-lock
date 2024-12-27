@@ -1,7 +1,7 @@
 # jupyterlite-pyodide-lock
 
-> Build reproducible Jupyter Lite sites with [jupyterlite-pyodide-kernel][jlpk]
-> and [pyodide-lock][pl].
+> Build reproducible Jupyter Lite sites with [jupyterlite-pyodide-kernel][jlpk] and
+> [pyodide-lock][pl].
 
 View the full documentation on [ReadTheDocs][rtfd].
 
@@ -11,8 +11,7 @@ View the full documentation on [ReadTheDocs][rtfd].
 
 > **⚠️ EXPERIMENTAL**
 >
-> These packages are not yet released. See the [GitHub repo][gh] for development
-> status.
+> These packages are not yet released. See the [GitHub repo][gh] for development status.
 
 [gh]: https://github.com/deathbeds/jupyterlite-pyodide-lock
 
@@ -24,9 +23,9 @@ management ambiguity by using a full web browser at **build time** to customize 
 
 ## Examples
 
-Use `jupyterlite-pyodide-lock` to [minimally](#minimal-example) provide
-a more controlled baseline `pyodide` runtime environment, or ensure complex
-dependencies like [widgets](#widgets-example) are consistent over time.
+Use `jupyterlite-pyodide-lock` to [minimally](#minimal-example) provide a more
+controlled baseline `pyodide` runtime environment, or ensure complex dependencies like
+[widgets](#widgets-example) are consistent over time.
 
 ### Minimal Example
 
@@ -41,13 +40,14 @@ dependencies like [widgets](#widgets-example) are consistent over time.
 
 - make a `requirements.txt`
 
-  ```
+  ```text
   jupyterlite-core ==0.4.5
   jupyterlite-pyodide-kernel ==0.4.6
   jupyterlite-pyodide-lock ==0.1.0a0
   ```
 
 - Run:
+
   ```bash
   pip install -r requirements.txt
   ```
@@ -112,13 +112,14 @@ dependencies like [widgets](#widgets-example) are consistent over time.
   ```
 
   - _the `-recommended` package includes `firefox` and `geckodriver`_
-  - _optionally use a tool like [`conda-lock`][conda-lock] or [`pixi`][pixi] to
-    create a lockfile for the build environment_
+  - _optionally use a tool like [`conda-lock`][conda-lock] or [`pixi`][pixi] to create a
+    lockfile for the build environment_
 
 [conda-lock]: https://github.com/conda-incubator/conda-lock
 [pixi]: https://github.com/prefix-dev/pixi
 
 - Run:
+
   ```bash
   mamba env update --file environment.yml --prefix .venv
   source activate .venv # or just `activate .venv` on windows
@@ -141,8 +142,7 @@ dependencies like [widgets](#widgets-example) are consistent over time.
   }
   ```
 
-  - _note the tight `ipywidgets` pin, ensuring compatibility with the build
-    environment_
+  - _note the tight `ipywidgets` pin, ensuring compatibility with the build environment_
 
 #### Build the Site with Widgets
 
@@ -155,8 +155,8 @@ dependencies like [widgets](#widgets-example) are consistent over time.
 #### Check Widgets Works Offline
 
 - disconnect from the internet ✈️
-  - _this step is optional, but is the most reliable way to validate a
-    reproducible site_
+  - _this step is optional, but is the most reliable way to validate a reproducible
+    site_
 - start a simple, local development server
 
   ```bash
@@ -178,23 +178,22 @@ dependencies like [widgets](#widgets-example) are consistent over time.
 
 ## Motivation
 
-- By default, a `pyodide` distribution provides a precise set of hundreds of
-  package versions known to work together in the browser, described in its
-  `pyodide-lock.json`.
+- By default, a `pyodide` distribution provides a precise set of hundreds of package
+  versions known to work together in the browser, described in its `pyodide-lock.json`.
 
 - Among these packages is `micropip`, which gives site users the ability to install
-  packages _not_ included in `pyodide-lock.json`. These may be distributed with an
-  HTML page, downloaded from PyPI, or anywhere on the internet.
-  `jupyterlite-pyodide-kernel` uses this capability to install itself, and its
-  dependencies.
+  packages _not_ included in `pyodide-lock.json`. These may be distributed with an HTML
+  page, downloaded from PyPI, or anywhere on the internet. `jupyterlite-pyodide-kernel`
+  uses this capability to install itself, and its dependencies.
 
   - At run time, `piplite` provides a `micropip`-based shim for the IPython `%pip`
-    magic, the most portable approach for interactive package management in Notebook documents.
+    magic, the most portable approach for interactive package management in Notebook
+    documents.
 
-- `micropip` (and `%pip`) are powerful for interactive usage, but can cause
-  headaches when upstream versions (or their dependencies) change in ways that
-  either no longer provide the same API expected by the exact versions of `pyodide`,
-  `pyodide-kernel`, and JupyterLab extensions in a deployed JupyterLite site.
+- `micropip` (and `%pip`) are powerful for interactive usage, but can cause headaches
+  when upstream versions (or their dependencies) change in ways that either no longer
+  provide the same API expected by the exact versions of `pyodide`, `pyodide-kernel`,
+  and JupyterLab extensions in a deployed JupyterLite site.
 
 `jupyterlite-pyodide-lock` gives content authors tools to manage their effective
 `pyodide` distribution, making it easier to build, verify, and maintain predictable,

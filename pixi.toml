@@ -36,12 +36,15 @@ fix = {description = """
   "fix-ruff",
   "fix-taplo",
   "fix-ipynb",
+  "fix-prettier",
+  "fix-mdlint",
 ]}
 lint = {cmd = "echo ⭐", description = """
 ⭐ run ALL linters""", depends-on = [
   "lint-ruff",
   "lint-ipynb",
   "lint-actionlint",
+  "lint-prettier",
 ]}
 build = {cmd = "echo 🏗️", description = """
 🏗️  build ALL packages""", depends-on = [
@@ -188,6 +191,36 @@ cmd = """
 description = "├ check GitHub actions with actionlint"
 cmd = "actionlint -shellcheck=shellcheck -pyflakes=pyflakes"
 inputs = [".github/workflows"]
+
+[feature.tasks-lint.tasks.prettier--]
+cmd = """prettier
+  --config=_scripts/package.json
+  --cache
+  --cache-location=build/.cache/prettier
+  "*.md"
+  ".github/**/*.{yml,md}"
+  """
+
+[feature.tasks-lint.tasks.fix-prettier]
+description = "├ format web-adjacent files with prettier"
+cmd = "pixi r prettier-- --write --list-different"
+inputs = ["*.md", "_scripts/package.json", ".github"]
+
+[feature.tasks-lint.tasks.lint-prettier]
+description = "├ check web-adjacent files with prettier"
+cmd = "pixi r prettier-- --check"
+inputs = ["*.md", "_scripts/package.json", ".github"]
+
+[feature.tasks-lint.tasks.mdlint--]
+cmd = """markdownlint-cli2
+  --config _scripts/.markdownlint.yaml
+  *.md"""
+
+[feature.tasks-lint.tasks.fix-mdlint]
+description = "├ format markdown files with markdownlint2-cli"
+cmd = "pixi r mdlint-- --fix"
+depends-on = ["fix-prettier"]
+inputs = ["*.md", "_scripts/.markdownlint.yaml"]
 
 # building #####################################################################
 [feature.tasks-build.tasks.pyproject-build--]
@@ -597,9 +630,11 @@ rattler-build = "*"
 
 [feature.deps-lint.dependencies]
 actionlint-with-all = "*"
+markdownlint-cli2 = "*"
+nbformat = "*"
+prettier = "*"
 ruff = "*"
 taplo = "*"
-nbformat = "*"
 tomli-w = "*"
 tomlkit = "*"
 
