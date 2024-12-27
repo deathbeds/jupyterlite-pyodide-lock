@@ -199,6 +199,7 @@ cmd = """prettier
   --cache
   --cache-location=build/.cache/prettier
   "*.md"
+  docs/.readthedocs.yaml
   "{.github,_scripts,docs,examples,py,recipe}/**/*.{yml,yaml,md,json}"
   """
 
@@ -208,6 +209,7 @@ cmd = "pixi r prettier-- --write --list-different"
 inputs = [
   "*.md",
   ".github",
+  "docs/.readthedocs.yaml",
   "{.github,_scripts,docs,examples,py,recipe}/**/*.{yml,md,json,css}",
 ]
 
@@ -216,6 +218,7 @@ description = "├ check web-adjacent files with prettier"
 cmd = "pixi r prettier-- --check"
 inputs = [
   "*.md",
+  "docs/.readthedocs.yaml",
   "{.github,_scripts,docs,examples,py,recipe}/**/*.{yml,md,json,css}",
 ]
 
