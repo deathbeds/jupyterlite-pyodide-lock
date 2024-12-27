@@ -1,8 +1,27 @@
 # Contributing
 
+Thank you for considering a contribution to `jupyterlite-pyodide-lock`.
+
+We use [pixi] for local development and GitHub [issues][issues] and [pull requests][prs]
+to collaboration.
+
+[issues]: (https://github.com/deathbeds/jupyterlite-pyodide-lock/issues)
+[prs]: https://github.com/deathbeds/jupyterlite-pyodide-lock/pulls
+
+## Pull Requests
+
+Before making a [pull request][prs], please ensure:
+
+- you've got a local [setup](#set-up)
+- the following command runs without error:
+
+```bash
+pixi run pr
+```
+
 ## Local Development
 
-### Set up
+### Set Up
 
 This project is developed locally and in CI with [pixi], a relatively new approach to
 `conda` package management and task running.

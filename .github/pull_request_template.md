@@ -5,6 +5,11 @@
     https://github.com/deathbeds/jupyterlite-pyodide-lock/blob/main/CONTRIBUTING.md
 -->
 
+## Preflight
+
+- [ ] I read `CONTRIBUTING.md`
+- [ ] I ran `pixi run pr` locally:
+
 ## References
 
 <!--

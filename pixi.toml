@@ -12,8 +12,8 @@ platforms = ["linux-64", "osx-64", "win-64", "osx-arm64"]
 
 [tasks]
 # top-level tasks a la make phony
-all = {description = """
-ALL tasks to prepare for a release""", depends-on = [
+all = {cmd = "echo 🚢", description = """
+🚢 ALL tasks to prepare for a release""", depends-on = [
   "fix",
   "lint",
   "build-pypi",
@@ -21,14 +21,21 @@ ALL tasks to prepare for a release""", depends-on = [
   "check",
   "test",
   "build",
-], cmd = "echo 🚢"}
-test = {description = """
+]}
+pr = {cmd = "echo 🧲", description = """
+🧲 run ALL pull-request preflight tasks""", depends-on = [
+  "fix",
+  "lint",
+  "check",
+  "test-meta",
+]}
+test = {cmd = "echo 🚀", description = """
 🚀 run ALL tests""", depends-on = [
   "test-meta",
   "test-max",
   "test-min",
   "test-next",
-], cmd = "echo 🚀"}
+]}
 fix = {description = """
 🧹 fix ALL source files""", cmd = "echo 🧹", depends-on = [
   "fix-tasks",
@@ -54,8 +61,7 @@ build = {cmd = "echo 🏗️", description = """
   "build-hash",
 ]}
 build-pypi = {cmd = "echo 🐍", description = """
-🐍 build ALL PyPI distributions
-""", depends-on = [
+🐍 build ALL PyPI distributions""", depends-on = [
   "build-pypi-core",
   "build-pypi-wd",
   "build-wheel",
@@ -244,7 +250,7 @@ inputs = [
 ]
 
 [feature.tasks-lint.tasks.lint-mdlint]
-description = "├ format markdown files with markdownlint2-cli"
+description = "├ check markdown files with markdownlint2-cli"
 cmd = "pixi r mdlint--"
 inputs = [
   "*.md",
@@ -576,7 +582,7 @@ depends-on = ["docs-sphinx"]
 inputs = ["build/docs/**/*.html"]
 
 [feature.tasks-check.tasks.check-spelling]
-description = "... check spelling in documentation"
+description = "├ check spelling in documentation"
 cmd = "python _scripts/vale/check.py"
 depends-on = ["docs-sphinx"]
 inputs = [
