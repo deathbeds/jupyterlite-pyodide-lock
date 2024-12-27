@@ -1,9 +1,12 @@
 default: true
 
 line-length:
-    code_blocks: false
-    line_length: 88
+  line_length: 88
+  code_blocks: false
+  tables: false
 
 # specific rules ###############################################################
 MD033:
-    allowed_elements: [kbd, details, summary, i, code, br]
+  allowed_elements: [kbd, details, summary, i, code, br, b, section, iframe, div, pre]
+
+MD041: false

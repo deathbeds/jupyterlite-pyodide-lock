@@ -45,6 +45,7 @@ lint = {cmd = "echo ⭐", description = """
   "lint-ipynb",
   "lint-actionlint",
   "lint-prettier",
+  "lint-mdlint",
 ]}
 build = {cmd = "echo 🏗️", description = """
 🏗️  build ALL packages""", depends-on = [
@@ -198,29 +199,55 @@ cmd = """prettier
   --cache
   --cache-location=build/.cache/prettier
   "*.md"
-  ".github/**/*.{yml,md}"
+  "{.github,py,docs,examples}/**/*.{yml,md,json}"
   """
 
 [feature.tasks-lint.tasks.fix-prettier]
 description = "├ format web-adjacent files with prettier"
 cmd = "pixi r prettier-- --write --list-different"
-inputs = ["*.md", "_scripts/package.json", ".github"]
+inputs = [
+  "*.md",
+  ".github",
+  "{.github,_scripts,docs,examples,py}/**/*.{yml,md,json,css}",
+]
 
 [feature.tasks-lint.tasks.lint-prettier]
 description = "├ check web-adjacent files with prettier"
 cmd = "pixi r prettier-- --check"
-inputs = ["*.md", "_scripts/package.json", ".github"]
+inputs = [
+  "*.md",
+  "{.github,_scripts,docs,examples,py}/**/*.{yml,md,json,css}",
+]
 
 [feature.tasks-lint.tasks.mdlint--]
 cmd = """markdownlint-cli2
   --config _scripts/.markdownlint.yaml
+  ".github/**/*.md"
+  "_scripts/**/*.md"
+  "docs/**/*.md"
+  "examples/**/*.md"
+  "py/**/*.md"
+  "!**/.ipynb_checkpoints"
   *.md"""
 
 [feature.tasks-lint.tasks.fix-mdlint]
 description = "├ format markdown files with markdownlint2-cli"
 cmd = "pixi r mdlint-- --fix"
 depends-on = ["fix-prettier"]
-inputs = ["*.md", "_scripts/.markdownlint.yaml"]
+inputs = [
+  "*.md",
+  "_scripts/.markdownlint.yaml",
+  "{.github,_scripts,docs,examples,py}/**/*.md",
+]
+
+[feature.tasks-lint.tasks.lint-mdlint]
+description = "├ format markdown files with markdownlint2-cli"
+cmd = "pixi r mdlint--"
+inputs = [
+  "*.md",
+  "_scripts/.markdownlint.yaml",
+  "{.github,_scripts,docs,examples,py}/**/*.md",
+]
 
 # building #####################################################################
 [feature.tasks-build.tasks.pyproject-build--]

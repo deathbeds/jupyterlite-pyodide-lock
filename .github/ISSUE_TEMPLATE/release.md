@@ -14,10 +14,12 @@ labels: maintenance
   - [ ] paste in the relevant CHANGELOG entries
   - [ ] upload the artifacts
 - [ ] actually upload to pypi.org
+
   ```bash
   cd dist
   twine upload *.tar.gz *.whl
   ```
+
 - [ ] postmortem
   - [ ] handle `conda-forge` feedstock tasks
   - [ ] validate on binder via simplest-possible gists

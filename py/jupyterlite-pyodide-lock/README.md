@@ -6,7 +6,7 @@
 
 > This package is not yet released. See `CONTRIBUTING.md` for development.
 >
-> ```
+> ```bash
 > pip install jupyterlite-pyodide-lock
 > ```
 >
@@ -15,7 +15,6 @@
 > ```bash
 > mamba install -c conda-forge jupyterlite-pyodide-lock
 > ```
-
 
 ## Usage
 
@@ -33,33 +32,33 @@ A number of ways to add requirements to the lock file are supported:
 
 ```yaml
 # examples/jupyter_lite_config.json
-{ "PyodideLockAddon": { "enabled": true, "specs": [
+{ 'PyodideLockAddon': { 'enabled': true, 'specs': [
           # pep508 spec
-          "ipywidgets >=8.1,<8.2",
-        ], "packages": [
+          'ipywidgets >=8.1,<8.2',
+        ], 'packages': [
           # a wheel
-          "../dist/ipywidgets-8.1.2-py3-none-any.whl",
+          '../dist/ipywidgets-8.1.2-py3-none-any.whl',
           # a folder of wheels
-          "../dist",
+          '../dist',
         ] } }
 ```
 
 #### Lockers
 
-The _Locker_ is responsible for starting a browser, executing `micopip.install`
-and `micropip.freeze` to try to get a viable lock file solution.
+The _Locker_ is responsible for starting a browser, executing `micopip.install` and
+`micropip.freeze` to try to get a viable lock file solution.
 
 ```yaml
-{ "PyodideLockAddon": {
-      "enabled": true,
+{ 'PyodideLockAddon': {
+      'enabled': true,
       # the default locker: uses naive a `subprocess.Popen` approach
-      "locker": "browser",
-    }, "BrowserLocker": {
+      'locker': 'browser',
+    }, 'BrowserLocker': {
       # requires `firefox` or `firefox.exe` on PATH
-      "browser": "firefox",
-      "headless": true,
-      "private_mode": true,
-      "temp_profile": true,
+      'browser': 'firefox',
+      'headless': true,
+      'private_mode': true,
+      'temp_profile': true,
     } }
 ```
 
@@ -71,19 +70,19 @@ jupyter pyodide-lock browsers
 
 #### Reproducible Locks
 
-By configuring the _lock date_ to a UNIX epoch timestamp, artifacts from a PyPI
-index newer than that date will be filtered out before a lock is attempted.
+By configuring the _lock date_ to a UNIX epoch timestamp, artifacts from a PyPI index
+newer than that date will be filtered out before a lock is attempted.
 
-Combined with a fixed `pyodide_url` archive, this should prevent known packages
-and their dependencies from "drifting."
+Combined with a fixed `pyodide_url` archive, this should prevent known packages and
+their dependencies from "drifting."
 
 ```yaml
 {
-  "PyodideAddon":
+  'PyodideAddon':
     {
-      "pyodide_url": f"https://github.com/pyodide/pyodide/releases/download/0.25.0/pyodide-core-0.25.0.tar.bz2",
+      'pyodide_url': f"https://github.com/pyodide/pyodide/releases/download/0.25.0/pyodide-core-0.25.0.tar.bz2",
     },
-  "PyodideLockAddon": { "enabled": true, "lock_date_epoch": 1712980201 },
+  'PyodideLockAddon': { 'enabled': true, 'lock_date_epoch': 1712980201 },
 }
 ```
 
@@ -116,7 +115,7 @@ Or `python`:
 git log -1 --format=%ct requirements.txt
 ```
 
-The latter approch, using version control metadata, is recommended, as it
-shifts the burden of bookkeeping to a verifiable source.
+The latter approch, using version control metadata, is recommended, as it shifts the
+burden of bookkeeping to a verifiable source.
 
 </details>

@@ -21,12 +21,7 @@
 ```yaml
 # examples/jupyter_lite_config.json
 {
-  "PyodideLockAddon": {
-    "enabled": true,
-    "locker": "WebDriverLocker"
-  },
-  "WebDriverLocker": {
-    "browser": "firefox"
-  }
+  'PyodideLockAddon': { 'enabled': true, 'locker': 'WebDriverLocker' },
+  'WebDriverLocker': { 'browser': 'firefox' },
 }
 ```
