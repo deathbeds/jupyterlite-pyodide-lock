@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 from collections import defaultdict
 from typing import TYPE_CHECKING
@@ -47,6 +48,15 @@ def test_repo_pixi_version(the_pixi_version: str, glob: str) -> None:
 def test_repo_py_version(the_py_version: str, glob: str) -> None:
     """Verify consistent ``jupyterlite-pyodide-lock`` versions."""
     _verify_patterns("python version", the_py_version, glob, PY_PATTERNS)
+
+
+@pytest.mark.parametrize(
+    ("args"), [["jupyter-pyodide-lock"], ["jupyter", "pyodide-lock"]]
+)
+def test_repo_cli_version(args: list[str], the_py_version: str) -> None:
+    """Verify the CLI returns the expected version."""
+    cli = subprocess.check_output([*args, "--version"], **UTF8).strip()
+    assert cli.endswith(the_py_version)
 
 
 def _verify_patterns(
