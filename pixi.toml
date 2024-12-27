@@ -2,7 +2,7 @@
 
 [project]
 name = "jlpl"
-version = "0.1.0a0"
+version = "0.1.0"
 channels = [
   "conda-forge",
   "conda-forge/label/jupyterlite_core_alpha",
@@ -26,8 +26,8 @@ pr = {cmd = "echo 🧲", description = """
 🧲 run ALL pull request preflight tasks""", depends-on = [
   "fix",
   "lint",
-  "check",
   "test-meta",
+  "check",
 ]}
 test = {cmd = "echo 🚀", description = """
 🚀 run ALL tests""", depends-on = [
@@ -127,8 +127,11 @@ cmd = """
   python _scripts/fix-deps.py
     py/jupyterlite-pyodide-lock/pyproject.toml
     py/jupyterlite-pyodide-lock-webdriver/pyproject.toml"""
-inputs = ["_scripts/fix-deps.py"]
-outputs = ["py/*/pyproject.toml"]
+inputs = ["_scripts/fix-deps.py", "py/jupyterlite-pyodide-lock/pyproject.toml"]
+outputs = [
+  "py/*/pyproject.toml",
+  "py/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
+]
 
 [feature.tasks-lint.tasks.fix-tasks]
 description = "├ fix pixi tasks"
@@ -396,7 +399,14 @@ cd py/jupyterlite-pyodide-lock
 && pytest -k test_repo -vv
 """
 depends-on = ["test-max-pip"]
-inputs = ["py/*/pyproject.toml", "CHANGELOG", "docs/form", "pixi.toml", ".github"]
+inputs = [
+  ".github",
+  "CHANGELOG",
+  "docs/form",
+  "pixi.toml",
+  "py/*/pyproject.toml",
+  "py/jupyterlite-pyodide-lock/tests/test_repo.py",
+]
 
 # testing default ##############################################################
 [feature.tasks-test-max.tasks.test-max-pip]
