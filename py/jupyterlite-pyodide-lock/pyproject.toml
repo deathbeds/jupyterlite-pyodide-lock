@@ -6,7 +6,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "jupyterlite-pyodide-lock"
-version = "0.1.0"
+version = "0.1.1"
 description = "Create pre-solved environments for jupyterlite-pyodide-kernel with pyodide-lock"
 license.text = "BSD-3-Clause"
 authors = [
@@ -38,7 +38,7 @@ dependencies = [
 [project.urls]
 "Bug Tracker" = "https://github.com/deathbeds/jupyterlite-pyodide-lock/issues"
 Changelog = "https://github.com/deathbeds/jupyterlite-pyodide-lock/blob/main/CHANGELOG.md"
-Documentation = "https://jupyterlite-pyodide-lock.readthedocs.io"
+Documentation = "https://jupyterlite-pyodide-lock.rtfd.org"
 PyPI = "https://pypi.org/project/jupyterlite-pyodide-lock"
 Source = "https://github.com/deathbeds/jupyterlite-pyodide-lock/tree/main"
 

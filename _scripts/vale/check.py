@@ -23,12 +23,14 @@ REPORTS = BUILD / "reports"
 VALE_REPORT = REPORTS / "vale.html"
 SRC = ROOT / "py"
 SCRIPTS = ROOT / "_scripts"
+GH = ROOT / ".github"
 
 ALL_PY = [*DOCS.rglob("*.py"), *SRC.rglob("*.py"), *SCRIPTS.rglob("*.py")]
 ALL_HTML = [*DOCS_BUILD.rglob("*.html")]
+ALL_MD = [*GH.rglob("*.md"), *SRC.rglob("*.md")]
 
 CHECK_PATHS = {
-    *sorted(p for p in [*ALL_PY, *ALL_HTML] if "checkpoint" not in str(p)),
+    *sorted(p for p in [*ALL_PY, *ALL_HTML, *ALL_MD] if "checkpoint" not in str(p)),
 }
 
 VALE_ARGS: list[str | Path] = [
