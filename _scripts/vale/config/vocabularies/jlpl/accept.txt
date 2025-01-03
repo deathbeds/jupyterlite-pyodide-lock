@@ -26,7 +26,6 @@ CDN
 Changelog
 CI
 CLI
-CLI
 configs?
 configurables
 dep_included
@@ -37,6 +36,7 @@ endmacro
 entrypoints
 extra_exclude
 extra_includes
+feedstock
 firefox
 found_path
 ignore\[.*
@@ -47,8 +47,8 @@ leaf_included
 libs
 lifecycle
 lock_dir
-lock_dir
 lockfile
+mamba/conda
 micropip.*
 Miniforge
 noarch
@@ -61,10 +61,12 @@ param
 pixi
 pkg_(name|info)
 pragma
+Preflight
 preload_packages
 preloaded
 private_mode
 prox(ied|ying)
+PRs
 pydantic
 PyData
 pyodide
@@ -83,6 +85,7 @@ str
 Subclasses
 subprocess
 sys\.modules
+TBD
 temp_profile
 templated
 THandler
@@ -90,6 +93,7 @@ tornado_settings
 TornadoLoacker
 trait_name
 traitlets
+UI
 Warehouse/pythonhosted
 WebAssembly
 webdriver|WebDriver
