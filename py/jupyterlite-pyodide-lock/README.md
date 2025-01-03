@@ -2,19 +2,37 @@
 
 > Create pre-solved environments for jupyterlite-pyodide-kernel with pyodide-lock.
 
+|            docs             |                                          install                                           |                build                 |
+| :-------------------------: | :----------------------------------------------------------------------------------------: | :----------------------------------: |
+| [![docs][docs-badge]][docs] | [![install from pypi][pypi-badge]][pypi] [![install from conda-forge][conda-badge]][conda] | [![build][workflow-badge]][workflow] |
+
+[docs]: https://jupyterlite-pyodide-lock.rtfd.org
+[docs-badge]:
+  https://readthedocs.org/projects/jupyterlite-pyodide-lock/badge/?version=latest
+[conda-badge]: https://img.shields.io/conda/vn/conda-forge/jupyterlite-pyodide-lock
+[conda]: https://anaconda.org/conda-forge/jupyterlite-pyodide-lock
+[pypi-badge]: https://img.shields.io/pypi/v/jupyterlite-pyodide-lock
+[pypi]: https://pypi.org/project/jupyterlite-pyodide-lock
+[workflow-badge]:
+  https://github.com/deathbeds/jupyterlite-pyodide-lock/actions/workflows/test.yml/badge.svg?branch=main
+[workflow]:
+  https://github.com/deathbeds/jupyterlite-pyodide-lock/actions/workflows/test.yml?query=branch%3Amain
+
+View the full documentation on [ReadTheDocs][rtfd].
+
+[rtfd]: https://jupyterlite-pyodide-lock.rtfd.org/en/latest
+
 ## Installing
 
-> This package is not yet released. See `CONTRIBUTING.md` for development.
->
-> ```bash
-> pip install jupyterlite-pyodide-lock
-> ```
->
-> or mamba/conda:
->
-> ```bash
-> mamba install -c conda-forge jupyterlite-pyodide-lock
-> ```
+```bash
+pip install jupyterlite-pyodide-lock
+```
+
+or:
+
+```bash
+mamba install -c conda-forge jupyterlite-pyodide-lock
+```
 
 ## Usage
 
@@ -30,17 +48,14 @@ A number of ways to add requirements to the lock file are supported:
   - URLs to remote wheels that will be downloaded and cached
   - local paths relative to `lite_dir` of `.whl` files (or folders of wheels)
 
-```yaml
-# examples/jupyter_lite_config.json
-{ 'PyodideLockAddon': { 'enabled': true, 'specs': [
-          # pep508 spec
-          'ipywidgets >=8.1,<8.2',
-        ], 'packages': [
-          # a wheel
-          '../dist/ipywidgets-8.1.2-py3-none-any.whl',
-          # a folder of wheels
-          '../dist',
-        ] } }
+```json
+{
+  "PyodideLockAddon": {
+    "enabled": true,
+    "specs": ["ipywidgets >=8.1,<8.2"],
+    "packages": ["../dist/ipywidgets-8.1.2-py3-none-any.whl", "../dist"]
+  }
+}
 ```
 
 #### Lockers
@@ -48,18 +63,19 @@ A number of ways to add requirements to the lock file are supported:
 The _Locker_ is responsible for starting a browser, executing `micopip.install` and
 `micropip.freeze` to try to get a viable lock file solution.
 
-```yaml
-{ 'PyodideLockAddon': {
-      'enabled': true,
-      # the default locker: uses naive a `subprocess.Popen` approach
-      'locker': 'browser',
-    }, 'BrowserLocker': {
-      # requires `firefox` or `firefox.exe` on PATH
-      'browser': 'firefox',
-      'headless': true,
-      'private_mode': true,
-      'temp_profile': true,
-    } }
+```json
+{
+  "PyodideLockAddon": {
+    "enabled": true,
+    "locker": "browser"
+  },
+  "BrowserLocker": {
+    "browser": "firefox",
+    "headless": true,
+    "private_mode": true,
+    "temp_profile": true
+  }
+}
 ```
 
 A convenience CLI options will show some information about detected browsers:
@@ -76,13 +92,13 @@ newer than that date will be filtered out before a lock is attempted.
 Combined with a fixed `pyodide_url` archive, this should prevent known packages and
 their dependencies from "drifting."
 
-```yaml
+```json
 {
-  'PyodideAddon':
+  "PyodideAddon":
     {
-      'pyodide_url': f"https://github.com/pyodide/pyodide/releases/download/0.25.0/pyodide-core-0.25.0.tar.bz2",
+      "pyodide_url": f"https://github.com/pyodide/pyodide/releases/download/0.25.0/pyodide-core-0.25.0.tar.bz2",
     },
-  'PyodideLockAddon': { 'enabled': true, 'lock_date_epoch': 1712980201 },
+  "PyodideLockAddon": { "enabled": true, "lock_date_epoch": 1712980201 }
 }
 ```
 

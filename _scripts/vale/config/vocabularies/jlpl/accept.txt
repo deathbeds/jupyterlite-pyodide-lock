@@ -74,6 +74,7 @@ PyPI
 pytest
 pythonhosted
 raw_packages
+README
 ReadTheDocs
 REPLite
 repo
