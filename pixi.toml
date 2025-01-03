@@ -5,8 +5,8 @@ name = "jlpl"
 version = "0.1.0"
 channels = [
   "conda-forge",
-  "conda-forge/label/jupyterlite_core_alpha",
-  "conda-forge/label/jupyterlite_pyodide_kernel_alpha",
+  "conda-forge/label/jupyterlite_core_beta",
+  "conda-forge/label/jupyterlite_pyodide_kernel_beta",
 ]
 platforms = ["linux-64", "osx-64", "win-64", "osx-arm64"]
 
@@ -658,12 +658,12 @@ python = "3.13.*"
 pyodide-lock = "0.1.0a6"
 
 [feature.deps-run-next.dependencies.jupyterlite-core]
-version = ">=0.5.0a2"
-channel = "conda-forge/label/jupyterlite_core_alpha"
+version = ">=0.5.0b0"
+channel = "conda-forge/label/jupyterlite_core_beta"
 
 [feature.deps-run-next.dependencies.jupyterlite-pyodide-kernel]
-version = ">=0.5.0a1"
-channel = "conda-forge/label/jupyterlite_pyodide_kernel_alpha"
+version = ">=0.5.0b0"
+channel = "conda-forge/label/jupyterlite_pyodide_kernel_beta"
 
 [feature.deps-pip.dependencies]
 pip = "*"
