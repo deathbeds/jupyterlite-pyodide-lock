@@ -3,18 +3,21 @@
 <details>
 
 <summary><b>UNRELEASED</b></summary>
+</details>
 
 ## `0.1.1`
 
 ### `jupyterlite-pyodide-lock 0.1.1`
 
-> TBD
+- [#33]
+  - adds a workaround for `micropip 0.8.0`
+  - cleans up the README
 
 ### `jupyterlite-pyodide-lock-webdriver 0.1.1`
 
-> TBD
+- [#33] adds some badges, and cleans up the README
 
-</details>
+[#33]: https://github.com/deathbeds/jupyterlite-pyodide-lock/pull/33
 
 ## `0.1.0`
 

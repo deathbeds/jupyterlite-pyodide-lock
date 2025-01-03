@@ -3,17 +3,27 @@
 > Build reproducible Jupyter Lite sites with [jupyterlite-pyodide-kernel][jlpk] and
 > [pyodide-lock][pl].
 
+|            docs             |                                          install                                           |                build                 |
+| :-------------------------: | :----------------------------------------------------------------------------------------: | :----------------------------------: |
+| [![docs][docs-badge]][docs] | [![install from pypi][pypi-badge]][pypi] [![install from conda-forge][conda-badge]][conda] | [![build][workflow-badge]][workflow] |
+
+[docs]: https://jupyterlite-pyodide-lock.rtfd.org
+[docs-badge]:
+  https://readthedocs.org/projects/jupyterlite-pyodide-lock/badge/?version=latest
+[conda-badge]: https://img.shields.io/conda/vn/conda-forge/jupyterlite-pyodide-lock
+[conda]: https://anaconda.org/conda-forge/jupyterlite-pyodide-lock
+[pypi-badge]: https://img.shields.io/pypi/v/jupyterlite-pyodide-lock
+[pypi]: https://pypi.org/project/jupyterlite-pyodide-lock
+[workflow-badge]:
+  https://github.com/deathbeds/jupyterlite-pyodide-lock/actions/workflows/test.yml/badge.svg?branch=main
+[workflow]:
+  https://github.com/deathbeds/jupyterlite-pyodide-lock/actions/workflows/test.yml?query=branch%3Amain
+
 View the full documentation on [ReadTheDocs][rtfd].
 
 [jlpk]: https://github.com/jupyterlite/pyodide-kernel
 [pl]: https://github.com/pyodide/pyodide-lock
 [rtfd]: https://jupyterlite-pyodide-lock.rtfd.org/en/latest
-
-> **⚠️ EXPERIMENTAL**
->
-> These packages are not yet released. See the [GitHub repo][gh] for development status.
-
-[gh]: https://github.com/deathbeds/jupyterlite-pyodide-lock
 
 ## Overview
 
@@ -42,7 +52,7 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
 
   ```text
   jupyterlite-core ==0.4.5
-  jupyterlite-pyodide-kernel ==0.4.6
+  jupyterlite-pyodide-kernel ==0.4.7
   jupyterlite-pyodide-lock ==0.1.1
   ```
 
@@ -107,7 +117,7 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
   dependencies:
     - ipywidgets ==8.1.5
     - jupyterlite-core ==0.4.5
-    - jupyterlite-pyodide-kernel ==0.4.6
+    - jupyterlite-pyodide-kernel ==0.4.7
     - jupyterlite-pyodide-lock-recommended ==0.1.1
   ```
 
