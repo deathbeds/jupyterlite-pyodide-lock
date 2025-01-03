@@ -17,7 +17,7 @@
     "temp_profile": true
   },
   "WebDriverLocker": {
-    "webdriver_log_path": "../build/geckodriver.log",
+    "webdriver_log_output": "../build/geckodriver.log",
     "webdriver_service_args": ["--log", "trace"]
   }
 }

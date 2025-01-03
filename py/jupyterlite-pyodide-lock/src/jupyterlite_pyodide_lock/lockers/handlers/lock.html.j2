@@ -28,7 +28,8 @@
 
       await pyodide.runPythonAsync(`
             try:
-                import micropip, js, json
+                import json, js, micropip, traceback
+
                 await micropip.install(
                     **json.loads(
                         '''
@@ -36,9 +37,34 @@
                         '''
                     )
                 )
-                js.window.PYODIDE_LOCK = micropip.freeze()
+                lock = None
+                if micropip.__version__ == "0.8.0":
+                    # from https://github.com/pyodide/micropip/pull/172
+                    from micropip.freeze import load_pip_packages
+
+                    PM = micropip._package_manager_singleton
+                    packages = dict(load_pip_packages())
+                    packages.update(
+                        {
+                            name: info
+                            for name, info in PM.repodata_packages.items()
+                            if name not in packages
+                        }
+                    )
+                    lock = json.dumps(
+                        {"info": PM.repodata_info, "packages": packages},
+                        indent=2,
+                        sort_keys=True
+                    )
+                else:
+                    lock = micropip.freeze()
+
+                js.window.PYODIDE_LOCK = lock
             except Exception as err:
-                js.window.PYODIDE_ERROR = str(err)
+                js.window.PYODIDE_ERROR = f"""
+                    {traceback.format_exc()}
+                    {str(err)}
+                """
         `);
 
       await post(
