@@ -86,9 +86,9 @@ test-next = {cmd = "echo 🛸", description = """
   "test-next-wd",
 ]}
 docs = {cmd = "echo 🖨️", description = """
-├ 🖨️ build all documentation""", depends-on = ["docs-lite", "docs-sphinx"]}
+🖨️  build all documentation""", depends-on = ["docs-lite", "docs-sphinx"]}
 check = {cmd = "echo 🤓", description = """
-├ 🤓 check all build/test artifacts""", depends-on = ["check-links", "check-spelling"]}
+🤓 check all build/test artifacts""", depends-on = ["check-links", "check-spelling"]}
 
 # tasks that are customized per env
 pip-- = """rm -rf build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt
@@ -525,7 +525,7 @@ inputs = ["dist/*.whl"]
 outputs = ["build/pip-freeze/docs.txt"]
 
 [feature.tasks-docs.tasks.docs-scour]
-description = "- optimize SVG for docs with scour"
+description = "├ optimize SVG for docs with scour"
 cmd = """export SCOUR_ARGS="scour --enable-id-stripping --enable-comment-stripping"
   && cd docs/_static
   && $SCOUR_ARGS icon-inkscape.svg icon.svg"""
@@ -607,7 +607,7 @@ outputs = ["build/reports/vale.html"]
 
 # interactive development ######################################################
 [feature.tasks-dev.tasks.dev-pip]
-description = "├ 🔁 prepare the dev environment"
+description = "├ prepare the dev environment"
 cmd = """pixi r -e dev pip-e-all--"""
 outputs = ["build/pip-freeze/dev.txt"]
 
