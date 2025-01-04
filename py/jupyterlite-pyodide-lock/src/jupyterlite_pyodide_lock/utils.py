@@ -6,13 +6,17 @@ from __future__ import annotations
 
 import os
 import shutil
+import socket
 from datetime import datetime, timezone
 from logging import Logger, getLogger
 from pathlib import Path
 
+import psutil
+
 from .constants import (
     BROWSER_BIN_ALIASES,
     ENV_VARS_BROWSER_BINS,
+    LOCALHOST,
     OSX,
     OSX_APP_DIRS,
     WAREHOUSE_UPLOAD_FORMAT,
@@ -114,3 +118,40 @@ def get_browser_search_path() -> str:  # pragma: no cover
                     paths += [str(path)]
 
     return os.pathsep.join(paths)
+
+
+def get_unused_port(host: str = LOCALHOST) -> int:
+    """Get an unused ipv4 port."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind((host, 0))
+    sock.listen(1)
+    port = sock.getsockname()[1]
+    sock.close()
+    return int(port)
+
+
+def terminate_all(
+    *parents: psutil.Process,
+    log: Logger | None = None,
+) -> tuple[list[psutil.Process], list[psutil.Process]]:
+    """Terminate a processes and their children and wait for them to exit."""
+    procs: list[psutil.Process] = [
+        p
+        for parent in parents
+        for p in (parent.children(recursive=True) if parent else [])
+    ]
+    running = [p for p in procs if p and p.is_running()]
+
+    for p in running:
+        if log:
+            log.info("stopping process %s", p)
+        try:
+            p.kill()
+        except psutil.NoSuchProcess:  # pragma: no cover
+            if log:
+                log.debug("was already stopped %s", p)
+
+    result: tuple[list[psutil.Process], list[psutil.Process]] = psutil.wait_procs(
+        r for r in running if r.is_running()
+    )
+    return result

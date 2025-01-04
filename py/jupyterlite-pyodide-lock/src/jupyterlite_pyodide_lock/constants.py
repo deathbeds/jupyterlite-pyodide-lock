@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-import os
+import sys
 
 from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK, PYODIDE_VERSION
 
@@ -13,6 +13,7 @@ __all__ = [
     "LOCK_HTML",
     "NAME",
     "PROXY",
+    "PYODIDE_LOCK",
     "PYODIDE_LOCK_OFFLINE",
     "PYODIDE_LOCK_STEM",
 ]
@@ -100,6 +101,9 @@ WAREHOUSE_UPLOAD_FORMAT_ANY = [
     WAREHOUSE_UPLOAD_FORMAT_SHORT,
 ]
 
+# HTTP ###
+LOCALHOST = "127.0.0.1"
+
 # browsers ###
 
 #: browser alias for firefox
@@ -129,10 +133,10 @@ BROWSER_BIN_ALIASES = {BROWSER_BIN[CHROME]: ["chrome", "Google Chrome"]}
 ENV_VARS_BROWSER_BINS = {BROWSER_BIN[CHROME]: ["CHROME_BIN"]}
 
 #: is this Linux
-LINUX = os.sys.platform[:3] == "lin"
+LINUX = sys.platform[:3] == "lin"
 
 #: is this windows
-WIN = os.sys.platform[:3] == "win"
+WIN = sys.platform[:3] == "win"
 
 
 #: default locations of Program Files on Windows
@@ -154,7 +158,7 @@ WIN_BROWSER_REG_KEYS = {
 }
 
 #: is this osx
-OSX = os.sys.platform[:3] == "dar"
+OSX = sys.platform[:3] == "dar"
 
 
 #: locations in Applications of browsers

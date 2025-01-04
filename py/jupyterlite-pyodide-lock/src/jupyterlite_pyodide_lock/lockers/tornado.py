@@ -7,7 +7,6 @@ from __future__ import annotations
 import atexit
 import json
 import shutil
-import socket
 import tempfile
 from pathlib import Path
 from typing import (
@@ -20,11 +19,13 @@ from jupyterlite_core.trait_types import TypedTuple
 from traitlets import Bool, Dict, Instance, Int, Tuple, Type, Unicode, default
 
 from jupyterlite_pyodide_lock.constants import (
+    LOCALHOST,
     LOCK_HTML,
     PROXY,
     PYODIDE_LOCK,
     PYODIDE_LOCK_STEM,
 )
+from jupyterlite_pyodide_lock.utils import get_unused_port
 
 from ._base import BaseLocker
 from .handlers import make_handlers
@@ -74,7 +75,7 @@ class TornadoLocker(BaseLocker):
     log: Logger
 
     port = Int(help="the port on which to listen").tag(config=True)
-    host = Unicode("127.0.0.1", help="the host on which to bind").tag(config=True)
+    host = Unicode(LOCALHOST, help="the host on which to bind").tag(config=True)
     protocol = Unicode("http", help="the protocol to serve").tag(config=True)
     tornado_settings = Dict(help="override settings used by the tornado server").tag(
         config=True,
@@ -289,12 +290,7 @@ class TornadoLocker(BaseLocker):
 
     @default("port")
     def _default_port(self) -> int:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.bind((self.host, 0))
-        sock.listen(1)
-        port = sock.getsockname()[1]
-        sock.close()
-        return port
+        return get_unused_port(self.host)
 
     @default("_context")
     def _default_context(self) -> dict[str, Any]:

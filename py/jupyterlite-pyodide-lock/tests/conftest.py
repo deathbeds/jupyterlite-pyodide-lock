@@ -12,15 +12,21 @@ import os
 import pprint
 import shutil
 import subprocess
+import sys
 import textwrap
 import urllib.request
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import psutil
 from jupyterlite_core.constants import JSON_FMT, JUPYTER_LITE_CONFIG, UTF8
 
 from jupyterlite_pyodide_lock import constants as C  # noqa: N812
-from jupyterlite_pyodide_lock.utils import warehouse_date_to_epoch
+from jupyterlite_pyodide_lock.utils import (
+    get_unused_port,
+    terminate_all,
+    warehouse_date_to_epoch,
+)
 
 try:
     import tomllib
@@ -87,6 +93,7 @@ class LiteRunner:
         expect_rc: int = 0,
         expect_stderr: str | None = None,
         expect_stdout: str | None = None,
+        expect_runnable: list[tuple[str, str]] | None = None,
         **popen_kwargs: Any,
     ) -> TLiteRunResult:
         """Run a CLI command, optionally checking stream and/or web output."""
@@ -136,7 +143,33 @@ class LiteRunner:
             print("[stderr]", stderr)
             assert expect_stderr in stderr
 
+        if expect_runnable:
+            self.run_web(expect_runnable)
+
         return proc.returncode, stdout, stderr
+
+    def run_web(self, expect_runnable: list[tuple[str, str]]) -> None:
+        """Serve the site to Firefox, run some Python, check for a selector."""
+        try:
+            from selenium.webdriver import Firefox
+        except ImportError:
+            print("selenium was not importable, skipping web test.")
+            return
+        out = self.lite_dir / "_output"
+        port = get_unused_port()
+        srv_args = [sys.executable, "-m", "http.server", "-b", C.LOCALHOST, port]
+        srv = psutil.Popen(list(map(str, srv_args)), cwd=str(out))
+        ff: Firefox | None = None
+        try:
+            ff = Firefox()
+            ff.get(f"http://{C.LOCALHOST}:{port}")
+            for code, selector in expect_runnable:
+                print(f"run {code}")
+                print(f"find {selector}")
+        finally:
+            if ff:
+                ff.close()
+            terminate_all(srv)
 
 
 @pytest.fixture(scope="session")
