@@ -35,19 +35,6 @@ if TYPE_CHECKING:
 
     TLiteRunResult = tuple[int, str | None, str | None]
 
-    def t_lite_runner(
-        *args: str,
-        expect_rc: int = 0,
-        expect_stderr: str | None = None,
-        expect_stdout: str | None = None,
-        **popen_kwargs: Any,
-    ) -> TLiteRunResult:
-        """Provide a type for the ``lite_cli`` fixture."""
-        print(args, expect_rc, expect_stderr, expect_stdout, popen_kwargs)
-        return 0, None, None
-
-    TLiteRunner = type[t_lite_runner]
-
 
 HERE = Path(__file__).parent
 PKG = HERE.parent
@@ -85,44 +72,25 @@ def pytest_configure(config: Any) -> None:
     return
 
 
-@pytest.fixture(scope="session")
-def the_pyproject() -> dict[str, Any]:
-    """Provide the python project data."""
-    return tomllib.loads(PPT.read_text(**UTF8))
+class LiteRunner:
+    """A wrapper for common CLI test activities."""
 
+    lite_dir: Path
 
-@pytest.fixture
-def a_lite_dir(tmp_path: Path) -> Path:
-    """Provide a temporary JupyterLite project."""
-    lite_dir = tmp_path / "lite"
-    lite_dir.mkdir()
-    return lite_dir
+    def __init__(self, lite_dir: Path) -> None:
+        """Store the project for later."""
+        self.lite_dir = lite_dir
 
-
-@pytest.fixture
-def a_bad_widget_lock_date_epoch() -> int:
-    """Provide a UNIX timestamp for a widget release that should NOT be in a lock."""
-    return warehouse_date_to_epoch(WIDGET_ISO8601["before"])
-
-
-@pytest.fixture
-def a_good_widget_lock_date_epoch() -> int:
-    """Provide a UNIX timestamp for a widget release that should be in a lock."""
-    return warehouse_date_to_epoch(WIDGET_ISO8601["after_"])
-
-
-@pytest.fixture
-def lite_cli(a_lite_dir: Path) -> TLiteRunner:
-    """Provide a ``jupyter lite`` runner in a project."""
-
-    def run(
+    def __call__(
+        self,
         *args: str,
         expect_rc: int = 0,
         expect_stderr: str | None = None,
         expect_stdout: str | None = None,
         **popen_kwargs: Any,
     ) -> TLiteRunResult:
-        a_lite_config = a_lite_dir / JUPYTER_LITE_CONFIG
+        """Run a CLI command, optionally checking stream and/or web output."""
+        a_lite_config = self.lite_dir / JUPYTER_LITE_CONFIG
         env = None
 
         print(
@@ -140,7 +108,7 @@ def lite_cli(a_lite_dir: Path) -> TLiteRunner:
             env.update(popen_kwargs.pop("env"))
 
         kwargs = dict(
-            cwd=str(popen_kwargs.get("cwd", a_lite_dir)),
+            cwd=str(popen_kwargs.get("cwd", self.lite_dir)),
             stdout=subprocess.PIPE if expect_stdout else None,
             stderr=subprocess.PIPE if expect_stderr else None,
             env=env,
@@ -170,13 +138,43 @@ def lite_cli(a_lite_dir: Path) -> TLiteRunner:
 
         return proc.returncode, stdout, stderr
 
-    return run
+
+@pytest.fixture(scope="session")
+def the_pyproject() -> dict[str, Any]:
+    """Provide the python project data."""
+    return dict(tomllib.loads(PPT.read_text(**UTF8)))
+
+
+@pytest.fixture
+def a_lite_dir(tmp_path: Path) -> Path:
+    """Provide a temporary JupyterLite project."""
+    lite_dir = tmp_path / "lite"
+    lite_dir.mkdir()
+    return lite_dir
+
+
+@pytest.fixture
+def a_bad_widget_lock_date_epoch() -> int:
+    """Provide a UNIX timestamp for a widget release that should NOT be in a lock."""
+    return warehouse_date_to_epoch(WIDGET_ISO8601["before"])
+
+
+@pytest.fixture
+def a_good_widget_lock_date_epoch() -> int:
+    """Provide a UNIX timestamp for a widget release that should be in a lock."""
+    return warehouse_date_to_epoch(WIDGET_ISO8601["after_"])
+
+
+@pytest.fixture
+def lite_cli(a_lite_dir: Path) -> LiteRunner:
+    """Provide a ``jupyter lite`` runner in a project."""
+    return LiteRunner(a_lite_dir)
 
 
 @pytest.fixture(params=sorted(WIDGETS_CONFIG))
 def a_widget_approach(request: pytest.FixtureRequest) -> str:
     """Provide a key for which ``ipywidgets`` lock approach to try."""
-    return request.param
+    return f"{request.param}"
 
 
 @pytest.fixture

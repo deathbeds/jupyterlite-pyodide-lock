@@ -15,12 +15,10 @@ from .conftest import expect_no_diff
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from .conftest import TLiteRunner
+    from .conftest import LiteRunner
 
 
-def test_cli_good_build(
-    lite_cli: TLiteRunner, a_lite_config_with_widgets: Path
-) -> None:
+def test_cli_good_build(lite_cli: LiteRunner, a_lite_config_with_widgets: Path) -> None:
     """Verify a build works, twice."""
     from jupyterlite_pyodide_lock.constants import PYODIDE_LOCK_STEM
 
