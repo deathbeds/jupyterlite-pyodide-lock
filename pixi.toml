@@ -367,7 +367,6 @@ cmd = """
     --rootdir .
     --color=yes
     --tb=long
-    --durations=5
     --cov-branch
     --cov-context=test
     --cov-report=html:$JLPL_TEST_REPORTS/htmlcov
@@ -690,6 +689,7 @@ tomlkit = "*"
 pytest = ">=8,<9"
 pytest-cov = "*"
 pytest-html = "*"
+jupyter_server = "*"
 
 [feature.deps-webdriver.dependencies]
 selenium = ">=4.19"

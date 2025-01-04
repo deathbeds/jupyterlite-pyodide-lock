@@ -143,7 +143,7 @@ def terminate_all(
     running = [p for p in procs if p and p.is_running()]
 
     for p in running:
-        if log:
+        if log:  # pragma: no cover
             log.info("stopping process %s", p)
         try:
             p.kill()

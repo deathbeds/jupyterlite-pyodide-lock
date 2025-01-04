@@ -14,7 +14,7 @@ from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK
 
 from jupyterlite_pyodide_lock.constants import ENV_VAR_LOCK_DATE_EPOCH
 
-from .conftest import expect_no_diff, patch_config
+from .conftest import EXPECT_WIDGETS_RUN, expect_no_diff, patch_config
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -97,7 +97,8 @@ def test_cli_good_build(lite_cli: LiteRunner, a_lite_config_with_widgets: Path) 
             "prune": True,
         },
     )
-    lite_cli("build", "--debug")
+    # only test pruned, offline in browser, as we'll have everything locally
+    lite_cli("build", "--debug", expect_runnable=[EXPECT_WIDGETS_RUN])
     pyodide_lock.PyodideLockSpec.from_json(lock_offline)
     pruned_text = lock_offline.read_text(**UTF8)
     assert "https://" not in pruned_text

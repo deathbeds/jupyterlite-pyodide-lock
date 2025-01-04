@@ -14,6 +14,7 @@ import shutil
 import subprocess
 import sys
 import textwrap
+import time
 import urllib.request
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -39,6 +40,9 @@ import pytest
 if TYPE_CHECKING:
     from collections.abc import Generator
 
+    from selenium.webdriver import Firefox
+    from selenium.webdriver.remote.webelement import WebElement
+
     TLiteRunResult = tuple[int, str | None, str | None]
 
 
@@ -62,6 +66,36 @@ WIDGETS_CONFIG = dict(
     well_known={},
 )
 
+#: a notebook without cells
+EMPTY_NOTEBOOK = {
+    "metadata": {
+        "kernelspec": {
+            "display_name": "Python (Pyodide)",
+            "language": "python",
+            "name": "python",
+        },
+        "language_info": {
+            "codemirror_mode": {"name": "ipython", "version": 3},
+            "file_extension": ".py",
+            "mimetype": "text/x-python",
+            "name": "python",
+            "nbconvert_exporter": "python",
+            "pygments_lexer": "ipython3",
+            "version": "3.12.8",
+        },
+    },
+    "nbformat": 4,
+    "nbformat_minor": 5,
+}
+
+CSS_RUN_BUTTON = (
+    ".jp-ToolbarButtonComponent[data-command='notebook:run-cell-and-select-next']"
+)
+EXPECT_WIDGETS_RUN = (
+    "from ipywidgets import FloatSlider; FloatSlider()",
+    ".jupyter-widgets.widget-slider",
+)
+
 
 def pytest_configure(config: Any) -> None:
     """Configure the pytest environment."""
@@ -82,10 +116,12 @@ class LiteRunner:
     """A wrapper for common CLI test activities."""
 
     lite_dir: Path
+    next_screen: int
 
     def __init__(self, lite_dir: Path) -> None:
         """Store the project for later."""
         self.lite_dir = lite_dir
+        self.next_screen = 0
 
     def __call__(
         self,
@@ -113,6 +149,9 @@ class LiteRunner:
             print("[env] custom:", env)
             env = dict(os.environ)
             env.update(popen_kwargs.pop("env"))
+
+        if expect_runnable:
+            self.make_notebook(expect_runnable)
 
         kwargs = dict(
             cwd=str(popen_kwargs.get("cwd", self.lite_dir)),
@@ -148,28 +187,88 @@ class LiteRunner:
 
         return proc.returncode, stdout, stderr
 
+    def make_notebook(self, expect_runnable: list[tuple[str, str]]) -> None:
+        """Write a test notebook with the expected code."""
+        files = self.lite_dir / "files"
+        nb = files / "test.ipynb"
+        cells = [{"type": "code", "source": code} for code, _css in expect_runnable]
+        nb_content = {"cells": cells, **EMPTY_NOTEBOOK}
+        nb.parent.mkdir(exist_ok=True, parents=True)
+        nb.write_text(json.dumps(nb_content), **UTF8)
+
     def run_web(self, expect_runnable: list[tuple[str, str]]) -> None:
         """Serve the site to Firefox, run some Python, check for a selector."""
-        try:
-            from selenium.webdriver import Firefox
-        except ImportError:
-            print("selenium was not importable, skipping web test.")
-            return
         out = self.lite_dir / "_output"
+        out_nb = out / "files/test.ipynb"
+        assert (out / "api/contents/all.json").exists()
+        assert out_nb.exists()
         port = get_unused_port()
         srv_args = [sys.executable, "-m", "http.server", "-b", C.LOCALHOST, port]
         srv = psutil.Popen(list(map(str, srv_args)), cwd=str(out))
-        ff: Firefox | None = None
+
+        ff = self.make_firefox()
+
+        def _capture(prefix: str = "test") -> None:
+            path = self.lite_dir.parent / f"{self.next_screen:02}-{prefix}.png"
+            print(f"... screenshot {path}", file=sys.stderr)
+            ff.get_full_page_screenshot_as_file(str(path))
+            self.next_screen += 1
+
         try:
-            ff = Firefox()
-            ff.get(f"http://{C.LOCALHOST}:{port}")
-            for code, selector in expect_runnable:
-                print(f"run {code}")
-                print(f"find {selector}")
+            ff.get(f"http://{C.LOCALHOST}:{port}/lab/index.html?path=test.ipynb")
+            time.sleep(5)
+            _capture("startup")
+            try:
+                run = self.wait_for_element(ff, CSS_RUN_BUTTON)
+                _capture()
+                for i, (_code, selector) in enumerate(expect_runnable):
+                    run.click()
+                    if not i:
+                        time.sleep(20)
+                    self.wait_for_element(ff, selector)
+                    _capture()
+            except Exception as err:  # noqa: BLE001
+                print(err, file=sys.stderr)
+                _capture("error")
         finally:
-            if ff:
-                ff.close()
             terminate_all(srv)
+            if ff:
+                ff.quit()
+
+    def wait_for_element(self, ff: Firefox, css: str, timeout: int = 30) -> WebElement:
+        """Wait for a CSS element to appear."""
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support import expected_conditions as EC  # noqa: N812
+        from selenium.webdriver.support.wait import WebDriverWait
+
+        return WebDriverWait(ff, timeout).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, css))
+        )
+
+    @property
+    def geckodriver_log(self) -> Path:
+        """Get a log location."""
+        return self.lite_dir.parent / "geckodriver.log"
+
+    def make_firefox(self) -> Firefox:
+        """Make a firefox webdriver."""
+        import selenium.webdriver as SE  # noqa: N812
+
+        ff_bin = shutil.which("firefox") or shutil.which("firefox.exe")
+        gd_bin = shutil.which("geckodriver") or shutil.which("geckodriver.exe")
+        if not (ff_bin and gd_bin):
+            msg = f"can't find one of:  firefox: {ff_bin}  geckodriver: {gd_bin}"
+            raise FileNotFoundError(msg)
+        options = SE.FirefoxOptions()
+        options.set_preference("devtools.console.stdout.content", value=True)
+        options.binary_location = ff_bin
+        service = SE.FirefoxService(
+            executable_path=gd_bin,
+            log_output=str(self.geckodriver_log),
+            service_args=["--log", "trace"],
+            env={"MOZ_HEADLESS": "1"},
+        )
+        return SE.Firefox(options=options, service=service)
 
 
 @pytest.fixture(scope="session")
