@@ -143,11 +143,11 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
   {
     "PyodideLockAddon": {
       "enabled": true,
-      "specs": ["ipywidgets ==8.1.5"]
+      "specs": ["ipywidgets ==8.1.5"],
+      "extra_preload_packages": ["ipywidgets"]
     },
     "PyodideLockOfflineAddon": {
-      "enabled": true,
-      "extra_includes": ["ipywidgets"]
+      "enabled": true
     }
   }
   ```

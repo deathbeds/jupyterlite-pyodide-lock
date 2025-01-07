@@ -40,7 +40,7 @@ def test_cli_status(lite_cli: LiteRunner, args: list[str]) -> None:
     """Verify various status invocations work."""
     from jupyterlite_pyodide_lock import __version__
 
-    lite_cli(*["status", *args], expect_stdout=__version__)
+    lite_cli(*["status", *args], expect_text=__version__)
 
 
 @pytest.mark.parametrize(
@@ -55,7 +55,7 @@ def test_cli_bad_config(
 ) -> None:
     """Verify bad configs are caught."""
     patch_config(a_lite_config, PyodideLockAddon=bad_config)
-    lite_cli("status", expect_rc=0, expect_stderr=MESSAGES[message])
+    lite_cli("status", expect_rc=2, expect_text=MESSAGES[message])
 
 
 def test_cli_good_build(lite_cli: LiteRunner, a_lite_config_with_widgets: Path) -> None:

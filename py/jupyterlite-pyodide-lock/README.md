@@ -94,10 +94,9 @@ their dependencies from "drifting."
 
 ```json
 {
-  "PyodideAddon":
-    {
-      "pyodide_url": f"https://github.com/pyodide/pyodide/releases/download/0.25.0/pyodide-core-0.25.0.tar.bz2",
-    },
+  "PyodideAddon": {
+    "pyodide_url": "https://github.com/pyodide/pyodide/releases/download/0.27.0/pyodide-core-0.27.0.tar.bz2"
+  },
   "PyodideLockAddon": { "enabled": true, "lock_date_epoch": 1712980201 }
 }
 ```

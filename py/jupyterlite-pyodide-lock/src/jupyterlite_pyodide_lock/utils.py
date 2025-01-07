@@ -4,11 +4,11 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import shutil
 import socket
 from datetime import datetime, timezone
-from logging import Logger, getLogger
 from pathlib import Path
 
 import psutil
@@ -27,7 +27,7 @@ from .constants import (
     WIN_PROGRAM_FILES_DIRS,
 )
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def warehouse_date_to_epoch(iso8601_str: str) -> int:
@@ -54,7 +54,7 @@ def epoch_to_warehouse_date(epoch: int) -> str:
     )
 
 
-def find_browser_binary(browser_binary: str, log: Logger = logger) -> str:
+def find_browser_binary(browser_binary: str, log: logging.Logger = logger) -> str:
     """Resolve an absolute path to a browser binary."""
     path_var = get_browser_search_path()
 
@@ -84,10 +84,14 @@ def find_browser_binary(browser_binary: str, log: Logger = logger) -> str:
     if exe is None and WIN:  # pragma: no cover
         log.debug("[browser] fall back to registry...")
         for key in WIN_BROWSER_REG_KEYS.get(browser_binary, []):
-            import winreg
+            from winreg import (  # type: ignore[attr-defined]
+                HKEY_CURRENT_USER,
+                OpenKey,
+                QueryValue,
+            )
 
-            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key) as reg:
-                exe = winreg.QueryValue(reg)
+            with OpenKey(HKEY_CURRENT_USER, key) as reg:
+                exe = QueryValue(reg)
                 if exe and Path(exe).exists():
                     break
 
@@ -132,26 +136,30 @@ def get_unused_port(host: str = LOCALHOST) -> int:
 
 def terminate_all(
     *parents: psutil.Process,
-    log: Logger | None = None,
+    log: logging.Logger | None = None,
 ) -> tuple[list[psutil.Process], list[psutil.Process]]:
     """Terminate a processes and their children and wait for them to exit."""
-    procs: list[psutil.Process] = [
-        p
-        for parent in parents
-        for p in (parent.children(recursive=True) if parent else [])
+    log = log or logger
+    procs = [
+        *[
+            p
+            for parent in parents
+            for p in (parent.children(recursive=True) if parent else [])
+        ],
+        *parents,
     ]
-    running = [p for p in procs if p and p.is_running()]
 
-    for p in running:
-        if log:  # pragma: no cover
-            log.info("stopping process %s", p)
+    if not procs:  # pragma: no cover
+        log.warning("unexpectedly no processes to stop from: %s", parents)
+
+    for p in procs:
+        log.warning("stopping process %s", p)
         try:
-            p.kill()
+            p.terminate()
         except psutil.NoSuchProcess:  # pragma: no cover
-            if log:
-                log.debug("was already stopped %s", p)
+            log.debug("was already stopped %s", p)
 
     result: tuple[list[psutil.Process], list[psutil.Process]] = psutil.wait_procs(
-        r for r in running if r.is_running()
+        r for r in procs if r.is_running()
     )
     return result

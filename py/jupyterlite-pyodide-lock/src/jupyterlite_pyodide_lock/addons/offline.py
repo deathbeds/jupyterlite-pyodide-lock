@@ -99,6 +99,23 @@ class PyodideLockOfflineAddon(BaseAddon):
         """A convenience property for a derived offline ``pyodide-lock`` output."""
         return self.lockfile.parent / PYODIDE_LOCK_OFFLINE
 
+    @property
+    def all_includes(self) -> list[str]:
+        """Get all inclusion patterns."""
+        return sorted({
+            *self.includes,
+            *self.extra_includes,
+            *self.pyodide_lock_addon.extra_preload_packages,
+        })
+
+    @property
+    def all_excludes(self) -> list[str]:
+        """Get all exclusion patterns."""
+        return sorted({
+            *self.excludes,
+            *self.extra_excludes,
+        })
+
     # JupyterLite API methods
     def status(self, manager: LiteManager) -> TTaskGenerator:
         """Report on the status of offline ``pyodide-lock``."""
@@ -108,10 +125,8 @@ class PyodideLockOfflineAddon(BaseAddon):
 
             lines = [
                 f"""enabled:      {self.enabled}""",
-                f"""includes:     {"  ".join(self.includes)}""",
-                f""" + extra:     {"  ".join(self.extra_includes)}""",
-                f"""excludes:     {"  ".join(self.excludes)}""",
-                f""" - extra:     {"  ".join(self.extra_excludes)}""",
+                f"""includes:     {"  ".join(self.all_includes)}""",
+                f"""excludes:     {"  ".join(self.all_excludes)}""",
                 f"""version:      {__version__}""",
             ]
             print(indent("\n".join(lines), "    "), flush=True)
@@ -124,8 +139,8 @@ class PyodideLockOfflineAddon(BaseAddon):
             return
 
         config_str = f"""
-            includes:  {self.includes} {self.extra_includes}
-            excludes:  {self.excludes} {self.extra_excludes}
+            includes:  {self.all_includes}
+            excludes:  {self.all_excludes}
             prune:     {self.prune}
         """
 
@@ -233,18 +248,22 @@ class PyodideLockOfflineAddon(BaseAddon):
         self, raw_packages: dict[str, dict[str, Any]]
     ) -> tuple[set[str], set[str]]:
         """Generate the lock."""
-        includes = (*self.includes, *self.extra_includes)
-        excludes = (*self.excludes, *self.extra_excludes)
+        includes = self.all_includes
+        excludes = self.all_excludes
 
         leaf_included: set[str] = set()
-
         check_deps: set[str] = set()
 
         # get leaf deps on first pass
         for pkg_name, pkg_info in raw_packages.items():
-            if self.is_included(pkg_name, pkg_info, includes, excludes):
-                leaf_included |= {pkg_name}
-                check_deps = {*check_deps, *map(canonicalize_name, pkg_info["depends"])}
+            if self.is_included(pkg_name, includes=includes, excludes=excludes):
+                leaf_included = {pkg_name, *leaf_included}
+                new_deps = {*map(canonicalize_name, pkg_info["depends"])}
+                if new_deps:
+                    self.log.debug(
+                        "[offline] leaf %s depends on: %s", pkg_name, new_deps
+                    )
+                    check_deps = {*check_deps, *new_deps}
 
         dep_included: set[str] = set()
 
@@ -253,16 +272,18 @@ class PyodideLockOfflineAddon(BaseAddon):
             if pkg_name in leaf_included or pkg_name in dep_included:
                 continue
             dep_included = {*dep_included, pkg_name}
-            check_deps = {*check_deps, *raw_packages[pkg_name]["depends"]}
+            new_deps = {*map(canonicalize_name, raw_packages[pkg_name]["depends"])}
+            if new_deps:
+                self.log.debug("[offline] dep %s depends on: %s", pkg_name, new_deps)
+                check_deps = {*check_deps, *new_deps}
 
         return leaf_included, dep_included
 
     def is_included(
         self,
         pkg_name: str,
-        pkg_info: dict[str, Any],
-        includes: tuple[str, ...],
-        excludes: tuple[str, ...],
+        includes: list[str],
+        excludes: list[str],
     ) -> bool:
         """Get the URL and filename if a package should be downloaded."""
         skip = "[offline] excluding"

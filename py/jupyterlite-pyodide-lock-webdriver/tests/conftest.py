@@ -43,12 +43,21 @@ if TYPE_CHECKING:
     from selenium.webdriver import Firefox
     from selenium.webdriver.remote.webelement import WebElement
 
-    TLiteRunResult = tuple[int, str | None, str | None]
+    TLiteRunResult = tuple[int, str | None]
 
 
 HERE = Path(__file__).parent
 PKG = HERE.parent
 PPT = PKG / "pyproject.toml"
+
+PY_HOSTED = "https://files.pythonhosted.org/packages/py3"
+LITE_BUILD_CONFIG = {
+    "LiteBuildConfig": {
+        "federated_extensions": [
+            f"{PY_HOSTED}/j/jupyterlab-widgets/jupyterlab_widgets-3.0.10-py3-none-any.whl"
+        ]
+    }
+}
 
 WIDGETS_WHEEL = "ipywidgets-8.1.2-py3-none-any.whl"
 WIDGETS_URL = f"{C.FILES_PYTHON_HOSTED}/packages/py3/i/ipywidgets/{WIDGETS_WHEEL}"
@@ -117,24 +126,54 @@ class LiteRunner:
 
     lite_dir: Path
     next_screen: int
+    next_run: int
+    _ff: Firefox | None = None
 
     def __init__(self, lite_dir: Path) -> None:
         """Store the project for later."""
         self.lite_dir = lite_dir
         self.next_screen = 0
+        self.next_run = 0
+
+    @property
+    def run_dir(self) -> Path:
+        """Get a path for this run's data."""
+        return self.lite_dir.parent / f"cli-{self.next_run}"
+
+    @property
+    def geckodriver_log(self) -> Path:
+        """Get a log location."""
+        return self.run_dir / "geckodriver.log"
+
+    @property
+    def ff(self) -> Firefox:
+        """Get Firefox, or die trying."""
+        if not self._ff:
+            msg = "Firefox not initialized"
+            raise ValueError(msg)
+        return self._ff
 
     def __call__(
         self,
         *args: str,
         expect_rc: int = 0,
-        expect_stderr: str | None = None,
-        expect_stdout: str | None = None,
+        expect_text: str | None = None,
         expect_runnable: list[tuple[str, str]] | None = None,
         **popen_kwargs: Any,
     ) -> TLiteRunResult:
         """Run a CLI command, optionally checking stream and/or web output."""
+        self.next_run += 1
+        self.run_dir.mkdir(parents=True, exist_ok=True)
+        out_dir = self.lite_dir / "_output"
+        cache_dir = self.lite_dir / ".cache"
+        if out_dir.exists():
+            shutil.rmtree(out_dir)
+        if expect_runnable:
+            # lab extensions don't get re-added
+            shutil.rmtree(cache_dir, ignore_errors=True)
+            [[p.unlink(), 1] for p in self.lite_dir.glob("*doit*")]
         a_lite_config = self.lite_dir / JUPYTER_LITE_CONFIG
-        env = None
+        env = dict(os.environ)
 
         print(
             "[env] well-known:\n",
@@ -147,54 +186,63 @@ class LiteRunner:
 
         if "env" in popen_kwargs:
             print("[env] custom:", env)
-            env = dict(os.environ)
             env.update(popen_kwargs.pop("env"))
+
+        env["JUPYTERLITE_NO_JUPYTERLAB_SERVER"] = "1"
 
         if expect_runnable:
             self.make_notebook(expect_runnable)
 
-        kwargs = dict(
-            cwd=str(popen_kwargs.get("cwd", self.lite_dir)),
-            stdout=subprocess.PIPE if expect_stdout else None,
-            stderr=subprocess.PIPE if expect_stderr else None,
-            env=env,
-            **UTF8,
-        )
-        kwargs.update(**popen_kwargs)
+        if a_lite_config.exists():
+            run_conf = self.run_dir / a_lite_config.name
+            print(f"... copying config to {run_conf}", file=sys.stderr)
+            shutil.copy2(a_lite_config, run_conf)
 
-        a_lite_config.exists() and print(
-            "[config]",
-            a_lite_config,
-            a_lite_config.read_text(**UTF8),
-            flush=True,
-        )
+        log = self.run_dir / "cli.log.txt"
+        print(f"... writing log to {log}", file=sys.stderr)
 
-        proc = subprocess.Popen(["jupyter-lite", *args], **kwargs)
-        stdout, stderr = proc.communicate()
+        with log.open("w", **UTF8) as log_fp:
+            kwargs = dict(
+                cwd=str(popen_kwargs.get("cwd", self.lite_dir)),
+                stdout=log_fp,
+                stderr=subprocess.STDOUT,
+                env=env,
+                **UTF8,
+            )
+            kwargs.update(**popen_kwargs)
+            proc = psutil.Popen(["jupyter-lite", *args], **kwargs)
+            proc.communicate()
 
         if expect_rc is not None:
             print("[rc]", proc.returncode)
             assert proc.returncode == expect_rc
-        if expect_stdout:
-            print("[stdout]", stdout)
-            assert expect_stdout in stdout
-        if expect_stderr:
-            print("[stderr]", stderr)
-            assert expect_stderr in stderr
+
+        if expect_text:
+            text = log.read_text(**UTF8)
+            assert expect_text in text
 
         if expect_runnable:
             self.run_web(expect_runnable)
 
-        return proc.returncode, stdout, stderr
+        return proc.returncode, log.read_text(**UTF8)
 
     def make_notebook(self, expect_runnable: list[tuple[str, str]]) -> None:
         """Write a test notebook with the expected code."""
         files = self.lite_dir / "files"
         nb = files / "test.ipynb"
-        cells = [{"type": "code", "source": code} for code, _css in expect_runnable]
+        cells = [
+            {"cell_type": "code", "source": code} for code, _css in expect_runnable
+        ]
         nb_content = {"cells": cells, **EMPTY_NOTEBOOK}
         nb.parent.mkdir(exist_ok=True, parents=True)
         nb.write_text(json.dumps(nb_content), **UTF8)
+
+    def capture(self, prefix: str = "test") -> None:
+        """Capture a screenshot."""
+        path = self.run_dir / f"{self.next_screen:02}-{prefix}.png"
+        print(f"... screenshot {path}", file=sys.stderr)
+        self.ff.get_full_page_screenshot_as_file(str(path))
+        self.next_screen += 1
 
     def run_web(self, expect_runnable: list[tuple[str, str]]) -> None:
         """Serve the site to Firefox, run some Python, check for a selector."""
@@ -204,53 +252,56 @@ class LiteRunner:
         assert out_nb.exists()
         port = get_unused_port()
         srv_args = [sys.executable, "-m", "http.server", "-b", C.LOCALHOST, port]
-        srv = psutil.Popen(list(map(str, srv_args)), cwd=str(out))
+        log = self.run_dir / "http.log.txt"
+        with log.open("w", **UTF8) as log_fp:
+            srv = psutil.Popen(
+                [*map(str, srv_args)],
+                cwd=str(out),
+                stdout=log_fp,
+                stderr=subprocess.STDOUT,
+            )
 
-        ff = self.make_firefox()
+            self.make_firefox()
 
-        def _capture(prefix: str = "test") -> None:
-            path = self.lite_dir.parent / f"{self.next_screen:02}-{prefix}.png"
-            print(f"... screenshot {path}", file=sys.stderr)
-            ff.get_full_page_screenshot_as_file(str(path))
-            self.next_screen += 1
+            url = f"http://{C.LOCALHOST}:{port}/lab/index.html?path=test.ipynb"
 
-        try:
-            ff.get(f"http://{C.LOCALHOST}:{port}/lab/index.html?path=test.ipynb")
-            time.sleep(5)
-            _capture("startup")
             try:
-                run = self.wait_for_element(ff, CSS_RUN_BUTTON)
-                _capture()
-                for i, (_code, selector) in enumerate(expect_runnable):
-                    run.click()
-                    if not i:
-                        time.sleep(20)
-                    self.wait_for_element(ff, selector)
-                    _capture()
-            except Exception as err:  # noqa: BLE001
-                print(err, file=sys.stderr)
-                _capture("error")
-        finally:
-            terminate_all(srv)
-            if ff:
-                ff.quit()
+                self.run_with_server(url, expect_runnable)
+            finally:
+                if self._ff:
+                    self._ff.quit()
+                self._ff = None
+                terminate_all(srv)
 
-    def wait_for_element(self, ff: Firefox, css: str, timeout: int = 30) -> WebElement:
+    def run_with_server(self, url: str, expect_runnable: list[tuple[str, str]]) -> None:
+        """Run the server."""
+        self.ff.get(url)
+        time.sleep(5)
+        self.capture("startup")
+        try:
+            run = self.wait_for_element(CSS_RUN_BUTTON)
+            self.capture()
+            for i, (_code, selector) in enumerate(expect_runnable):
+                run.click()
+                if not i:
+                    time.sleep(20)
+                self.wait_for_element(selector)
+                self.capture()
+        except Exception as err:  # noqa: BLE001
+            print(err, file=sys.stderr)
+            self.capture("error")
+
+    def wait_for_element(self, css: str, timeout: int = 30) -> WebElement:
         """Wait for a CSS element to appear."""
         from selenium.webdriver.common.by import By
         from selenium.webdriver.support import expected_conditions as EC  # noqa: N812
         from selenium.webdriver.support.wait import WebDriverWait
 
-        return WebDriverWait(ff, timeout).until(
+        return WebDriverWait(self.ff, timeout).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, css))
         )
 
-    @property
-    def geckodriver_log(self) -> Path:
-        """Get a log location."""
-        return self.lite_dir.parent / "geckodriver.log"
-
-    def make_firefox(self) -> Firefox:
+    def make_firefox(self) -> None:
         """Make a firefox webdriver."""
         import selenium.webdriver as SE  # noqa: N812
 
@@ -268,7 +319,7 @@ class LiteRunner:
             service_args=["--log", "trace"],
             env={"MOZ_HEADLESS": "1"},
         )
-        return SE.Firefox(options=options, service=service)
+        self._ff = SE.Firefox(options=options, service=service)
 
 
 @pytest.fixture(scope="session")
@@ -334,10 +385,7 @@ def a_lite_config_with_widgets(
 
     patch_config(
         a_lite_config,
-        PyodideLockAddon=dict(
-            extra_preload_packages=["ipywidgets"],
-            **(approach or {}),
-        ),
+        PyodideLockAddon=dict(**(approach or {})),
     )
 
     yield a_lite_config
@@ -352,12 +400,13 @@ def patch_config(config_path: Path, **configurables: dict[str, Any]) -> Path:
     config = {}
     if config_path.exists():
         config = json.loads(config_path.read_text(**UTF8))
+    old_text = json.dumps(config, **JSON_FMT)
     for cls_name, values in configurables.items():
         config.setdefault(cls_name, {}).update(values)
-    json_text = json.dumps(config, **JSON_FMT)
-    config_path.write_text(json_text, **UTF8)
+    new_text = json.dumps(config, **JSON_FMT)
+    config_path.write_text(new_text, **UTF8)
     print("patched config")
-    print(json_text)
+    print(simple_diff(OLD=old_text, NEW=new_text))
     return config_path
 
 
@@ -369,8 +418,10 @@ def fetch(url: str, dest: Path) -> None:
             shutil.copyfileobj(response, fd)
 
 
-def expect_no_diff(left_text: Path, right_text: Path, left: str, right: str) -> None:
-    """Verify two texts contain no differences."""
+def simple_diff(**paths: str) -> str:
+    """Get the string of the diff two texts."""
+    ((left, left_text), (right, right_text)) = [*paths.items()]
+
     diff = [
         *difflib.unified_diff(
             left_text.strip().splitlines(),
@@ -379,7 +430,12 @@ def expect_no_diff(left_text: Path, right_text: Path, left: str, right: str) -> 
             right,
         ),
     ]
-    print("\n".join(diff))
+    return "\n".join(diff)
+
+
+def expect_no_diff(left_text: str, right_text: str, left: str, right: str) -> None:
+    """Verify two texts contain no differences."""
+    diff = simple_diff(**{left: left_text, right: right_text})
     assert not diff
 
 
@@ -395,6 +451,7 @@ def a_lite_config(a_lite_dir: Path) -> Path:
     patch_config(
         config,
         PyodideLockAddon=dict(enabled=True, locker="WebDriverLocker"),
+        **LITE_BUILD_CONFIG,
     )
 
     if (
