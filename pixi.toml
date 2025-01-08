@@ -2,7 +2,7 @@
 
 [project]
 name = "jlpl"
-version = "0.1.1"
+version = "0.1.2"
 channels = [
   "conda-forge",
   # "conda-forge/label/jupyterlite_core_alpha",

@@ -6,7 +6,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "jupyterlite-pyodide-lock"
-version = "0.1.1"
+version = "0.1.2"
 description = "Create pre-solved environments for jupyterlite-pyodide-kernel with pyodide-lock"
 license.text = "BSD-3-Clause"
 authors = [
