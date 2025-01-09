@@ -69,6 +69,12 @@ build-pypi = {cmd = "echo 🐍", description = """
   "build-wheel",
   "build-twine",
 ]}
+test-cli = {cmd = "echo 🚗", description = """
+├ 🆘 check CLI in all test environments""", depends-on = [
+  "test-min-cli",
+  "test-max-cli",
+  "test-next-cli",
+]}
 test-max = {cmd = "echo 🚗", description = """
 ├ 🚗 run tests in the default test environment""", depends-on = [
   "test-max-cli",
@@ -419,7 +425,7 @@ outputs = ["build/pip-freeze/test-max.txt"]
 
 [feature.tasks-test-max.tasks.test-max-cli]
 description = "├─ smoke test browsers in default test environment"
-cmd = """jupyter-pyodide-lock browsers"""
+cmd = """jupyter-pyodide-lock browsers --check"""
 depends-on = ["test-max-pip"]
 inputs = ["build/pip-freeze/test-max.txt"]
 
@@ -455,7 +461,7 @@ outputs = ["build/pip-freeze/test-min.txt"]
 
 [feature.tasks-test-min.tasks.test-min-cli]
 description = "├─ smoke test browsers in min test environment"
-cmd = "jupyter-pyodide-lock browsers"
+cmd = "jupyter-pyodide-lock browsers --check"
 depends-on = ["test-min-pip"]
 inputs = ["build/pip-freeze/test-min.txt"]
 
@@ -491,7 +497,7 @@ outputs = ["build/pip-freeze/test-next.txt"]
 
 [feature.tasks-test-next.tasks.test-next-cli]
 description = "├─ smoke test browsers in next test environment"
-cmd = "jupyter-pyodide-lock browsers"
+cmd = "jupyter-pyodide-lock browsers --check"
 depends-on = ["test-next-pip"]
 inputs = ["build/pip-freeze/test-next.txt"]
 
