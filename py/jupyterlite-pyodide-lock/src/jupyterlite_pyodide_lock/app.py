@@ -13,24 +13,24 @@ from typing import Any, ClassVar
 
 from jupyter_core.application import JupyterApp
 from jupyterlite_core.app import DescribedMixin
-from jupyterlite_core.constants import JSON_FMT, UTF8
-from traitlets import Bool, Unicode
+from jupyterlite_core.constants import JSON_FMT
+from traitlets import Bool, Float, Unicode
 
 from . import __version__
 from .constants import BROWSER_BIN, BROWSER_BIN_ALIASES, BROWSERS
+from .lockers.browser import BROWSERS as BROWSER_OPTS
 from .utils import find_browser_binary, get_browser_search_path
 
 
 class BrowsersApp(DescribedMixin, JupyterApp):
     """An app that lists discoverable browsers."""
 
-    version: str = Unicode(default_value=__version__)
+    version: str = Unicode(default_value=__version__)  # type: ignore[assignment]
+    format: str = Unicode(allow_none=True).tag(config=True)  # type: ignore[assignment]
+    check_versions: bool = Bool(default_value=False).tag(config=True)  # type: ignore[assignment]
+    check_timeout: float = Float(default_value=5.0).tag(config=True)  # type: ignore[assignment]
 
-    format: str = Unicode(allow_none=True).tag(config=True)
-
-    check_versions: bool = Bool(default_value=False).tag(config=True)
-
-    flags: ClassVar = {
+    flags: ClassVar[dict[str, tuple[dict[str, Any], str]]] = {  # type: ignore[misc]
         "json": (
             {"BrowsersApp": {"format": "json"}},
             "output json",
@@ -44,25 +44,28 @@ class BrowsersApp(DescribedMixin, JupyterApp):
     def start(self) -> None:
         """Run the application."""
         results = {
+            "status": 1,
+            "ok": False,
             "search_path": get_browser_search_path().split(os.path.pathsep),
             "browsers": {
                 browser: self.collect_browser(browser) for browser in BROWSERS
             },
         }
 
+        if not self.check_versions:
+            results["status"] = 0
+        else:
+            found = [b for b, r in results["browsers"].items() if r["version"]]
+            results["status"] = 0 if found else 1
+
+        results["ok"] = not results["status"]
+
         if self.format == "json":
             self.emit_json(results)
         else:
             self.emit_console(results)
 
-        return_code = 0
-
-        if self.check_versions:
-            found = [b for b, r in results["browsers"].items() if r["version"]]
-            if not found:
-                return_code = 1
-
-        self.exit(return_code)
+        self.exit(results["status"])
 
     def collect_browser(self, browser: str) -> dict[str, Any]:
         """Gather data for a single browser."""
@@ -75,16 +78,26 @@ class BrowsersApp(DescribedMixin, JupyterApp):
             "version": None,
         }
 
-        with contextlib.suppress(ValueError):
-            result["found"] = find_browser_binary(browser_bin, log=self.log)
+        found_bin: str | None = None
 
-        if self.check_versions and result["found"]:
-            with contextlib.suppress(subprocess.CalledProcessError):
-                result["version"] = subprocess.check_output(  # noqa: S603
-                    [result["found"], "--version"], **UTF8
-                ).strip()
+        with contextlib.suppress(ValueError):
+            result["found"] = found_bin = find_browser_binary(browser_bin, log=self.log)
+
+        if self.check_versions and found_bin:
+            result["version"] = self.get_browser_version(browser, found_bin)
 
         return result
+
+    def get_browser_version(self, browser: str, found_bin: str) -> str | None:
+        """Try to get a browser version."""
+        args = [found_bin, "--version"] + BROWSER_OPTS[browser]["headless"]
+
+        with contextlib.suppress(subprocess.CalledProcessError, TimeoutError):
+            return subprocess.check_output(  # noqa: S603
+                args, encoding="utf-8", timeout=self.check_timeout
+            ).strip()
+
+        return None
 
     def emit_json(self, results: dict[str, Any]) -> None:
         """Emit raw results JSON."""
@@ -123,10 +136,10 @@ class BrowsersApp(DescribedMixin, JupyterApp):
 class PyodideLockApp(DescribedMixin, JupyterApp):
     """Tools for working with 'pyodide-lock' in JupyterLite."""
 
-    version: str = Unicode(default_value=__version__)
+    version: str = Unicode(default_value=__version__)  # type: ignore[assignment]
 
-    subcommands: ClassVar = {
-        k: (v, v.__doc__.splitlines()[0].strip())
+    subcommands: ClassVar = {  # type: ignore[assignment,misc]
+        k: (v, f"{v.__doc__}".splitlines()[0].strip())
         for k, v in dict(
             browsers=BrowsersApp,
         ).items()

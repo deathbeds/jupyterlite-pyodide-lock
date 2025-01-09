@@ -427,7 +427,7 @@ outputs = ["build/pip-freeze/test-max.txt"]
 description = "├─ smoke test browsers in default test environment"
 cmd = """jupyter-pyodide-lock browsers --check"""
 depends-on = ["test-max-pip"]
-inputs = ["build/pip-freeze/test-max.txt"]
+inputs = ["build/pip-freeze/test-max.txt", "dist/*.whl"]
 
 [feature.tasks-test-max.tasks.test-max-core]
 description = "├─ test core in the default test environment"
@@ -463,7 +463,7 @@ outputs = ["build/pip-freeze/test-min.txt"]
 description = "├─ smoke test browsers in min test environment"
 cmd = "jupyter-pyodide-lock browsers --check"
 depends-on = ["test-min-pip"]
-inputs = ["build/pip-freeze/test-min.txt"]
+inputs = ["build/pip-freeze/test-min.txt", "dist/*.whl"]
 
 [feature.tasks-test-min.tasks.test-min-core]
 description = "├─ test core in the min test environment"
@@ -499,7 +499,7 @@ outputs = ["build/pip-freeze/test-next.txt"]
 description = "├─ smoke test browsers in next test environment"
 cmd = "jupyter-pyodide-lock browsers --check"
 depends-on = ["test-next-pip"]
-inputs = ["build/pip-freeze/test-next.txt"]
+inputs = ["build/pip-freeze/test-next.txt", "dist/*.whl"]
 
 [feature.tasks-test-next.tasks.test-next-core]
 description = "├─ test core in the next test environment"
