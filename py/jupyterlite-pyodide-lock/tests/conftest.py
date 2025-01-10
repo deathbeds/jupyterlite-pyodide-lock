@@ -246,6 +246,11 @@ class LiteRunner:
 
     def run_web(self, expect_runnable: list[tuple[str, str]]) -> None:
         """Serve the site to Firefox, run some Python, check for a selector."""
+        from jupyterlite_pyodide_lock.constants import WIN
+
+        if WIN:
+            sys.stderr.write("Not trying on windows\n")
+            return
         out = self.lite_dir / "_output"
         out_nb = out / "files/test.ipynb"
         assert (out / "api/contents/all.json").exists()

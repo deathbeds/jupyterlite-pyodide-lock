@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
 from typing import TYPE_CHECKING, Any
 
@@ -29,10 +30,14 @@ MESSAGES = {
 }
 
 
-@pytest.mark.parametrize("args", [["--json"], []])
+@pytest.mark.parametrize("args", [[], ["--json"], ["--check"], ["--check", "--json"]])
 def test_cli_self_browsers(args: list[str]) -> None:
     """Verify the browser check CLI works."""
-    subprocess.check_call(["jupyter-pyodide-lock", "browsers", *args])
+    out = subprocess.check_output(["jupyter-pyodide-lock", "browsers", *args], **UTF8)
+    if "--json" in args:
+        out_json = json.loads(out)
+        expected = {"status", "ok", "search_path", "browsers"}
+        assert set(out_json.keys()) == expected
 
 
 @pytest.mark.parametrize("args", [[]])

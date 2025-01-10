@@ -13,11 +13,11 @@ from typing import Any, ClassVar
 
 from jupyter_core.application import JupyterApp
 from jupyterlite_core.app import DescribedMixin
-from jupyterlite_core.constants import JSON_FMT
+from jupyterlite_core.constants import JSON_FMT, UTF8
 from traitlets import Bool, Float, Unicode
 
 from . import __version__
-from .constants import BROWSER_BIN, BROWSER_BIN_ALIASES, BROWSERS
+from .constants import BROWSER_BIN, BROWSER_BIN_ALIASES, BROWSERS, CHROMIUMLIKE, WIN
 from .lockers.browser import BROWSERS as BROWSER_OPTS
 from .utils import find_browser_binary, get_browser_search_path
 
@@ -88,16 +88,25 @@ class BrowsersApp(DescribedMixin, JupyterApp):
 
         return result
 
-    def get_browser_version(self, browser: str, found_bin: str) -> str | None:
+    def get_browser_version(
+        self, browser: str, found_bin: str
+    ) -> str | None:  # pragma: no cover
         """Try to get a browser version."""
+        if WIN and browser in CHROMIUMLIKE:
+            return "<unreliable on Windows>"
+
         args = [found_bin, "--version"] + BROWSER_OPTS[browser]["headless"]
 
-        with contextlib.suppress(subprocess.CalledProcessError, TimeoutError):
-            return subprocess.check_output(  # noqa: S603
-                args, encoding="utf-8", timeout=self.check_timeout
-            ).strip()
+        proc = subprocess.Popen(
+            args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **UTF8
+        )
 
-        return None
+        output = None
+
+        with contextlib.suppress(subprocess.TimeoutExpired):
+            output = f"{proc.communicate(timeout=self.check_timeout)[0]}".strip()
+
+        return output
 
     def emit_json(self, results: dict[str, Any]) -> None:
         """Emit raw results JSON."""
@@ -130,7 +139,9 @@ class BrowsersApp(DescribedMixin, JupyterApp):
         self.log.info("[%s] found:\t%s", browser, result["found"])
 
         if result["version"]:
-            self.log.info("[%s] version:\t%s", browser, result["version"])
+            self.log.info(
+                "[%s] version:\n%s", browser, textwrap.indent(result["version"], "\t")
+            )
 
 
 class PyodideLockApp(DescribedMixin, JupyterApp):
