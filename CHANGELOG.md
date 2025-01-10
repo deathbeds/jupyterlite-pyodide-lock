@@ -8,7 +8,9 @@
 
 ### `jupyterlite-pyodide-lock 0.1.2`
 
-> TBD
+- [#38] adds a `--check` flag to the CLI, which fails if _no_ browsers are available
+
+[#38]: https://github.com/deathbeds/jupyterlite-pyodide-lock/pull/33
 
 ### `jupyterlite-pyodide-lock-webdriver 0.1.2`
 
