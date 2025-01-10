@@ -454,6 +454,8 @@ PXT = ROOT / "pixi.toml"
 @pytest.fixture(scope="session")
 def the_pixi_manifest() -> dict[str, Any]:
     """Provide the the pixi manifest data."""
+    if not PXT.exists():
+        pytest.skip(reason="not in repo")
     return tomllib.loads(PXT.read_text(**UTF8))
 
 

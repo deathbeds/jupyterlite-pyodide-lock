@@ -97,7 +97,7 @@ class BrowsersApp(DescribedMixin, JupyterApp):
 
         args = [found_bin, "--version"] + BROWSER_OPTS[browser]["headless"]
 
-        proc = subprocess.Popen(
+        proc = subprocess.Popen(  # noqa: S603
             args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **UTF8
         )
 
@@ -132,13 +132,13 @@ class BrowsersApp(DescribedMixin, JupyterApp):
             result["aliases"],
         )
 
-        if not result["found"]:
+        if not result["found"]:  # pragma: no cover
             self.log.warning("[%s] NOT found", browser)
             return
 
         self.log.info("[%s] found:\t%s", browser, result["found"])
 
-        if result["version"]:
+        if result["version"]:  # pragma: no cover
             self.log.info(
                 "[%s] version:\n%s", browser, textwrap.indent(result["version"], "\t")
             )

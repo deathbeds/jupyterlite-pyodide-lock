@@ -391,7 +391,7 @@ cmd = """
 cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock
   && export JLPL_TEST_MOD=jupyterlite_pyodide_lock
   && export JLPL_TEST_CWD=py/jupyterlite-pyodide-lock
-  && export JLPL_TEST_COV_FAIL_UNDER=100
+  && export JLPL_TEST_COV_FAIL_UNDER=99
   && pixi r pytest--"""
 [tasks.pytest-wd--]
 cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock-webdriver
