@@ -51,8 +51,8 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
 - make a `requirements.txt`
 
   ```text
-  jupyterlite-core ==0.4.5
-  jupyterlite-pyodide-kernel ==0.4.7
+  jupyterlite-core ==0.5.0
+  jupyterlite-pyodide-kernel ==0.5.0
   jupyterlite-pyodide-lock ==0.1.2
   ```
 
@@ -116,8 +116,8 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
     - nodefaults
   dependencies:
     - ipywidgets ==8.1.5
-    - jupyterlite-core ==0.4.5
-    - jupyterlite-pyodide-kernel ==0.4.7
+    - jupyterlite-core ==0.5.0
+    - jupyterlite-pyodide-kernel ==0.5.0
     - jupyterlite-pyodide-lock-recommended ==0.1.2
   ```
 
@@ -143,11 +143,11 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
   {
     "PyodideLockAddon": {
       "enabled": true,
-      "specs": ["ipywidgets ==8.1.5"]
+      "specs": ["ipywidgets ==8.1.5"],
+      "extra_preload_packages": ["ipywidgets"]
     },
     "PyodideLockOfflineAddon": {
-      "enabled": true,
-      "extra_includes": ["ipywidgets"]
+      "enabled": true
     }
   }
   ```

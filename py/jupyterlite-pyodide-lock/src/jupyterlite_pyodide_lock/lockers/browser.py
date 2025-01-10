@@ -20,7 +20,7 @@ from jupyterlite_pyodide_lock.constants import (
     ENV_VAR_BROWSER,
     FIREFOX,
 )
-from jupyterlite_pyodide_lock.utils import find_browser_binary
+from jupyterlite_pyodide_lock.utils import find_browser_binary, terminate_all
 
 from .tornado import TornadoLocker
 
@@ -97,19 +97,8 @@ class BrowserLocker(TornadoLocker):
         self.log.debug("[browser] cleanup process: %s", proc)
         self.log.debug("[browser] cleanup path: %s", path)
 
-        procs: list[psutil.Process] = (
-            [] if proc is None else [*proc.children(recursive=True), proc]
-        )
-        running = [p for p in procs if p.is_running()]
-
-        for p in running:
-            self.log.info("[browser] stopping browser process %s", p)
-            try:
-                p.kill()
-            except psutil.NoSuchProcess:  # pragma: no cover
-                self.log.debug("[browser] was already stopped %s", p)
-
-        psutil.wait_procs(r for r in running if r.is_running())
+        if proc and proc.is_running():
+            terminate_all(proc)
 
         self._browser_process = None
 

@@ -12,11 +12,13 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from .conftest import ROOT, UTF8
+from .conftest import PXT, ROOT, UTF8
 
 if TYPE_CHECKING:
     from pathlib import Path
 
+if not PXT.exists():
+    pytest.skip("Not in a jupyterlite-pyodide-lock checkout", allow_module_level=True)
 
 PIXI_PATTERNS = {
     ".github/workflows/*.yml": [r"JLPL_PIXI_VERSION: ([^\s]+)"],
@@ -57,6 +59,21 @@ def test_repo_cli_version(args: list[str], the_py_version: str) -> None:
     """Verify the CLI returns the expected version."""
     cli = subprocess.check_output([*args, "--version"], **UTF8).strip()
     assert cli.endswith(the_py_version)
+
+
+@pytest.mark.parametrize("pkg", ["jupyterlite-pyodide-kernel", "jupyterlite-core"])
+def test_repo_upstream_versions(pkg: str) -> None:
+    """Verify mentions of upstream versions are accurate."""
+    readme = (ROOT / "README.md").read_text(**UTF8)
+    readme_pattern = rf"{pkg} ==([\d\.]+)"
+    versions = sorted(set(re.findall(readme_pattern, readme)))
+    assert len(versions) == 1
+    version = re.escape([*versions][0])
+
+    lock = (PXT.parent / "pixi.lock").read_text(**UTF8)
+    lock_pattern = rf"""/{pkg}-{version}-.*?\.conda"""
+    packages = sorted(set(re.findall(lock_pattern, lock)))
+    assert packages
 
 
 def _verify_patterns(

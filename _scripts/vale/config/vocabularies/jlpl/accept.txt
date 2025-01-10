@@ -34,8 +34,8 @@ discoverable
 emscripten
 endmacro
 entrypoints
-extra_exclude
-extra_includes
+(all|extra)_excludes
+(all|extra)_includes
 feedstock
 firefox
 found_path

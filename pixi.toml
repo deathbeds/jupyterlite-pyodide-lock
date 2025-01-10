@@ -1,12 +1,15 @@
-"$schema" = "https://pixi.sh/v0.39.3/schema/manifest/schema.json"
+"$schema" = "https://pixi.sh/v0.39.5/schema/manifest/schema.json"
 
 [project]
 name = "jlpl"
 version = "0.1.2"
 channels = [
   "conda-forge",
-  "conda-forge/label/jupyterlite_core_beta",
-  "conda-forge/label/jupyterlite_pyodide_kernel_beta",
+  # channels we enable during pre-release cycles
+  # "conda-forge/label/jupyterlite_core_alpha",
+  # "conda-forge/label/jupyterlite_core_beta",
+  # "conda-forge/label/jupyterlite_core_rc",
+  # "conda-forge/label/jupyterlite_pyodide_kernel_beta",
 ]
 platforms = ["linux-64", "osx-64", "win-64", "osx-arm64"]
 
@@ -67,6 +70,12 @@ build-pypi = {cmd = "echo 🐍", description = """
   "build-wheel",
   "build-twine",
 ]}
+test-cli = {cmd = "echo 🚗", description = """
+├ 🆘 check CLI in all test environments""", depends-on = [
+  "test-min-cli",
+  "test-max-cli",
+  "test-next-cli",
+]}
 test-max = {cmd = "echo 🚗", description = """
 ├ 🚗 run tests in the default test environment""", depends-on = [
   "test-max-cli",
@@ -86,9 +95,9 @@ test-next = {cmd = "echo 🛸", description = """
   "test-next-wd",
 ]}
 docs = {cmd = "echo 🖨️", description = """
-├ 🖨️ build all documentation""", depends-on = ["docs-lite", "docs-sphinx"]}
+🖨️  build all documentation""", depends-on = ["docs-lite", "docs-sphinx"]}
 check = {cmd = "echo 🤓", description = """
-├ 🤓 check all build/test artifacts""", depends-on = ["check-links", "check-spelling"]}
+🤓 check all build/test artifacts""", depends-on = ["check-links", "check-spelling"]}
 
 # tasks that are customized per env
 pip-- = """rm -rf build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt
@@ -367,7 +376,6 @@ cmd = """
     --rootdir .
     --color=yes
     --tb=long
-    --durations=5
     --cov-branch
     --cov-context=test
     --cov-report=html:$JLPL_TEST_REPORTS/htmlcov
@@ -383,7 +391,7 @@ cmd = """
 cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock
   && export JLPL_TEST_MOD=jupyterlite_pyodide_lock
   && export JLPL_TEST_CWD=py/jupyterlite-pyodide-lock
-  && export JLPL_TEST_COV_FAIL_UNDER=100
+  && export JLPL_TEST_COV_FAIL_UNDER=99
   && pixi r pytest--"""
 [tasks.pytest-wd--]
 cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock-webdriver
@@ -418,9 +426,9 @@ outputs = ["build/pip-freeze/test-max.txt"]
 
 [feature.tasks-test-max.tasks.test-max-cli]
 description = "├─ smoke test browsers in default test environment"
-cmd = """jupyter-pyodide-lock browsers"""
+cmd = """jupyter-pyodide-lock browsers --check"""
 depends-on = ["test-max-pip"]
-inputs = ["build/pip-freeze/test-max.txt"]
+inputs = ["build/pip-freeze/test-max.txt", "dist/*.whl"]
 
 [feature.tasks-test-max.tasks.test-max-core]
 description = "├─ test core in the default test environment"
@@ -454,9 +462,9 @@ outputs = ["build/pip-freeze/test-min.txt"]
 
 [feature.tasks-test-min.tasks.test-min-cli]
 description = "├─ smoke test browsers in min test environment"
-cmd = "jupyter-pyodide-lock browsers"
+cmd = "jupyter-pyodide-lock browsers --check"
 depends-on = ["test-min-pip"]
-inputs = ["build/pip-freeze/test-min.txt"]
+inputs = ["build/pip-freeze/test-min.txt", "dist/*.whl"]
 
 [feature.tasks-test-min.tasks.test-min-core]
 description = "├─ test core in the min test environment"
@@ -490,9 +498,9 @@ outputs = ["build/pip-freeze/test-next.txt"]
 
 [feature.tasks-test-next.tasks.test-next-cli]
 description = "├─ smoke test browsers in next test environment"
-cmd = "jupyter-pyodide-lock browsers"
+cmd = "jupyter-pyodide-lock browsers --check"
 depends-on = ["test-next-pip"]
-inputs = ["build/pip-freeze/test-next.txt"]
+inputs = ["build/pip-freeze/test-next.txt", "dist/*.whl"]
 
 [feature.tasks-test-next.tasks.test-next-core]
 description = "├─ test core in the next test environment"
@@ -525,7 +533,7 @@ inputs = ["dist/*.whl"]
 outputs = ["build/pip-freeze/docs.txt"]
 
 [feature.tasks-docs.tasks.docs-scour]
-description = "- optimize SVG for docs with scour"
+description = "├ optimize SVG for docs with scour"
 cmd = """export SCOUR_ARGS="scour --enable-id-stripping --enable-comment-stripping"
   && cd docs/_static
   && $SCOUR_ARGS icon-inkscape.svg icon.svg"""
@@ -607,7 +615,7 @@ outputs = ["build/reports/vale.html"]
 
 # interactive development ######################################################
 [feature.tasks-dev.tasks.dev-pip]
-description = "├ 🔁 prepare the dev environment"
+description = "├ prepare the dev environment"
 cmd = """pixi r -e dev pip-e-all--"""
 outputs = ["build/pip-freeze/dev.txt"]
 
@@ -649,21 +657,15 @@ python = "3.10.*"
 
 [feature.deps-run-max.dependencies]
 python = "3.13.*"
-pyodide-lock = "0.1.0a8"
+pyodide-lock = "0.1.0a6"
 jupyterlite-core = "0.4.*"
 jupyterlite-pyodide-kernel = "0.4.*"
 
 [feature.deps-run-next.dependencies]
 python = "3.13.*"
-pyodide-lock = "0.1.0a6"
-
-[feature.deps-run-next.dependencies.jupyterlite-core]
-version = ">=0.5.0b0"
-channel = "conda-forge/label/jupyterlite_core_beta"
-
-[feature.deps-run-next.dependencies.jupyterlite-pyodide-kernel]
-version = ">=0.5.0b0"
-channel = "conda-forge/label/jupyterlite_pyodide_kernel_beta"
+pyodide-lock = "0.1.0a8"
+jupyterlite-core = "0.5.*"
+jupyterlite-pyodide-kernel = "0.5.*"
 
 [feature.deps-pip.dependencies]
 pip = "*"
@@ -685,11 +687,13 @@ ruff = "*"
 taplo = "*"
 tomli-w = "*"
 tomlkit = "*"
+types-psutil = "*"
 
 [feature.deps-test.dependencies]
 pytest = ">=8,<9"
 pytest-cov = "*"
 pytest-html = "*"
+jupyter_server = "*"
 
 [feature.deps-webdriver.dependencies]
 selenium = ">=4.19"

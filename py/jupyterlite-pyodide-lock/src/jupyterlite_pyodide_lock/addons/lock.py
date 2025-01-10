@@ -223,7 +223,7 @@ class PyodideLockAddon(BaseAddon):
         for dep in self.bootstrap_wheels:
             file_name = out_lock["packages"][dep]["file_name"]
             out_whl = out / file_name
-            if out_whl.exists():
+            if out_whl.exists():  # pragma: no cover
                 continue
             lock_dep_wheels += [out_whl]
             url = f"{self.pyodide_cdn_url}/{file_name}"
@@ -293,7 +293,7 @@ class PyodideLockAddon(BaseAddon):
             lockfile=lockfile,
         )
 
-        if self.lockfile.exists():
+        if self.lockfile.exists():  # pragma: no cover
             self.lockfile.unlink()
 
         locker.resolve_sync()

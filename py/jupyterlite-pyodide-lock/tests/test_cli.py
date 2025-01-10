@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
 from typing import TYPE_CHECKING, Any
 
@@ -14,12 +15,12 @@ from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK
 
 from jupyterlite_pyodide_lock.constants import ENV_VAR_LOCK_DATE_EPOCH
 
-from .conftest import expect_no_diff, patch_config
+from .conftest import EXPECT_WIDGETS_RUN, expect_no_diff, patch_config
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from .conftest import TLiteRunner
+    from .conftest import LiteRunner
 
 MESSAGES = {
     "not-a-locker": (
@@ -29,18 +30,22 @@ MESSAGES = {
 }
 
 
-@pytest.mark.parametrize("args", [["--json"], []])
+@pytest.mark.parametrize("args", [[], ["--json"], ["--check"], ["--check", "--json"]])
 def test_cli_self_browsers(args: list[str]) -> None:
     """Verify the browser check CLI works."""
-    subprocess.check_call(["jupyter-pyodide-lock", "browsers", *args])
+    out = subprocess.check_output(["jupyter-pyodide-lock", "browsers", *args], **UTF8)
+    if "--json" in args:
+        out_json = json.loads(out)
+        expected = {"status", "ok", "search_path", "browsers"}
+        assert set(out_json.keys()) == expected
 
 
 @pytest.mark.parametrize("args", [[]])
-def test_cli_status(lite_cli: TLiteRunner, args: list[str]) -> None:
+def test_cli_status(lite_cli: LiteRunner, args: list[str]) -> None:
     """Verify various status invocations work."""
     from jupyterlite_pyodide_lock import __version__
 
-    lite_cli(*["status", *args], expect_stdout=__version__)
+    lite_cli(*["status", *args], expect_text=__version__)
 
 
 @pytest.mark.parametrize(
@@ -48,19 +53,17 @@ def test_cli_status(lite_cli: TLiteRunner, args: list[str]) -> None:
     [({"locker": "not-a-locker"}, "not-a-locker")],
 )
 def test_cli_bad_config(
-    lite_cli: TLiteRunner,
+    lite_cli: LiteRunner,
     a_lite_config: Path,
     bad_config: dict[str, Any],
     message: str,
 ) -> None:
     """Verify bad configs are caught."""
     patch_config(a_lite_config, PyodideLockAddon=bad_config)
-    lite_cli("status", expect_rc=0, expect_stderr=MESSAGES[message])
+    lite_cli("status", expect_rc=2, expect_text=MESSAGES[message])
 
 
-def test_cli_good_build(
-    lite_cli: TLiteRunner, a_lite_config_with_widgets: Path
-) -> None:
+def test_cli_good_build(lite_cli: LiteRunner, a_lite_config_with_widgets: Path) -> None:
     """Verify a build works, twice."""
     from jupyterlite_pyodide_lock.constants import (
         PYODIDE_LOCK_OFFLINE,
@@ -99,20 +102,21 @@ def test_cli_good_build(
             "prune": True,
         },
     )
-    lite_cli("build", "--debug")
+    # only test pruned, offline in browser, as we'll have everything locally
+    lite_cli("build", "--debug", expect_runnable=[EXPECT_WIDGETS_RUN])
     pyodide_lock.PyodideLockSpec.from_json(lock_offline)
     pruned_text = lock_offline.read_text(**UTF8)
     assert "https://" not in pruned_text
 
 
-def test_cli_bad_build(lite_cli: TLiteRunner, a_lite_config: Path) -> None:
+def test_cli_bad_build(lite_cli: LiteRunner, a_lite_config: Path) -> None:
     """Verify an impossible package solve fails."""
     patch_config(a_lite_config, PyodideLockAddon={"enabled": True, "specs": ["torch"]})
     lite_cli("build", "--debug", expect_rc=1)
 
 
 def test_cli_lock_date_epoch(
-    lite_cli: TLiteRunner,
+    lite_cli: LiteRunner,
     a_widget_approach: str,
     a_lite_config_with_widgets: Path,
     a_bad_widget_lock_date_epoch: int,
