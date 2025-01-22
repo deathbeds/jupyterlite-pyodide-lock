@@ -1,4 +1,4 @@
-"$schema" = "https://pixi.sh/v0.39.5/schema/manifest/schema.json"
+"$schema" = "https://pixi.sh/v0.40.2/schema/manifest/schema.json"
 
 [project]
 name = "jlpl"
@@ -6,9 +6,10 @@ version = "0.1.2"
 channels = [
   "conda-forge",
   # channels we enable during pre-release cycles
-  # "conda-forge/label/jupyterlite_core_alpha",
+  "conda-forge/label/jupyterlite_core_alpha",
   # "conda-forge/label/jupyterlite_core_beta",
   # "conda-forge/label/jupyterlite_core_rc",
+  "conda-forge/label/jupyterlite_pyodide_kernel_alpha",
   # "conda-forge/label/jupyterlite_pyodide_kernel_beta",
 ]
 platforms = ["linux-64", "osx-64", "win-64", "osx-arm64"]
@@ -76,17 +77,17 @@ test-cli = {cmd = "echo 🚗", description = """
   "test-max-cli",
   "test-next-cli",
 ]}
-test-max = {cmd = "echo 🚗", description = """
-├ 🚗 run tests in the default test environment""", depends-on = [
-  "test-max-cli",
-  "test-max-core",
-  "test-max-wd",
-]}
 test-min = {cmd = "echo 🐎", description = """
 ├ 🐎 run tests in the oldest supported environment""", depends-on = [
   "test-min-cli",
   "test-min-core",
   "test-min-wd",
+]}
+test-max = {cmd = "echo 🚗", description = """
+├ 🚗 run tests in the default test environment""", depends-on = [
+  "test-max-cli",
+  "test-max-core",
+  "test-max-wd",
 ]}
 test-next = {cmd = "echo 🛸", description = """
 ├ 🛸 run tests in the prerelease environment""", depends-on = [
@@ -640,32 +641,37 @@ depends-on = ["dev-pip", "docs-sphinx"]
 
 # dependencies #################################################################
 [feature.deps-run.dependencies]
-jupyterlite-core = ">=0.3.0,<0.6.0"
-jupyterlite-pyodide-kernel = ">=0.3.1,<0.6.0"
+jupyterlite-core = ">=0.3.0,<0.7.0"
+jupyterlite-pyodide-kernel = ">=0.3.1,<0.7.0"
 psutil = ">=6"
 pyodide-lock = ">=0.1.0a4,<0.1.0b0"
 pyodide-lock-with-wheel = "*"
-python = ">=3.10,<3.14"
+python = ">=3.10"
 tornado = ">=6.1.0"
 
 [feature.deps-run-min.dependencies]
-jupyterlite-core = "0.3.0"
-jupyterlite-pyodide-kernel = "0.3.1"
+jupyterlite-core = "==0.3.0"
+jupyterlite-pyodide-kernel = "==0.3.1"
 psutil = "6.0.*"
-pyodide-lock = "0.1.0a4"
+pyodide-lock = "==0.1.0a4"
 python = "3.10.*"
+tornado = "==6.1.0"
 
 [feature.deps-run-max.dependencies]
-python = "3.13.*"
-pyodide-lock = "0.1.0a6"
-jupyterlite-core = "0.4.*"
-jupyterlite-pyodide-kernel = "0.4.*"
+python = "3.12.*"
+pyodide-lock = "==0.1.0a6"
+jupyterlite-core = "0.5.*"
+jupyterlite-pyodide-kernel = "0.5.*"
 
 [feature.deps-run-next.dependencies]
 python = "3.13.*"
-pyodide-lock = "0.1.0a8"
-jupyterlite-core = "0.5.*"
-jupyterlite-pyodide-kernel = "0.5.*"
+pyodide-lock = "0.1.0a8.*"
+[feature.deps-run-next.dependencies.jupyterlite-core]
+version = ">=0.6.0a0"
+channel = "conda-forge/label/jupyterlite_core_alpha"
+[feature.deps-run-next.dependencies.jupyterlite-pyodide-kernel]
+version = ">=0.6.0a0"
+channel = "conda-forge/label/jupyterlite_pyodide_kernel_alpha"
 
 [feature.deps-pip.dependencies]
 pip = "*"
