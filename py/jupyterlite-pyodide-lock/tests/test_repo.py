@@ -73,7 +73,7 @@ def test_repo_upstream_versions(pkg: str) -> None:
     lock = (PXT.parent / "pixi.lock").read_text(**UTF8)
     lock_pattern = rf"""/{pkg}-{version}-.*?\.conda"""
     packages = sorted(set(re.findall(lock_pattern, lock)))
-    assert packages
+    assert packages, f"{pkg} {version} not found"
 
 
 def _verify_patterns(

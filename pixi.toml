@@ -687,6 +687,7 @@ rattler-build = "*"
 [feature.deps-lint.dependencies]
 actionlint-with-all = "*"
 markdownlint-cli2 = "*"
+nodejs = ">=22,!=22.13.0,<23"
 nbformat = "*"
 prettier = "*"
 ruff = "*"
