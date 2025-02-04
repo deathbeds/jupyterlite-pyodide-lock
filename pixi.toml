@@ -1,4 +1,4 @@
-"$schema" = "https://pixi.sh/v0.40.2/schema/manifest/schema.json"
+"$schema" = "https://pixi.sh/v0.40.3/schema/manifest/schema.json"
 
 [project]
 name = "jlpl"
@@ -667,10 +667,10 @@ jupyterlite-pyodide-kernel = "0.5.*"
 python = "3.13.*"
 pyodide-lock = "0.1.0a8.*"
 [feature.deps-run-next.dependencies.jupyterlite-core]
-version = ">=0.6.0a0"
+version = ">=0.6.0a1"
 channel = "conda-forge/label/jupyterlite_core_alpha"
 [feature.deps-run-next.dependencies.jupyterlite-pyodide-kernel]
-version = ">=0.6.0a0"
+version = ">=0.6.0a1"
 channel = "conda-forge/label/jupyterlite_pyodide_kernel_alpha"
 
 [feature.deps-pip.dependencies]

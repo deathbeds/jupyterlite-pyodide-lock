@@ -5,9 +5,6 @@ on:
 permissions:
   pull-requests: write
 
-env:
-  JLPL_PIXI_VERSION: 0.40.2
-
 jobs:
   rtd:
     runs-on: ubuntu-latest
