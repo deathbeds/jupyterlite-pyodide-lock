@@ -51,7 +51,7 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
 - make a `requirements.txt`
 
   ```text
-  jupyterlite-core ==0.5.0
+  jupyterlite-core ==0.5.1
   jupyterlite-pyodide-kernel ==0.5.2
   jupyterlite-pyodide-lock ==0.1.2
   ```
@@ -116,7 +116,7 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
     - nodefaults
   dependencies:
     - ipywidgets ==8.1.5
-    - jupyterlite-core ==0.5.0
+    - jupyterlite-core ==0.5.1
     - jupyterlite-pyodide-kernel ==0.5.2
     - jupyterlite-pyodide-lock-recommended ==0.1.2
   ```

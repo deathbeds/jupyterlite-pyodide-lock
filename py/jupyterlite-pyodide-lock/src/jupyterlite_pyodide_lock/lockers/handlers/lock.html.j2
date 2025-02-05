@@ -20,59 +20,66 @@
     }
 
     async function main() {
-      const pyodide = await loadPyodide({
-        stdout: tee.bind(this, "stdout"),
-        stderr: tee.bind(this, "stderr"),
-        packages: ["micropip"],
-      });
+      try {
+        const pyodide = await loadPyodide({
+          stdout: tee.bind(this, "stdout"),
+          stderr: tee.bind(this, "stderr"),
+          packages: JSON.parse(`{{ bootstrap_wheels_json }}`)
+        });
 
-      await pyodide.runPythonAsync(`
-            try:
-                import json, js, micropip, traceback
+        const result = await pyodide.runPythonAsync(`
+try:
+    import json, js, traceback, micropip
+    await micropip.install(
+        **json.loads(
+            '''
+            {{ micropip_args_json }}
+            '''
+        )
+    )
+    lock = None
+    if micropip.__version__ == "0.8.0":
+        # from https://github.com/pyodide/micropip/pull/172
+        from micropip.freeze import load_pip_packages
 
-                await micropip.install(
-                    **json.loads(
-                        '''
-                        {{ micropip_args_json }}
-                        '''
-                    )
-                )
-                lock = None
-                if micropip.__version__ == "0.8.0":
-                    # from https://github.com/pyodide/micropip/pull/172
-                    from micropip.freeze import load_pip_packages
-
-                    PM = micropip._package_manager_singleton
-                    packages = dict(load_pip_packages())
-                    packages.update(
-                        {
-                            name: info
-                            for name, info in PM.repodata_packages.items()
-                            if name not in packages
-                        }
-                    )
-                    lock = json.dumps(
-                        {"info": PM.repodata_info, "packages": packages},
-                        indent=2,
-                        sort_keys=True
-                    )
-                else:
-                    lock = micropip.freeze()
-
-                js.window.PYODIDE_LOCK = lock
-            except Exception as err:
-                js.window.PYODIDE_ERROR = f"""
-                    {traceback.format_exc()}
-                    {str(err)}
-                """
+        PM = micropip._package_manager_singleton
+        packages = dict(load_pip_packages())
+        packages.update(
+            {
+                name: info
+                for name, info in PM.repodata_packages.items()
+                if name not in packages
+            }
+        )
+        lock = json.dumps(
+            {"info": PM.repodata_info, "packages": packages},
+            indent=2,
+            sort_keys=True
+        )
+    else:
+        lock = micropip.freeze()
+    js.window.PYODIDE_LOCK = lock
+except Exception as err:
+    js.window.PYODIDE_ERROR = f"""
+        {traceback.format_exc()}
+        {str(err)}
+"""
         `);
 
-      await post(
-        "./pyodide-lock.json",
-        window.PYODIDE_LOCK || JSON.stringify({ error: window.PYODIDE_ERROR })
-      );
+      } catch(err) {
+        tee('stderr', err);
+      } finally {
+        if(window.location.href.includes("DEBUG")){
+          return;
+        }
+        await post(
+          "./pyodide-lock.json",
+          window.PYODIDE_LOCK || JSON.stringify({ error: window.PYODIDE_ERROR })
+        );
+        window.close();
+      }
     }
 
-    main().then(window.close).catch(window.close);
+    main()
   </script>
 </html>

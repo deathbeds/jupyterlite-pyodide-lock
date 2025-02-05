@@ -60,18 +60,23 @@ LITE_BUILD_CONFIG = {
 }
 
 WIDGETS_WHEEL = "ipywidgets-8.1.2-py3-none-any.whl"
-WIDGETS_URL = f"{C.FILES_PYTHON_HOSTED}/packages/py3/i/ipywidgets/{WIDGETS_WHEEL}"
+WIDGETS_URL = f"{PY_HOSTED}/i/ipywidgets/{WIDGETS_WHEEL}"
 WIDGET_ISO8601 = dict(
     before="2024-02-08T15:31:28Z",
     actual="2024-02-08T15:31:29.801655Z",
     after_="2024-02-08T15:31:31Z",
 )
 
+#: the version that added ``constraints``
+MICROPIP_09_WHEEL = "micropip-0.9.0-py3-none-any.whl"
+MICROPIP_09_URL = f"{PY_HOSTED}/m/micropip/{MICROPIP_09_WHEEL}"
+
 WIDGETS_CONFIG = dict(
-    specs_pep508={"specs": ["ipywidgets >=8.1.2,<8.1.3"]},
-    packages_url={"packages": [WIDGETS_URL]},
-    packages_local_wheel={"packages": [WIDGETS_WHEEL]},
+    constraints_09={"packages": [WIDGETS_WHEEL], "bootstrap_wheels": [MICROPIP_09_URL]},
     packages_local_folder={"packages": ["../dist"]},
+    packages_local_wheel={"packages": [WIDGETS_WHEEL]},
+    packages_url={"packages": [WIDGETS_URL]},
+    specs_pep508={"specs": ["ipywidgets >=8.1.2,<8.1.3"]},
     well_known={},
 )
 

@@ -37,6 +37,7 @@ from jupyterlite_pyodide_lock.constants import (
     WAREHOUSE_UPLOAD_FORMAT,
 )
 from jupyterlite_pyodide_lock.lockers import get_locker_entry_points
+from jupyterlite_pyodide_lock.utils import url_wheel_filename
 
 if TYPE_CHECKING:
     from importlib.metadata import EntryPoint
@@ -98,6 +99,11 @@ class PyodideLockAddon(BaseAddon):
         help="PEP-508 specifications for pyodide dependencies",
     ).tag(config=True)
 
+    constraints: tuple[str] = TypedTuple(
+        Unicode(),
+        help="PEP-508 specifications for micropip >=0.9.0 constraints",
+    ).tag(config=True)
+
     packages: tuple[str] = TypedTuple(
         Unicode(),
         help=(
@@ -133,7 +139,7 @@ class PyodideLockAddon(BaseAddon):
     bootstrap_wheels: tuple[str] = TypedTuple(
         Unicode(),
         default_value=("micropip", "packaging"),
-        help="packages names from the lockfile to ensure before attempting a lock",
+        help="URLs or packages names from the lockfile to ensure before locking",
     ).tag(config=True)
 
     lock_date_epoch: int = CInt(
@@ -221,12 +227,16 @@ class PyodideLockAddon(BaseAddon):
         lock_dep_wheels = []
 
         for dep in self.bootstrap_wheels:
-            file_name = out_lock["packages"][dep]["file_name"]
+            file_name = url_wheel_filename(dep)
+            if file_name:
+                url = dep
+            else:
+                file_name = out_lock["packages"][dep]["file_name"]
+                url = f"{self.pyodide_cdn_url}/{file_name}"
             out_whl = out / file_name
             if out_whl.exists():  # pragma: no cover
                 continue
             lock_dep_wheels += [out_whl]
-            url = f"{self.pyodide_cdn_url}/{file_name}"
             yield self.task(
                 name=f"bootstrap:{dep}",
                 actions=[(self.fetch_one, [url, out_whl])],
@@ -308,6 +318,16 @@ class PyodideLockAddon(BaseAddon):
         return int(json.loads(os.environ[ENV_VAR_LOCK_DATE_EPOCH]))
 
     # derived properties
+    @property
+    def bootstrap_packages(self) -> list[str]:
+        """Get wheels for ``loadPackages``."""
+        wheels = []
+        for name_or_wheel in self.bootstrap_wheels:
+            file_name = url_wheel_filename(name_or_wheel)
+            if file_name:
+                wheels += [file_name]
+        return wheels
+
     @property
     def well_known_packages(self) -> Path:
         """The location of ``.whl`` in the ``{lite_dir}`` to pick up."""

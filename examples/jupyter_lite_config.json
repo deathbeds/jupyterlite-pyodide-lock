@@ -6,7 +6,10 @@
   "PyodideLockAddon": {
     "enabled": true,
     "locker": "BrowserLocker",
-    "specs": ["ipywidgets >=8.1.2,<8.2"]
+    "specs": ["ipywidgets >=8.1.2,<8.2"],
+    "bootstrap_wheels": [
+      "https://files.pythonhosted.org/packages/py3/m/micropip/micropip-0.9.0-py3-none-any.whl"
+    ]
   },
   "PyodideLockOfflineAddon": {
     "enabled": true,
