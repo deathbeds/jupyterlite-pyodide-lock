@@ -294,12 +294,22 @@ class TornadoLocker(BaseLocker):
 
     @default("_context")
     def _default_context(self) -> dict[str, Any]:
-        out_url = f"http://{LOCALHOST}:{self.port}/static/pyodide"
-        wheels = [f"{out_url}/{wheel}" for wheel in self.parent.bootstrap_packages]
         return {
-            "bootstrap_wheels_json": json.dumps(wheels, **JSON_FMT),
+            "load_pyodide_options_json": json.dumps(
+                self.load_pyodide_options, **JSON_FMT
+            ),
             "micropip_args_json": json.dumps(self.micropip_args, **JSON_FMT),
         }
+
+    @property
+    def load_pyodide_options(self) -> dict[str, Any]:
+        """Provide default ``loadPyodide`` options."""
+        out_url = f"http://{LOCALHOST}:{self.port}/static/pyodide"
+        packages = [
+            f"{out_url}/{package}" if package.endswith(".whl") else package
+            for package in self.parent.bootstrap_packages
+        ]
+        return {"packages": packages}
 
     @default("micropip_args")
     def _default_micropip_args(self) -> dict[str, Any]:

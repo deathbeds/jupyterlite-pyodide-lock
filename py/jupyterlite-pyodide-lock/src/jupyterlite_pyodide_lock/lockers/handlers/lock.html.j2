@@ -22,9 +22,9 @@
     async function main() {
       try {
         const pyodide = await loadPyodide({
+          ...JSON.parse(`{{ load_pyodide_options_json }}`),
           stdout: tee.bind(this, "stdout"),
           stderr: tee.bind(this, "stderr"),
-          packages: JSON.parse(`{{ bootstrap_wheels_json }}`)
         });
 
         const result = await pyodide.runPythonAsync(`

@@ -361,6 +361,76 @@ inputs = ["dist", "!dist/SHA256SUMS"]
 outputs = ["dist/SHA256SUMS"]
 
 # testing patterns #############################################################
+
+[feature.tasks-test-min.tasks.test-min-pip]
+description = "├─ prepare the min test environment with pip"
+cmd = "pixi r -e test-min pip-whl-all--"
+depends-on = ["build-pypi-core", "build-pypi-wd"]
+inputs = ["dist/*.whl"]
+outputs = ["build/pip-freeze/test-min.txt"]
+
+[feature.tasks-test-min.tasks.test-min-cli]
+description = "├─ smoke test browsers in min test environment"
+cmd = "jupyter-pyodide-lock browsers --check"
+depends-on = ["test-min-pip"]
+inputs = ["build/pip-freeze/test-min.txt", "dist/*.whl"]
+
+[feature.tasks-test-min.tasks.test-min-core]
+description = "├─ test core in the min test environment"
+cmd = "pixi r -e test-min pytest-core--"
+depends-on = ["test-min-pip", "test-min-cli"]
+inputs = ["py/jupyterlite-pyodide-lock/tests/**/*.py", "dist/*.whl"]
+outputs = [
+  "build/reports/test-min/jupyterlite-pyodide-lock/{pytest.html,htmlcov/status.json}",
+]
+
+[feature.tasks-test-min.tasks.test-min-wd]
+description = "├─ test webdriver in the min test environment"
+depends-on = ["test-min-pip", "test-min-cli"]
+cmd = "pixi r -e test-min pytest-wd--"
+inputs = [
+  "py/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
+  "py/jupyterlite-pyodide-lock-webdriver/tests/**/*.py",
+  "dist/*.whl",
+]
+outputs = [
+  "build/reports/test-min/jupyterlite-pyodide-lock-webdriver/{pytest.html,htmlcov/status.json}",
+]
+
+[feature.tasks-test-next.tasks.test-next-pip]
+description = "├─ prepare the next test environment with pip"
+cmd = "pixi r -e test-next pip-whl-all--"
+depends-on = ["build-pypi-core", "build-pypi-wd"]
+inputs = ["dist/*.whl"]
+outputs = ["build/pip-freeze/test-next.txt"]
+
+[feature.tasks-test-next.tasks.test-next-cli]
+description = "├─ smoke test browsers in next test environment"
+cmd = "jupyter-pyodide-lock browsers --check"
+depends-on = ["test-next-pip"]
+inputs = ["build/pip-freeze/test-next.txt", "dist/*.whl"]
+
+[feature.tasks-test-next.tasks.test-next-core]
+description = "├─ test core in the next test environment"
+cmd = "pixi r -e test-next pytest-core--"
+depends-on = ["test-next-pip", "test-next-cli"]
+inputs = ["py/jupyterlite-pyodide-lock/tests/**/*.py", "dist/*.whl"]
+outputs = [
+  "build/reports/test-next/jupyterlite-pyodide-lock/{pytest.html,htmlcov/status.json}",
+]
+
+[feature.tasks-test-next.tasks.test-next-wd]
+description = "├─ test webdriver in the next test environment"
+depends-on = ["test-next-pip", "test-next-cli"]
+cmd = "pixi r -e test-next pytest-wd--"
+inputs = [
+  "py/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
+  "py/jupyterlite-pyodide-lock-webdriver/tests/**/*.py",
+  "dist/*.whl",
+]
+outputs = [
+  "build/reports/test-next/jupyterlite-pyodide-lock-webdriver/{pytest.html,htmlcov/status.json}",
+]
 [tasks.pytest--]
 cmd = """
   export JLPL_REPORT_ROOT=$PIXI_PROJECT_ROOT/build/reports
@@ -454,78 +524,6 @@ outputs = [
 ]
 
 # oldest supported testing #####################################################
-[feature.tasks-test-min.tasks.test-min-pip]
-description = "├─ prepare the min test environment with pip"
-cmd = "pixi r -e test-min pip-whl-all--"
-depends-on = ["build-pypi-core", "build-pypi-wd"]
-inputs = ["dist/*.whl"]
-outputs = ["build/pip-freeze/test-min.txt"]
-
-[feature.tasks-test-min.tasks.test-min-cli]
-description = "├─ smoke test browsers in min test environment"
-cmd = "jupyter-pyodide-lock browsers --check"
-depends-on = ["test-min-pip"]
-inputs = ["build/pip-freeze/test-min.txt", "dist/*.whl"]
-
-[feature.tasks-test-min.tasks.test-min-core]
-description = "├─ test core in the min test environment"
-cmd = "pixi r -e test-min pytest-core--"
-depends-on = ["test-min-pip", "test-min-cli"]
-inputs = ["py/jupyterlite-pyodide-lock/tests/**/*.py", "dist/*.whl"]
-outputs = [
-  "build/reports/test-min/jupyterlite-pyodide-lock/{pytest.html,htmlcov/status.json}",
-]
-
-[feature.tasks-test-min.tasks.test-min-wd]
-description = "├─ test webdriver in the min test environment"
-depends-on = ["test-min-pip", "test-min-cli"]
-cmd = "pixi r -e test-min pytest-wd--"
-inputs = [
-  "py/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
-  "py/jupyterlite-pyodide-lock-webdriver/tests/**/*.py",
-  "dist/*.whl",
-]
-outputs = [
-  "build/reports/test-min/jupyterlite-pyodide-lock-webdriver/{pytest.html,htmlcov/status.json}",
-]
-
-# prerelease testing ###########################################################
-[feature.tasks-test-next.tasks.test-next-pip]
-description = "├─ prepare the next test environment with pip"
-cmd = "pixi r -e test-next pip-whl-all--"
-depends-on = ["build-pypi-core", "build-pypi-wd"]
-inputs = ["dist/*.whl"]
-outputs = ["build/pip-freeze/test-next.txt"]
-
-[feature.tasks-test-next.tasks.test-next-cli]
-description = "├─ smoke test browsers in next test environment"
-cmd = "jupyter-pyodide-lock browsers --check"
-depends-on = ["test-next-pip"]
-inputs = ["build/pip-freeze/test-next.txt", "dist/*.whl"]
-
-[feature.tasks-test-next.tasks.test-next-core]
-description = "├─ test core in the next test environment"
-cmd = "pixi r -e test-next pytest-core--"
-depends-on = ["test-next-pip", "test-next-cli"]
-inputs = ["py/jupyterlite-pyodide-lock/tests/**/*.py", "dist/*.whl"]
-outputs = [
-  "build/reports/test-next/jupyterlite-pyodide-lock/{pytest.html,htmlcov/status.json}",
-]
-
-[feature.tasks-test-next.tasks.test-next-wd]
-description = "├─ test webdriver in the next test environment"
-depends-on = ["test-next-pip", "test-next-cli"]
-cmd = "pixi r -e test-next pytest-wd--"
-inputs = [
-  "py/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
-  "py/jupyterlite-pyodide-lock-webdriver/tests/**/*.py",
-  "dist/*.whl",
-]
-outputs = [
-  "build/reports/test-next/jupyterlite-pyodide-lock-webdriver/{pytest.html,htmlcov/status.json}",
-]
-
-# docs #########################################################################
 [feature.tasks-docs.tasks.docs-pip]
 description = "├ prepare the docs environment with pip"
 cmd = "pixi r -e docs pip-whl-all--"
@@ -732,7 +730,7 @@ sphinx-copybutton = "*"
 
 [feature.deps-check.dependencies]
 pytest-check-links = "*"
-vale = "*"
+vale = "!=3.9.5,!=3.9.4"
 vale-spelling-aoo-mozilla-en-dict-us = "*"
 
 [feature.deps-dev.dependencies]

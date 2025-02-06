@@ -21,6 +21,8 @@ from typing import TYPE_CHECKING, Any
 
 import psutil
 from jupyterlite_core.constants import JSON_FMT, JUPYTER_LITE_CONFIG, UTF8
+from jupyterlite_pyodide_kernel.constants import PYODIDE_VERSION
+from packaging.version import Version
 
 from jupyterlite_pyodide_lock import constants as C  # noqa: N812
 from jupyterlite_pyodide_lock.utils import (
@@ -67,18 +69,26 @@ WIDGET_ISO8601 = dict(
     after_="2024-02-08T15:31:31Z",
 )
 
-#: the version that added ``constraints``
-MICROPIP_09_WHEEL = "micropip-0.9.0-py3-none-any.whl"
-MICROPIP_09_URL = f"{PY_HOSTED}/m/micropip/{MICROPIP_09_WHEEL}"
 
 WIDGETS_CONFIG = dict(
-    constraints_09={"packages": [WIDGETS_WHEEL], "bootstrap_wheels": [MICROPIP_09_URL]},
     packages_local_folder={"packages": ["../dist"]},
     packages_local_wheel={"packages": [WIDGETS_WHEEL]},
     packages_url={"packages": [WIDGETS_URL]},
     specs_pep508={"specs": ["ipywidgets >=8.1.2,<8.1.3"]},
     well_known={},
 )
+
+if Version(PYODIDE_VERSION) >= Version("0.27.0"):
+    MICROPIP_09_WHEEL = "micropip-0.9.0-py3-none-any.whl"
+    MICROPIP_09_URL = f"{PY_HOSTED}/m/micropip/{MICROPIP_09_WHEEL}"
+
+    WIDGETS_CONFIG.update(
+        constraints_09={
+            "packages": [WIDGETS_WHEEL],
+            "bootstrap_wheels": [MICROPIP_09_URL],
+        }
+    )
+
 
 #: a notebook without cells
 EMPTY_NOTEBOOK = {
@@ -220,7 +230,14 @@ class LiteRunner:
 
         if expect_rc is not None:
             print("[rc]", proc.returncode)
-            assert proc.returncode == expect_rc
+            if proc.returncode != expect_rc:
+                lines = "\n".join(log.read_text(**UTF8).split("\n")[-20:])
+                msg = (
+                    f"{lines}"
+                    f"Unexpected return code {proc.returncode}: see {log.as_uri()}"
+                )
+                print(msg, file=sys.stderr)
+                assert proc.returncode == expect_rc
 
         if expect_text:
             text = log.read_text(**UTF8)

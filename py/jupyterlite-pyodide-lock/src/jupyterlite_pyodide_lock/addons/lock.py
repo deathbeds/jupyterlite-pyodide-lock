@@ -139,7 +139,7 @@ class PyodideLockAddon(BaseAddon):
     bootstrap_wheels: tuple[str] = TypedTuple(
         Unicode(),
         default_value=("micropip", "packaging"),
-        help="URLs or packages names from the lockfile to ensure before locking",
+        help="URLs or packages names from the lockfile to load before locking",
     ).tag(config=True)
 
     lock_date_epoch: int = CInt(
@@ -324,8 +324,7 @@ class PyodideLockAddon(BaseAddon):
         wheels = []
         for name_or_wheel in self.bootstrap_wheels:
             file_name = url_wheel_filename(name_or_wheel)
-            if file_name:
-                wheels += [file_name]
+            wheels += [file_name or name_or_wheel]
         return wheels
 
     @property
