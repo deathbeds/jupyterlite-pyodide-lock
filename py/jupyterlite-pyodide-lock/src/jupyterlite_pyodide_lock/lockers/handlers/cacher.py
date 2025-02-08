@@ -86,7 +86,7 @@ class CachingRemoteFiles(ExtraMimeFiles):
             await asyncio.sleep(2**attempt)
             try:
                 res = await self.client.fetch(url)
-            except HTTPTimeoutError as err:
+            except HTTPTimeoutError as err:  # pragma: no cover
                 last_error = err
                 continue
             else:
@@ -95,4 +95,4 @@ class CachingRemoteFiles(ExtraMimeFiles):
         if TYPE_CHECKING:
             assert last_error
 
-        raise last_error
+        raise last_error  # pragma: no cover

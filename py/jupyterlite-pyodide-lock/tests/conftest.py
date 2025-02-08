@@ -78,23 +78,6 @@ WIDGETS_CONFIG = dict(
     well_known={},
 )
 
-IS_PYODIDE_027 = Version(PYODIDE_VERSION) >= Version("0.27")
-
-if IS_PYODIDE_027:
-    MICROPIP_09_WHEEL = "micropip-0.9.0-py3-none-any.whl"
-    MICROPIP_09_URL = f"{PY_HOSTED}/m/micropip/{MICROPIP_09_WHEEL}"
-    OLD_TRAITLETS_VERSION = "5.14.2"
-    OLD_TRAITLETS_SPEC = "traitlets <5.14.3"
-
-    WIDGETS_CONFIG.update(
-        constraints_09={
-            "packages": [WIDGETS_WHEEL],
-            "bootstrap_wheels": [MICROPIP_09_URL],
-            "constraints": [OLD_TRAITLETS_SPEC],
-        }
-    )
-
-
 #: a notebook without cells
 EMPTY_NOTEBOOK = {
     "metadata": {
@@ -131,15 +114,33 @@ EXPECT_WIDGETS_RUN = [
     ),
 ]
 
-CUSTOM_EXPECT_RUNNABLE = {
-    "constraints_09": [
-        *EXPECT_WIDGETS_RUN,
-        (
-            "import traitlets; s.tooltip = s.description = traitlets.__version__",
-            f".widget-label[title='{OLD_TRAITLETS_VERSION}']",
-        ),
-    ],
-}
+CUSTOM_EXPECT_RUNNABLE: dict[str, list[tuple[str, str]]] = {}
+
+IS_PYODIDE_027 = Version(PYODIDE_VERSION) >= Version("0.27")
+
+if IS_PYODIDE_027:
+    MICROPIP_09_WHEEL = "micropip-0.9.0-py3-none-any.whl"
+    MICROPIP_09_URL = f"{PY_HOSTED}/m/micropip/{MICROPIP_09_WHEEL}"
+    OLD_TRAITLETS_VERSION = "5.14.2"
+    OLD_TRAITLETS_SPEC = "traitlets <5.14.3"
+
+    WIDGETS_CONFIG.update(
+        constraints_09={
+            "packages": [WIDGETS_WHEEL],
+            "bootstrap_wheels": [MICROPIP_09_URL],
+            "constraints": [OLD_TRAITLETS_SPEC],
+        }
+    )
+
+    CUSTOM_EXPECT_RUNNABLE.update(
+        constraints_09=[
+            *EXPECT_WIDGETS_RUN,
+            (
+                "import traitlets; s.tooltip = s.description = traitlets.__version__",
+                f""".widget-label[title="{OLD_TRAITLETS_VERSION}"]""",
+            ),
+        ]
+    )
 
 
 def pytest_configure(config: Any) -> None:
