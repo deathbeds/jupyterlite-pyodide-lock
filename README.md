@@ -143,8 +143,12 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
   {
     "PyodideLockAddon": {
       "enabled": true,
+      "constraints": ["traitlets ==5.14.3"],
       "specs": ["ipywidgets ==8.1.5"],
-      "extra_preload_packages": ["ipywidgets"]
+      "extra_preload_packages": ["ipywidgets"],
+      "bootstrap_wheels": [
+        "https://files.pythonhosted.org/packages/py3/m/micropip/micropip-0.9.0-py3-none-any.whl"
+      ]
     },
     "PyodideLockOfflineAddon": {
       "enabled": true
@@ -153,6 +157,10 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
   ```
 
   - _note the tight `ipywidgets` pin, ensuring compatibility with the build environment_
+  - _while not required, the `constraints` option allows for controlling transient
+    dependencies_
+    - _this feature requires `micropip >=0.9.0`, which is only compatible with
+      `pyodide >=0.27`_
 
 #### Build the Site with Widgets
 
@@ -192,7 +200,7 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
   versions known to work together in the browser, described in its `pyodide-lock.json`.
 
 - Among these packages is `micropip`, which gives site users the ability to install
-  packages _not_ included in `pyodide-lock.json`. These may be distributed with an HTML
+  packages _not_ included in `pyodide-lock.json`. These may be served along with an HTML
   page, downloaded from PyPI, or anywhere on the internet. `jupyterlite-pyodide-kernel`
   uses this capability to install itself, and its dependencies.
 
