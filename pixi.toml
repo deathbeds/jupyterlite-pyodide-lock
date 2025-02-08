@@ -437,6 +437,7 @@ cmd = """
   && export JLPL_TEST_REPORTS=$JLPL_REPORT_ROOT/$PIXI_ENVIRONMENT_NAME/$JLPL_TEST_PKG
   && export COVERAGE_FILE=$JLPL_TEST_REPORTS/.coverage
   && export COVERAGE_RCFILE=$(pwd)/pyproject.toml
+  && export JUPYTERLITE_NO_LIBARCHIVE=1
   && rm -rf $JLPL_TEST_REPORTS
   && mkdir -p $JLPL_TEST_REPORTS
   && cd $JLPL_TEST_CWD

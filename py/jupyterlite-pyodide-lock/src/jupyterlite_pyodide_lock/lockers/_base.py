@@ -44,9 +44,10 @@ class BaseLocker(LoggingConfigurable):
     specs = List(Unicode())
     packages = List(Instance(Path))
     lockfile = Instance(Path)
+    constraints = List(Unicode())
 
     # runtime
-    parent: PyodideLockAddon = Instance(
+    parent: PyodideLockAddon = Instance(  # type: ignore[assignment]
         "jupyterlite_pyodide_lock.addons.lock.PyodideLockAddon",
     )
     micropip_args = Dict()

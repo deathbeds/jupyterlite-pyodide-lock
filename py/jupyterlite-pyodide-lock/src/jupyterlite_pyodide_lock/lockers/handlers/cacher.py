@@ -4,17 +4,16 @@
 
 from __future__ import annotations
 
+import asyncio
 import re
 from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from tornado.httpclient import AsyncHTTPClient
+from tornado.httpclient import AsyncHTTPClient, HTTPError
+from tornado.simple_httpclient import HTTPTimeoutError
 
 from .mime import ExtraMimeFiles
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
 
 TReplacer = bytes | Callable[[bytes], bytes]
 TRouteRewrite = tuple[str, TReplacer]
@@ -31,18 +30,18 @@ class CachingRemoteFiles(ExtraMimeFiles):
     #: URL patterns that should have text replaced
     rewrites: TRewriteMap
 
-    def initialize(
-        self, remote: str, rewrites: TRewriteMap | None = None, **kwargs: Any
-    ) -> None:
+    def initialize(self, *args: Any, **kwargs: Any) -> None:
         """Extend the base initialize with instance members."""
-        super().initialize(**kwargs)
+        remote: str = kwargs.pop("remote")
+        rewrites: TRewriteMap | None = kwargs.pop("rewrites", None)
+        super().initialize(*args, **kwargs)
         self.remote = remote
         self.client = AsyncHTTPClient()
         self.rewrites = rewrites or {}
 
     async def get(self, path: str, include_body: bool = True) -> None:  # noqa: FBT002, FBT001
         """Actually fetch a file."""
-        cache_path = self.root / path
+        cache_path = Path(self.root) / path
         if cache_path.exists():  # pragma: no cover
             cache_path.touch()
         else:
@@ -55,10 +54,7 @@ class CachingRemoteFiles(ExtraMimeFiles):
             cache_path.parent.mkdir(parents=True)
 
         url = f"{self.remote}/{path}"
-        self.log.debug("[cacher] fetching:    %s", url)
-        res = await self.client.fetch(url)
-
-        body = res.body
+        body = await self.fetch_body_with_retries(url)
 
         for url_pattern, replacements in self.rewrites.items():
             if re.search(url_pattern, path) is None:  # pragma: no cover
@@ -78,3 +74,25 @@ class CachingRemoteFiles(ExtraMimeFiles):
                     raise NotImplementedError(msg)
 
         cache_path.write_bytes(body)
+
+    async def fetch_body_with_retries(self, url: str, retries: int = 5) -> bytes:
+        """Fetch the raw bytes of URL with retries.
+
+        In the event of a timeout, wait for an increasing number of seconds
+        """
+        self.log.debug("[cacher] fetching:    %s", url)
+        last_error: HTTPError | None = None
+        for attempt in range(retries):
+            await asyncio.sleep(2**attempt)
+            try:
+                res = await self.client.fetch(url)
+            except HTTPTimeoutError as err:
+                last_error = err
+                continue
+            else:
+                return res.body
+
+        if TYPE_CHECKING:
+            assert last_error
+
+        raise last_error

@@ -313,24 +313,26 @@ class TornadoLocker(BaseLocker):
 
     @default("micropip_args")
     def _default_micropip_args(self) -> dict[str, Any]:
-        args = {}
+        args: dict[str, Any] = {}
         # defaults
         args.update(pre=False, verbose=True, keep_going=True)
         # overrides
         args.update(self.extra_micropip_args)
 
-        # build requirements
-        output_base_url = self.parent.manager.output_dir.as_posix()
-        requirements = [
-            pkg.as_posix().replace(output_base_url, self.base_url, 1)
-            for pkg in self.packages
-        ] + self.specs
+        if self.constraints:
+            args.update(constraints=self.constraints)
 
+        output_base_url = self.parent.manager.output_dir.as_posix()
         # required
         args.update(
-            requirements=requirements,
+            requirements=[
+                pkg.as_posix().replace(output_base_url, self.base_url, 1)
+                for pkg in self.packages
+            ]
+            + self.specs,
             index_urls=[f"{self.base_url}/{PROXY}/pypi/{{package_name}}/json"],
         )
+
         return args
 
     @default("extra_micropip_args")
