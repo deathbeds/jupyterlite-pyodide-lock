@@ -12,6 +12,7 @@ import pprint
 import re
 import urllib.parse
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 import pkginfo
@@ -37,11 +38,11 @@ from jupyterlite_pyodide_lock.constants import (
     WAREHOUSE_UPLOAD_FORMAT,
 )
 from jupyterlite_pyodide_lock.lockers import get_locker_entry_points
+from jupyterlite_pyodide_lock.utils import url_wheel_filename
 
 if TYPE_CHECKING:
     from importlib.metadata import EntryPoint
     from logging import Logger
-    from pathlib import Path
 
     from jupyterlite_core.manager import LiteManager
 
@@ -74,17 +75,17 @@ class PyodideLockAddon(BaseAddon):
         default_value="BrowserLocker",
         values=[*LOCKERS.keys()],
         help=(
-            "approach to use for running 'pyodide' and solving the lock: "
-            "these will have further configuration options under the same-named"
-            "configurable"
+            "approach to use for running ``pyodide`` and solving the lock:"
+            " these will have further configuration options under the same-named"
+            " configurable"
         ),
     ).tag(config=True)
 
     pyodide_url: str = Unicode(
         default_value=PYODIDE_CORE_URL,
         help=(
-            "a URL, folder, or path to a pyodide distribution, patched into"
-            " ``PyodideAddon.pyodide_url``"
+            "a URL, folder, or path to a ``pyodide`` distribution, if not configured"
+            " in ``PyodideAddon.pyodide_url``"
         ),
     )  # type: ignore[assignment]
 
@@ -95,13 +96,22 @@ class PyodideLockAddon(BaseAddon):
 
     specs: tuple[str] = TypedTuple(
         Unicode(),
-        help="PEP-508 specifications for pyodide dependencies",
+        help="PEP-508 specifications for ``pyodide`` dependencies",
+    ).tag(config=True)
+
+    constraints: tuple[str] = TypedTuple(
+        Unicode(),
+        help=(
+            "PEP-508 specifications that constrain the bootstrap solve."
+            " Requires ``micropip >=0.9.0``."
+        ),
     ).tag(config=True)
 
     packages: tuple[str] = TypedTuple(
         Unicode(),
         help=(
-            "URLs of packages, or local (folders of) packages for pyodide dependencies"
+            "URLs of packages, or local (folders of) compatible wheels for "
+            " ``pyodide`` dependencies"
         ),
     ).tag(config=True)
 
@@ -117,31 +127,36 @@ class PyodideLockAddon(BaseAddon):
         ],
         help=(
             "``pyodide_kernel`` dependencies to add to"
-            " ``PyodideAddon.loadPyodideOptions.packages``: "
-            " these will be downloaded and installed, but _not_ imported to sys.modules"
+            " ``PyodideAddon.loadPyodideOptions.packages``."
+            " These will be downloaded and installed, but _not_ imported to"
+            " ``sys.modules``"
         ),
     ).tag(config=True)
 
     extra_preload_packages: tuple[str] = TypedTuple(
         Unicode(),
         help=(
-            "extra packages to add to PyodideAddon.loadPyodideOptions.packages: "
-            "these will be downloaded and installed, but _not_ imported to sys.modules"
+            "extra packages to add to ``PyodideAddon.loadPyodideOptions.packages``."
+            " These will be downloaded at kernel startup, and installed, but _not_"
+            " imported to ``sys.modules``"
         ),
     ).tag(config=True)
 
     bootstrap_wheels: tuple[str] = TypedTuple(
         Unicode(),
         default_value=("micropip", "packaging"),
-        help="packages names from the lockfile to ensure before attempting a lock",
+        help=(
+            "packages names from the lockfile (or ``.whl`` URLs or local paths) to"
+            " load before the solve, such as a custom ``micropip``"
+        ),
     ).tag(config=True)
 
     lock_date_epoch: int = CInt(
         allow_none=True,
         min=1,
         help=(
-            "Trigger reproducible locks, clamping available "
-            "package timestamps to this value"
+            "a UNIX epoch timestamp: packages modified after this time"
+            " will be removed from proxied JSON responses"
         ),
     ).tag(config=True)  # type: ignore[assignment]
 
@@ -195,10 +210,7 @@ class PyodideLockAddon(BaseAddon):
         if not self.enabled:  # pragma: no cover
             return
 
-        for path_or_url in [
-            *self.packages,
-            *map(str, list_packages(self.well_known_packages)),
-        ]:
+        for path_or_url in self.package_candidates:
             yield from self.resolve_one_file_requirement(
                 path_or_url,
                 self.package_cache,
@@ -221,12 +233,16 @@ class PyodideLockAddon(BaseAddon):
         lock_dep_wheels = []
 
         for dep in self.bootstrap_wheels:
-            file_name = out_lock["packages"][dep]["file_name"]
+            file_name = url_wheel_filename(dep)
+            if file_name:
+                url = dep
+            else:
+                file_name = out_lock["packages"][dep]["file_name"]
+                url = f"{self.pyodide_cdn_url}/{file_name}"
             out_whl = out / file_name
             if out_whl.exists():  # pragma: no cover
                 continue
             lock_dep_wheels += [out_whl]
-            url = f"{self.pyodide_cdn_url}/{file_name}"
             yield self.task(
                 name=f"bootstrap:{dep}",
                 actions=[(self.fetch_one, [url, out_whl])],
@@ -237,6 +253,7 @@ class PyodideLockAddon(BaseAddon):
             "packages": self.get_packages(),
             "specs": self.specs,
             "lockfile": self.lockfile,
+            "constraints": self.constraints,
         }
 
         config_str = f"""
@@ -272,7 +289,14 @@ class PyodideLockAddon(BaseAddon):
         )
 
     # actions
-    def lock(self, packages: list[Path], specs: list[str], lockfile: Path) -> bool:
+    def lock(
+        self,
+        *,
+        packages: list[Path],
+        specs: list[str],
+        constraints: list[str],
+        lockfile: Path,
+    ) -> bool:
         """Generate the lockfile."""
         locker_ep: EntryPoint | None = LOCKERS.get(self.locker)
 
@@ -291,6 +315,7 @@ class PyodideLockAddon(BaseAddon):
             specs=specs,
             packages=packages,
             lockfile=lockfile,
+            constraints=constraints,
         )
 
         if self.lockfile.exists():  # pragma: no cover
@@ -308,6 +333,15 @@ class PyodideLockAddon(BaseAddon):
         return int(json.loads(os.environ[ENV_VAR_LOCK_DATE_EPOCH]))
 
     # derived properties
+    @property
+    def bootstrap_packages(self) -> list[str]:
+        """Get wheels for ``loadPackages``."""
+        wheels = []
+        for name_or_wheel in self.bootstrap_wheels:
+            file_name = url_wheel_filename(name_or_wheel)
+            wheels += [file_name or name_or_wheel]
+        return wheels
+
     @property
     def well_known_packages(self) -> Path:
         """The location of ``.whl`` in the ``{lite_dir}`` to pick up."""
@@ -353,6 +387,11 @@ class PyodideLockAddon(BaseAddon):
             )
             return None
 
+    @property
+    def package_candidates(self) -> list[str]:
+        """Get all paths (or URLs) that might be (or contain) packages."""
+        return [*self.packages, *map(str, list_packages(self.well_known_packages))]
+
     # task generators
     def resolve_one_file_requirement(
         self, path_or_url: str | Path, cache_root: Path
@@ -391,8 +430,6 @@ class PyodideLockAddon(BaseAddon):
     def copy_wheel(self, wheel: Path) -> TTaskGenerator:
         """Copy one wheel to ``{output_dir}``."""
         dest = self.lock_output_dir / wheel.name
-        if dest == wheel:  # pragma: no cover
-            return
         yield self.task(
             name=f"copy:whl:{wheel.name}",
             file_dep=[wheel],
@@ -402,22 +439,32 @@ class PyodideLockAddon(BaseAddon):
 
     def get_packages(self) -> list[Path]:
         """Find all file-based packages to install with ``micropip``."""
-        package_dirs = [
-            *self.federated_wheel_dirs,
-        ]
+        named_packages: dict[str, Path] = {}
 
-        wheels: list[Path] = []
+        wheel_dirs = [*self.federated_wheel_dirs]
 
-        for path in package_dirs:
-            wheels += [*path.glob("*.whl")]
+        wheels = sorted(
+            [w for path in wheel_dirs for w in path.glob("*.whl")], key=lambda w: w.name
+        )
 
-        named_packages = {}
+        for pkg in self.package_candidates:
+            for task in self.resolve_one_file_requirement(pkg, self.cache_dir):
+                for target in task.get("targets", []):
+                    if (
+                        isinstance(target, Path)
+                        and target.parent == self.lock_output_dir
+                    ):
+                        wheels += [target]
 
-        for wheel in sorted(wheels, key=lambda x: x.name):
+        for wheel in wheels:
             metadata = pkginfo.get_metadata(str(wheel))
-            if not metadata:  # pragma: no cover
+            if not metadata or not metadata.name:  # pragma: no cover
                 self.log.error("[lock] failed to parse wheel metadata for %s", wheel)
                 continue
+            if metadata.name in named_packages:
+                self.log.warning(
+                    "[lock] clobbering %s with %s", named_packages[metadata.name], wheel
+                )
             named_packages[metadata.name] = wheel
 
         return sorted(named_packages.values())

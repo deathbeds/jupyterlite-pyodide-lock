@@ -10,6 +10,7 @@ import shutil
 import socket
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 
 import psutil
 
@@ -163,3 +164,11 @@ def terminate_all(
         r for r in procs if r.is_running()
     )
     return result
+
+
+def url_wheel_filename(url_or_name: str) -> str | None:
+    """Check whether a string is a wheel URL, and return the filename."""
+    parsed = urlparse(url_or_name)
+    if parsed.path.endswith(".whl"):
+        return parsed.path.split("/")[-1]
+    return None

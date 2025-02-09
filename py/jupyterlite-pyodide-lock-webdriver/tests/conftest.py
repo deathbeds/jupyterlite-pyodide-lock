@@ -21,6 +21,8 @@ from typing import TYPE_CHECKING, Any
 
 import psutil
 from jupyterlite_core.constants import JSON_FMT, JUPYTER_LITE_CONFIG, UTF8
+from jupyterlite_pyodide_kernel.constants import PYODIDE_VERSION
+from packaging.version import Version
 
 from jupyterlite_pyodide_lock import constants as C  # noqa: N812
 from jupyterlite_pyodide_lock.utils import (
@@ -60,18 +62,19 @@ LITE_BUILD_CONFIG = {
 }
 
 WIDGETS_WHEEL = "ipywidgets-8.1.2-py3-none-any.whl"
-WIDGETS_URL = f"{C.FILES_PYTHON_HOSTED}/packages/py3/i/ipywidgets/{WIDGETS_WHEEL}"
+WIDGETS_URL = f"{PY_HOSTED}/i/ipywidgets/{WIDGETS_WHEEL}"
 WIDGET_ISO8601 = dict(
     before="2024-02-08T15:31:28Z",
     actual="2024-02-08T15:31:29.801655Z",
     after_="2024-02-08T15:31:31Z",
 )
 
+
 WIDGETS_CONFIG = dict(
-    specs_pep508={"specs": ["ipywidgets >=8.1.2,<8.1.3"]},
-    packages_url={"packages": [WIDGETS_URL]},
-    packages_local_wheel={"packages": [WIDGETS_WHEEL]},
     packages_local_folder={"packages": ["../dist"]},
+    packages_local_wheel={"packages": [WIDGETS_WHEEL]},
+    packages_url={"packages": [WIDGETS_URL]},
+    specs_pep508={"specs": ["ipywidgets >=8.1.2,<8.1.3"]},
     well_known={},
 )
 
@@ -100,10 +103,44 @@ EMPTY_NOTEBOOK = {
 CSS_RUN_BUTTON = (
     ".jp-ToolbarButtonComponent[data-command='notebook:run-cell-and-select-next']"
 )
-EXPECT_WIDGETS_RUN = (
-    "from ipywidgets import FloatSlider; FloatSlider()",
-    ".jupyter-widgets.widget-slider",
-)
+CSS_STATUS = ".jp-Notebook-ExecutionIndicator"
+CSS_STATUS_UNKNOWN = f"{CSS_STATUS}[data-status='unknown']"
+CSS_STATUS_IDLE = f"{CSS_STATUS}[data-status='idle']"
+
+EXPECT_WIDGETS_RUN = [
+    (
+        "from ipywidgets import FloatSlider; s = FloatSlider(); s",
+        ".jupyter-widgets.widget-slider",
+    ),
+]
+
+CUSTOM_EXPECT_RUNNABLE: dict[str, list[tuple[str, str]]] = {}
+
+IS_PYODIDE_027 = Version(PYODIDE_VERSION) >= Version("0.27")
+
+if IS_PYODIDE_027:
+    MICROPIP_09_WHEEL = "micropip-0.9.0-py3-none-any.whl"
+    MICROPIP_09_URL = f"{PY_HOSTED}/m/micropip/{MICROPIP_09_WHEEL}"
+    OLD_TRAITLETS_VERSION = "5.14.2"
+    OLD_TRAITLETS_SPEC = "traitlets <5.14.3"
+
+    WIDGETS_CONFIG.update(
+        constraints_09={
+            "packages": [WIDGETS_WHEEL],
+            "bootstrap_wheels": [MICROPIP_09_URL],
+            "constraints": [OLD_TRAITLETS_SPEC],
+        }
+    )
+
+    CUSTOM_EXPECT_RUNNABLE.update(
+        constraints_09=[
+            *EXPECT_WIDGETS_RUN,
+            (
+                "import traitlets; s.tooltip = s.description = traitlets.__version__",
+                f""".widget-label[title="{OLD_TRAITLETS_VERSION}"]""",
+            ),
+        ]
+    )
 
 
 def pytest_configure(config: Any) -> None:
@@ -215,7 +252,14 @@ class LiteRunner:
 
         if expect_rc is not None:
             print("[rc]", proc.returncode)
-            assert proc.returncode == expect_rc
+            if proc.returncode != expect_rc:
+                lines = "\n".join(log.read_text(**UTF8).split("\n")[-20:])
+                msg = (
+                    f"{lines}"
+                    f"Unexpected return code {proc.returncode}: see {log.as_uri()}"
+                )
+                print(msg, file=sys.stderr)
+                assert proc.returncode == expect_rc
 
         if expect_text:
             text = log.read_text(**UTF8)
@@ -271,30 +315,38 @@ class LiteRunner:
             url = f"http://{C.LOCALHOST}:{port}/lab/index.html?path=test.ipynb"
 
             try:
-                self.run_with_server(url, expect_runnable)
+                errors = self.run_with_server(url, expect_runnable)
             finally:
                 if self._ff:
                     self._ff.quit()
                 self._ff = None
                 terminate_all(srv)
+            assert not errors
 
-    def run_with_server(self, url: str, expect_runnable: list[tuple[str, str]]) -> None:
+    def run_with_server(
+        self, url: str, expect_runnable: list[tuple[str, str]]
+    ) -> list[str]:
         """Run the server."""
+        errors: list[str] = []
         self.ff.get(url)
         time.sleep(5)
         self.capture("startup")
         try:
+            self.wait_for_element(CSS_STATUS_IDLE, timeout=60)
             run = self.wait_for_element(CSS_RUN_BUTTON)
             self.capture()
             for i, (_code, selector) in enumerate(expect_runnable):
                 run.click()
                 if not i:
                     time.sleep(20)
+                self.wait_for_element(CSS_STATUS_IDLE)
                 self.wait_for_element(selector)
                 self.capture()
         except Exception as err:  # noqa: BLE001
             print(err, file=sys.stderr)
             self.capture("error")
+            errors += [f"${err}"]
+        return errors
 
     def wait_for_element(self, css: str, timeout: int = 30) -> WebElement:
         """Wait for a CSS element to appear."""
@@ -374,19 +426,19 @@ def a_lite_config_with_widgets(
 
     packages = approach.get("packages")
 
-    fetch_dest = None
+    fetch_dest: Path | None = None
 
     if packages:
         if WIDGETS_WHEEL in packages:
-            fetch_dest = a_lite_dir / WIDGETS_WHEEL
+            fetch_dest = a_lite_dir
         elif "../dist" in packages:
-            fetch_dest = a_lite_dir / "../dist" / WIDGETS_WHEEL
+            fetch_dest = a_lite_dir / "../dist"
 
     if not approach:
         fetch_dest = a_lite_dir / "static" / C.PYODIDE_LOCK_STEM
 
     if fetch_dest:
-        fetch(WIDGETS_URL, fetch_dest)
+        fetch(WIDGETS_URL, fetch_dest / WIDGETS_WHEEL)
 
     patch_config(
         a_lite_config,

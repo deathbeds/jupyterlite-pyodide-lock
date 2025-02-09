@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 from typing import TYPE_CHECKING, Any
 
@@ -15,7 +16,13 @@ from jupyterlite_pyodide_kernel.constants import PYODIDE_LOCK
 
 from jupyterlite_pyodide_lock.constants import ENV_VAR_LOCK_DATE_EPOCH
 
-from .conftest import EXPECT_WIDGETS_RUN, expect_no_diff, patch_config
+from .conftest import (
+    CUSTOM_EXPECT_RUNNABLE,
+    EXPECT_WIDGETS_RUN,
+    WIDGETS_WHEEL,
+    expect_no_diff,
+    patch_config,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -63,7 +70,11 @@ def test_cli_bad_config(
     lite_cli("status", expect_rc=2, expect_text=MESSAGES[message])
 
 
-def test_cli_good_build(lite_cli: LiteRunner, a_lite_config_with_widgets: Path) -> None:
+def test_cli_good_build(
+    lite_cli: LiteRunner,
+    a_widget_approach: str,
+    a_lite_config_with_widgets: Path,
+) -> None:
     """Verify a build works, twice."""
     from jupyterlite_pyodide_lock.constants import (
         PYODIDE_LOCK_OFFLINE,
@@ -78,6 +89,9 @@ def test_cli_good_build(lite_cli: LiteRunner, a_lite_config_with_widgets: Path) 
 
     lite_cli("build", "--debug")
     lock_text = lock.read_text(**UTF8)
+
+    matches = re.findall(re.escape(WIDGETS_WHEEL), lock_text)
+    assert matches, f"{WIDGETS_WHEEL} does not appear in lock text"
 
     # this would fail pydantic
     pyodide_lock.PyodideLockSpec.from_json(lock)
@@ -98,12 +112,11 @@ def test_cli_good_build(lite_cli: LiteRunner, a_lite_config_with_widgets: Path) 
 
     patch_config(
         a_lite_config_with_widgets,
-        PyodideLockOfflineAddon={
-            "prune": True,
-        },
+        PyodideLockOfflineAddon={"prune": True},
     )
     # only test pruned, offline in browser, as we'll have everything locally
-    lite_cli("build", "--debug", expect_runnable=[EXPECT_WIDGETS_RUN])
+    expect_runnable = CUSTOM_EXPECT_RUNNABLE.get(a_widget_approach, EXPECT_WIDGETS_RUN)
+    lite_cli("build", "--debug", expect_runnable=expect_runnable)
     pyodide_lock.PyodideLockSpec.from_json(lock_offline)
     pruned_text = lock_offline.read_text(**UTF8)
     assert "https://" not in pruned_text
@@ -124,9 +137,7 @@ def test_cli_lock_date_epoch(
 ) -> None:
     """Verify a lock clamped by good environment variable, failed by bad config."""
     if a_widget_approach != "specs_pep508":
-        return pytest.skip(
-            f"{ENV_VAR_LOCK_DATE_EPOCH} does not affect {a_widget_approach}"
-        )
+        pytest.skip(f"{ENV_VAR_LOCK_DATE_EPOCH} does not affect {a_widget_approach}")
 
     good_env = {ENV_VAR_LOCK_DATE_EPOCH: str(a_good_widget_lock_date_epoch)}
     lite_cli("build", "--debug", env=good_env)
@@ -136,4 +147,3 @@ def test_cli_lock_date_epoch(
         PyodideLockAddon=dict(lock_date_epoch=a_bad_widget_lock_date_epoch),
     )
     lite_cli("build", "--debug", expect_rc=1)
-    return None

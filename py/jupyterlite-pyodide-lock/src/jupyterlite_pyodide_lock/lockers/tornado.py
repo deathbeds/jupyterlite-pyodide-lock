@@ -294,28 +294,45 @@ class TornadoLocker(BaseLocker):
 
     @default("_context")
     def _default_context(self) -> dict[str, Any]:
-        return {"micropip_args_json": json.dumps(self.micropip_args)}
+        return {
+            "load_pyodide_options_json": json.dumps(
+                self.load_pyodide_options, **JSON_FMT
+            ),
+            "micropip_args_json": json.dumps(self.micropip_args, **JSON_FMT),
+        }
+
+    @property
+    def load_pyodide_options(self) -> dict[str, Any]:
+        """Provide default ``loadPyodide`` options."""
+        out_url = f"http://{LOCALHOST}:{self.port}/static/pyodide"
+        packages = [
+            f"{out_url}/{package}" if package.endswith(".whl") else package
+            for package in self.parent.bootstrap_packages
+        ]
+        return {"packages": packages}
 
     @default("micropip_args")
     def _default_micropip_args(self) -> dict[str, Any]:
-        args = {}
+        args: dict[str, Any] = {}
         # defaults
         args.update(pre=False, verbose=True, keep_going=True)
         # overrides
         args.update(self.extra_micropip_args)
 
-        # build requirements
-        output_base_url = self.parent.manager.output_dir.as_posix()
-        requirements = [
-            pkg.as_posix().replace(output_base_url, self.base_url, 1)
-            for pkg in self.packages
-        ] + self.specs
+        if self.constraints:
+            args.update(constraints=self.constraints)
 
+        output_base_url = self.parent.manager.output_dir.as_posix()
         # required
         args.update(
-            requirements=requirements,
+            requirements=[
+                pkg.as_posix().replace(output_base_url, self.base_url, 1)
+                for pkg in self.packages
+            ]
+            + self.specs,
             index_urls=[f"{self.base_url}/{PROXY}/pypi/{{package_name}}/json"],
         )
+
         return args
 
     @default("extra_micropip_args")

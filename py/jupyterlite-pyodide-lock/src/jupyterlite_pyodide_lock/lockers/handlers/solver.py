@@ -35,5 +35,5 @@ class SolverHTML(RequestHandler):
     async def get(self, *args: Any, **kwargs: Any) -> None:
         """Handle a GET request."""
         rendered = self.template.generate(**self.context)
-        self.log.debug("[solver] lock HTML\n%s", rendered)
+        self.log.debug("[solver] lock HTML\n%s", rendered.decode("utf-8"))
         await self.finish(rendered)

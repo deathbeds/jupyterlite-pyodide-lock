@@ -1,6 +1,8 @@
 """Tornado handlers for ``BrowserLocker``."""
+
 # Copyright (c) jupyterlite-pyodide-lock contributors.
 # Distributed under the terms of the BSD-3-Clause License.
+from __future__ import annotations
 
 import json
 from typing import TYPE_CHECKING, Any
@@ -32,7 +34,7 @@ if TYPE_CHECKING:
     TRouteRule = tuple[str, type, dict[str, Any]]
 
 
-def make_lock_date_epoch_replacer(locker: "BrowserLocker") -> "Callable[[str], str]":
+def make_lock_date_epoch_replacer(locker: BrowserLocker) -> Callable[[str], str]:
     """Filter out releases newer than the lock date."""
     lock_date_epoch = locker.parent.lock_date_epoch
     lock_date_iso8601 = epoch_to_warehouse_date(lock_date_epoch)
@@ -66,7 +68,7 @@ def make_lock_date_epoch_replacer(locker: "BrowserLocker") -> "Callable[[str], s
     return _clamp_to_lock_date_epoch
 
 
-def make_handlers(locker: "BrowserLocker") -> "tuple[TRouteRule]":
+def make_handlers(locker: BrowserLocker) -> tuple[TRouteRule]:
     """Create the default handlers used for serving proxied CDN assets and locking."""
     files_cdn = locker.pythonhosted_cdn_url.encode("utf-8")
     files_local = f"{locker.base_url}/{PROXY}/pythonhosted".encode()
@@ -107,12 +109,12 @@ def make_handlers(locker: "BrowserLocker") -> "tuple[TRouteRule]":
 
 
 def make_proxy(
-    locker: "BrowserLocker",
+    locker: BrowserLocker,
     path: str,
     remote: str,
     route: str | None = None,
     **extra_config: Any,
-) -> "TRouteRule":
+) -> TRouteRule:
     """Generate a proxied tornado handler rule."""
     route = route or f"^/{PROXY}/{path}/(.*)$"
     config = {

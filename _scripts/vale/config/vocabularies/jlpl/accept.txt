@@ -4,6 +4,8 @@ _.+_
 .+…
 (A|a)ddons?
 (all|any|one)Of
+(all|extra)_excludes
+(all|extra)_includes
 (Browser|Base|Tornado)Locker
 (e\.g\.|i\.e\.)
 (JSON|TOML|YAML)
@@ -34,8 +36,6 @@ discoverable
 emscripten
 endmacro
 entrypoints
-(all|extra)_excludes
-(all|extra)_includes
 feedstock
 firefox
 found_path
@@ -56,6 +56,7 @@ noqa
 osx
 out_dir
 package_cache
+package_candidates
 package_dir
 param
 pixi
