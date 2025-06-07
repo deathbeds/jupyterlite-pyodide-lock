@@ -1,15 +1,16 @@
-"$schema" = "https://pixi.sh/v0.40.3/schema/manifest/schema.json"
+"$schema" = "https://pixi.sh/v0.48.0/schema/manifest/schema.json"
 
 [project]
 name = "jlpl"
 version = "0.1.2"
+requires-pixi = ">=0.48.0"
 channels = [
   "conda-forge",
   # channels we enable during pre-release cycles
-  "conda-forge/label/jupyterlite_core_alpha",
+  # "conda-forge/label/jupyterlite_core_alpha",
   # "conda-forge/label/jupyterlite_core_beta",
   # "conda-forge/label/jupyterlite_core_rc",
-  "conda-forge/label/jupyterlite_pyodide_kernel_alpha",
+  # "conda-forge/label/jupyterlite_pyodide_kernel_alpha",
   # "conda-forge/label/jupyterlite_pyodide_kernel_beta",
 ]
 platforms = ["linux-64", "osx-64", "win-64", "osx-arm64"]
@@ -42,7 +43,6 @@ test = {cmd = "echo 🚀", description = """
 ]}
 fix = {description = """
 🧹 fix ALL source files""", cmd = "echo 🧹", depends-on = [
-  "fix-tasks",
   "fix-deps",
   "fix-ruff",
   "fix-taplo",
@@ -122,13 +122,20 @@ pip-e-all-- = """
 """
 
 pip-dist-- = "pixi r pip-- --find-links=dist --no-index"
-pip-whl-all-- = """
-  pixi r pip-check--
+
+## templates ###################################################################
+[tasks.pip-whl-all--]
+args = ["e"]
+cmd = """
+  pixi r -e={{ e }} pip-check--
   && pixi r pip-dist--
     jupyterlite-pyodide-lock
     jupyterlite-pyodide-lock-webdriver
-  && pixi r pip-check--
+  && pixi r -e={{ e }} pip-check--
 """
+inputs = ["dist/*.whl"]
+depends-on = ["build-pypi-core", "build-pypi-wd"]
+outputs = ["build/pip-freeze/{{ e }}.txt"]
 
 # real tasks
 [feature.tasks-lint.tasks.fix-deps]
@@ -142,11 +149,6 @@ outputs = [
   "py/*/pyproject.toml",
   "py/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
 ]
-
-[feature.tasks-lint.tasks.fix-tasks]
-description = "├ fix pixi tasks"
-cmd = "python _scripts/fix-tasks.py"
-inputs = ["pixi.toml", "_scripts/fix-tasks.py"]
 
 [feature.tasks-lint.tasks.fix-ipynb]
 description = "├ fix notebooks"
@@ -364,10 +366,7 @@ outputs = ["dist/SHA256SUMS"]
 
 [feature.tasks-test-min.tasks.test-min-pip]
 description = "├─ prepare the min test environment with pip"
-cmd = "pixi r -e test-min pip-whl-all--"
-depends-on = ["build-pypi-core", "build-pypi-wd"]
-inputs = ["dist/*.whl"]
-outputs = ["build/pip-freeze/test-min.txt"]
+depends-on = [{task = "pip-whl-all--", args = ["test-min"]}]
 
 [feature.tasks-test-min.tasks.test-min-cli]
 description = "├─ smoke test browsers in min test environment"
@@ -399,10 +398,7 @@ outputs = [
 
 [feature.tasks-test-next.tasks.test-next-pip]
 description = "├─ prepare the next test environment with pip"
-cmd = "pixi r -e test-next pip-whl-all--"
-depends-on = ["build-pypi-core", "build-pypi-wd"]
-inputs = ["dist/*.whl"]
-outputs = ["build/pip-freeze/test-next.txt"]
+depends-on = [{task = "pip-whl-all--", args = ["test-next"]}]
 
 [feature.tasks-test-next.tasks.test-next-cli]
 description = "├─ smoke test browsers in next test environment"
@@ -491,10 +487,7 @@ inputs = [
 # testing default ##############################################################
 [feature.tasks-test-max.tasks.test-max-pip]
 description = "├─ prepare the default test environment with pip"
-cmd = "pixi r -e test-max pip-whl-all--"
-depends-on = ["build-pypi-core", "build-pypi-wd"]
-inputs = ["dist/*.whl"]
-outputs = ["build/pip-freeze/test-max.txt"]
+depends-on = [{task = "pip-whl-all--", args = ["test-max"]}]
 
 [feature.tasks-test-max.tasks.test-max-cli]
 description = "├─ smoke test browsers in default test environment"
@@ -527,10 +520,7 @@ outputs = [
 # oldest supported testing #####################################################
 [feature.tasks-docs.tasks.docs-pip]
 description = "├ prepare the docs environment with pip"
-cmd = "pixi r -e docs pip-whl-all--"
-depends-on = ["build-pypi"]
-inputs = ["dist/*.whl"]
-outputs = ["build/pip-freeze/docs.txt"]
+depends-on = [{task = "pip-whl-all--", args = ["docs"]}]
 
 [feature.tasks-docs.tasks.docs-scour]
 description = "├ optimize SVG for docs with scour"
@@ -665,12 +655,14 @@ jupyterlite-pyodide-kernel = "0.5.*"
 [feature.deps-run-next.dependencies]
 python = "3.13.*"
 pyodide-lock = "0.1.0a8.*"
-[feature.deps-run-next.dependencies.jupyterlite-core]
-version = ">=0.6.0a1"
-channel = "conda-forge/label/jupyterlite_core_alpha"
-[feature.deps-run-next.dependencies.jupyterlite-pyodide-kernel]
-version = ">=0.6.0a1"
-channel = "conda-forge/label/jupyterlite_pyodide_kernel_alpha"
+jupyterlite-core = "0.6.*"
+jupyterlite-pyodide-kernel = "0.6.*"
+# [feature.deps-run-next.dependencies.jupyterlite-core]
+# version = ">=0.6.0a1"
+# channel = "conda-forge/label/jupyterlite_core_alpha"
+# [feature.deps-run-next.dependencies.jupyterlite-pyodide-kernel]
+# version = ">=0.6.0a1"
+# channel = "conda-forge/label/jupyterlite_pyodide_kernel_alpha"
 
 [feature.deps-pip.dependencies]
 pip = "*"
@@ -731,7 +723,7 @@ sphinx-copybutton = "*"
 
 [feature.deps-check.dependencies]
 pytest-check-links = "*"
-vale = "!=3.9.5,!=3.9.4"
+vale = "<3.9.4"
 vale-spelling-aoo-mozilla-en-dict-us = "*"
 
 [feature.deps-dev.dependencies]
@@ -740,7 +732,7 @@ watchfiles = "*"
 
 [feature.deps-demo.dependencies]
 ipywidgets = ">=8.1,<8.2"
-jupyterlab = ">=4.1,<4.4"
+jupyterlab = ">=4.1,<4.5"
 
 # environments #################################################################
 [environments]
