@@ -20,8 +20,8 @@ show_contexts = true
 [tool.mypy]
 cache_dir = "build/.cache/mypy"
 python_version = "3.10"
-strict = true
 show_error_codes = true
+strict = true
 warn_return_any = true
 warn_unused_ignores = true
 
@@ -36,21 +36,20 @@ module = [
 ]
 
 [tool.pylsp-mypy]
-enabled = true
 dmypy = true
+enabled = true
 live_mode = false
 
 # ruff #########################################################################
 [tool.ruff]
-preview = true
-target-version = "py310"
-line-length = 88
+cache-dir = "build/.cache/ruff"
 extend-include = ["*.ipynb"]
 include = ["_scripts/*.py", "py/**/*.py", "docs/**/*.py", "examples/**/*.ipynb"]
-cache-dir = "build/.cache/ruff"
+line-length = 88
+preview = true
+target-version = "py310"
 
 [tool.ruff.lint]
-select = ["ALL"]
 flake8-copyright.notice-rgx = '''
 # Copyright \(c\) jupyterlite-pyodide-lock contributors\.
 # Distributed under the terms of the BSD-3-Clause License\.
@@ -59,6 +58,7 @@ isort.known-first-party = [
   "jupyterlite_pyodide_lock",
   "jupyterlite_pyodide_lock_webdriver",
 ]
+select = ["ALL"]
 
 ignore = [
   "ANN401",
@@ -79,53 +79,11 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"_scripts/*.*" = [
-  "INP001",
-  "T201",
-  "SLF001",
-  "FBT001",
-  "PLC1901",
-]
-"docs/conf.py" = [
-  "INP001",
-  "A001",
-  "E731",
-  "S404",
-]
 "**/*.ipynb" = [
   "CPY001",
   "T201",
   "TRY004",
-]
-"examples/*.ipynb" = [
-  "T201",
-]
-"*/jupyterlite_pyodide_lock_webdriver/locker.py" = [
-  "BLE001",
-]
-"*/addons/*.py" = [
-  "ARG002",
-  "T201",
-  "BLE001",
-]
-"*/lockers/__init__.py" = [
-  "ARG001",
-]
-"*/browser.py" = [
-  "S603",
-  "S404",
-]
-"*/logger.py" = [
-  "BLE001",
-]
-"*/solver.py" = [
-  "ARG002",
-]
-"*/tornado.py" = [
-  "BLE001",
-]
-"utils.py" = [
-  "C901",
+  "PLC0207",
 ]
 "**/tests/**/*.py" = [
   "PLC0415",
@@ -141,4 +99,47 @@ ignore = [
   "S404",
   "S603",
   "T201",
+]
+"*/addons/*.py" = [
+  "ARG002",
+  "T201",
+  "BLE001",
+]
+"*/browser.py" = [
+  "S603",
+  "S404",
+]
+"*/jupyterlite_pyodide_lock_webdriver/locker.py" = [
+  "BLE001",
+]
+"*/lockers/__init__.py" = [
+  "ARG001",
+]
+"*/logger.py" = [
+  "BLE001",
+]
+"*/solver.py" = [
+  "ARG002",
+]
+"*/tornado.py" = [
+  "BLE001",
+]
+"_scripts/*.*" = [
+  "INP001",
+  "T201",
+  "SLF001",
+  "FBT001",
+  "PLC1901",
+]
+"docs/conf.py" = [
+  "INP001",
+  "A001",
+  "E731",
+  "S404",
+]
+"examples/*.ipynb" = [
+  "T201",
+]
+"utils.py" = [
+  "C901",
 ]

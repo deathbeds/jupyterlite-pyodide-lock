@@ -1,23 +1,23 @@
 "$schema" = "https://pixi.sh/v0.48.0/schema/manifest/schema.json"
 
 [project]
-name = "jlpl"
-version = "0.1.2"
-requires-pixi = ">=0.48.0"
 channels = [
   "conda-forge",
-  # channels we enable during pre-release cycles
+  ## channels we enable during pre-release cycles
   # "conda-forge/label/jupyterlite_core_alpha",
   # "conda-forge/label/jupyterlite_core_beta",
   # "conda-forge/label/jupyterlite_core_rc",
   # "conda-forge/label/jupyterlite_pyodide_kernel_alpha",
   # "conda-forge/label/jupyterlite_pyodide_kernel_beta",
 ]
+name = "jlpl"
 platforms = ["linux-64", "osx-64", "win-64", "osx-arm64"]
+requires-pixi = ">=0.48.0"
+version = "0.1.2"
 
 [tasks]
 # top-level tasks a la make phony
-all = {cmd = "echo 🚢", description = """
+all = {cmd = "echo 🚢 OK all", description = """
 🚢 ALL tasks to prepare for a release""", depends-on = [
   "fix",
   "lint",
@@ -27,22 +27,25 @@ all = {cmd = "echo 🚢", description = """
   "test",
   "build",
 ]}
-pr = {cmd = "echo 🧲", description = """
-🧲 run ALL pull request preflight tasks""", depends-on = [
-  "fix",
-  "lint",
-  "test-meta",
-  "check",
+build = {cmd = "echo 🏗️ OK build", description = """
+🏗️  build ALL packages""", depends-on = [
+  "build-pypi",
+  "build-rattler",
+  "build-hash",
 ]}
-test = {cmd = "echo 🚀", description = """
-🚀 run ALL tests""", depends-on = [
-  "test-meta",
-  "test-max",
-  "test-min",
-  "test-next",
+build-pypi = {cmd = "echo 🐍 OK build-pypi", description = """
+🐍 build ALL PyPI distributions""", depends-on = [
+  "build-pypi-core",
+  "build-pypi-wd",
+  "build-wheel",
+  "build-twine",
 ]}
+check = {cmd = "echo 🤓 OK check", description = """
+🤓 check all build/test artifacts""", depends-on = ["check-links", "check-spelling"]}
+docs = {cmd = "echo 🖨️ OK docs", description = """
+🖨️  build all documentation""", depends-on = ["docs-lite", "docs-sphinx"]}
 fix = {description = """
-🧹 fix ALL source files""", cmd = "echo 🧹", depends-on = [
+🧹 fix ALL source files""", cmd = "echo 🧹 OK fix", depends-on = [
   "fix-deps",
   "fix-ruff",
   "fix-taplo",
@@ -50,7 +53,7 @@ fix = {description = """
   "fix-prettier",
   "fix-mdlint",
 ]}
-lint = {cmd = "echo ⭐", description = """
+lint = {cmd = "echo ⭐ OK lint", description = """
 ⭐ run ALL linters""", depends-on = [
   "lint-ruff",
   "lint-ipynb",
@@ -58,49 +61,46 @@ lint = {cmd = "echo ⭐", description = """
   "lint-prettier",
   "lint-mdlint",
 ]}
-build = {cmd = "echo 🏗️", description = """
-🏗️  build ALL packages""", depends-on = [
-  "build-pypi",
-  "build-rattler",
-  "build-hash",
+pr = {cmd = "echo 🧲 OK pr", description = """
+🧲 run ALL pull request preflight tasks""", depends-on = [
+  "fix",
+  "lint",
+  "test-meta",
+  "check",
 ]}
-build-pypi = {cmd = "echo 🐍", description = """
-🐍 build ALL PyPI distributions""", depends-on = [
-  "build-pypi-core",
-  "build-pypi-wd",
-  "build-wheel",
-  "build-twine",
+test = {cmd = "echo 🚀 OK test", description = """
+🚀 run ALL tests""", depends-on = [
+  "test-meta",
+  "test-max",
+  "test-min",
+  "test-next",
 ]}
-test-cli = {cmd = "echo 🚗", description = """
+test-cli = {cmd = "echo 🚗 OK cli", description = """
 ├ 🆘 check CLI in all test environments""", depends-on = [
   "test-min-cli",
   "test-max-cli",
   "test-next-cli",
 ]}
-test-min = {cmd = "echo 🐎", description = """
-├ 🐎 run tests in the oldest supported environment""", depends-on = [
-  "test-min-cli",
-  "test-min-core",
-  "test-min-wd",
-]}
-test-max = {cmd = "echo 🚗", description = """
+test-max = {cmd = "echo 🚗 OK test-max", description = """
 ├ 🚗 run tests in the default test environment""", depends-on = [
   "test-max-cli",
   "test-max-core",
   "test-max-wd",
 ]}
-test-next = {cmd = "echo 🛸", description = """
+test-min = {cmd = "echo 🐎 OK test-min", description = """
+├ 🐎 run tests in the oldest supported environment""", depends-on = [
+  "test-min-cli",
+  "test-min-core",
+  "test-min-wd",
+]}
+test-next = {cmd = "echo 🛸 OK test-next", description = """
 ├ 🛸 run tests in the prerelease environment""", depends-on = [
   "test-next-cli",
   "test-next-core",
   "test-next-wd",
 ]}
-docs = {cmd = "echo 🖨️", description = """
-🖨️  build all documentation""", depends-on = ["docs-lite", "docs-sphinx"]}
-check = {cmd = "echo 🤓", description = """
-🤓 check all build/test artifacts""", depends-on = ["check-links", "check-spelling"]}
 
-# tasks that are customized per env
+## fragments ###################################################################
 pip-- = """rm -rf build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt
   && python -m pip install
     -vv
@@ -112,15 +112,12 @@ pip-check-- = """python -m pip check
   && mkdir -p build/pip-freeze
   && python -m pip list --format=freeze
   > build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt"""
-
 pip-e-all-- = """
   pixi r pip-check--
   && pixi r pip--
     -e py/jupyterlite-pyodide-lock
     -e py/jupyterlite-pyodide-lock-webdriver
-  && pixi r pip-check--
-"""
-
+  && pixi r pip-check--"""
 pip-dist-- = "pixi r pip-- --find-links=dist --no-index"
 
 ## templates ###################################################################
@@ -128,22 +125,71 @@ pip-dist-- = "pixi r pip-- --find-links=dist --no-index"
 args = ["e"]
 cmd = """
   pixi r -e={{ e }} pip-check--
-  && pixi r pip-dist--
+  && pixi r -e={{ e }} pip-dist--
     jupyterlite-pyodide-lock
     jupyterlite-pyodide-lock-webdriver
   && pixi r -e={{ e }} pip-check--
 """
-inputs = ["dist/*.whl"]
 depends-on = ["build-pypi-core", "build-pypi-wd"]
+inputs = ["dist/*.whl"]
 outputs = ["build/pip-freeze/{{ e }}.txt"]
 
-# real tasks
+[tasks.cli-check--]
+args = ["e"]
+cmd = "pixi r -e={{ e }} jupyter-pyodide-lock browsers --check"
+inputs = ["build/pip-freeze/{{ e }}.txt", "dist/*.whl"]
+
+[tasks.pytest--]
+args = ["e", "p", {arg="c", default="100"}]
+cmd = """
+  export JLPL_REPORT_ROOT=$PIXI_PROJECT_ROOT/build/reports
+  && export JLPL_TEST_REPORTS=$JLPL_REPORT_ROOT/{{ e }}/{{ p }}
+  && export COVERAGE_FILE=$JLPL_TEST_REPORTS/.coverage
+  && export COVERAGE_RCFILE=$(pwd)/pyproject.toml
+  && export JUPYTERLITE_NO_LIBARCHIVE=1
+  && export JLPL_TEST_COV_FAIL_UNDER={{ c }}
+  && rm -rf $JLPL_TEST_REPORTS
+  && mkdir -p $JLPL_TEST_REPORTS
+  && cd py/{{ p }}
+  && pixi r -e={{ e }} pytest
+    -o cache_dir=$PIXI_PROJECT_ROOT/build/.cache/$JLPL_TEST_PKG/pytest
+    -vv
+    -W error
+    --rootdir .
+    --color=yes
+    --tb=long
+    --cov-branch
+    --cov-context=test
+    --cov-report=html:$JLPL_TEST_REPORTS/htmlcov
+    --cov-report=term-missing:skip-covered
+    --cov={{ p | replace("-", "_") }}
+    --no-cov-on-fail
+    --cov-fail-under=$JLPL_TEST_COV_FAIL_UNDER
+    --html=$JLPL_TEST_REPORTS/pytest.html --self-contained-html
+    -o generate_report_on_test=True
+    tests
+    || exit 1"""
+inputs = ["py/{{ p }}/tests/**/*.py", "dist/*.whl"]
+outputs = ["inputs", "build/reports/{{ e }}/{{ p }}/{pytest.html,htmlcov/status.json}"]
+
+[tasks.pytest-core--]
+args = ["e"]
+depends-on = [{task = "pytest--", args = ["{{ e }}", "jupyterlite-pyodide-lock", "99"]}]
+
+[tasks.pytest-wd--]
+args = ["e"]
+depends-on = [
+  {task = "pytest--", args = ["{{ e }}", "jupyterlite-pyodide-lock-webdriver"]},
+]
+
+# real tasks ###################################################################
+## linting #####################################################################
 [feature.tasks-lint.tasks.fix-deps]
-description = "├ fix dependencies"
 cmd = """
   python _scripts/fix-deps.py
     py/jupyterlite-pyodide-lock/pyproject.toml
     py/jupyterlite-pyodide-lock-webdriver/pyproject.toml"""
+description = "├ fix dependencies"
 inputs = ["_scripts/fix-deps.py", "py/jupyterlite-pyodide-lock/pyproject.toml"]
 outputs = [
   "py/*/pyproject.toml",
@@ -151,19 +197,19 @@ outputs = [
 ]
 
 [feature.tasks-lint.tasks.fix-ipynb]
-description = "├ fix notebooks"
 cmd = "python _scripts/nb-lint.py --fix docs"
+description = "├ fix notebooks"
 inputs = ["_scripts/nb-lint.py", "docs/**/*.ipynb", "!**/.*"]
 
 [feature.tasks-lint.tasks.lint-ipynb]
-description = "├ check notebooks"
 cmd = "python _scripts/nb-lint.py docs"
+description = "├ check notebooks"
 inputs = ["_scripts/nb-lint.py", "docs/**/*.ipynb", "!**/.*"]
 
 [feature.tasks-lint.tasks.fix-ruff]
-description = "├ fix python with ruff"
 cmd = "ruff check --fix-only && ruff format"
 depends-on = ["fix-conftest"]
+description = "├ fix python with ruff"
 inputs = [
   "{_scripts,py,tests,docs,contrib}/**/*.{ipynb,py}",
   "pyproject.toml",
@@ -171,8 +217,8 @@ inputs = [
 ]
 
 [feature.tasks-lint.tasks.lint-ruff]
-description = "├ check python with ruff"
 cmd = "ruff check && ruff format --check"
+description = "├ check python with ruff"
 inputs = [
   "{_scripts,py,tests,docs,contrib}/**/*.{ipynb,py}",
   "pyproject.toml",
@@ -180,12 +226,13 @@ inputs = [
 ]
 
 [feature.tasks-lint.tasks.fix-taplo]
-description = "├ fix toml with taplo"
 cmd = """
   taplo fmt
     --option=array_auto_collapse=false
     --option=array_auto_expand=true
+    --option=reorder_keys=true
     --option=compact_inline_tables=true
+    --option=inline_table_expand=false
     --option=column_width=88
     --option=indent_string="  "
     pyproject.toml
@@ -193,25 +240,26 @@ cmd = """
     py/*/*.toml
     docs/*.toml"""
 depends-on = ["fix-deps"]
+description = "├ fix toml with taplo"
 inputs = ["*.toml", "{py,docs}/**/*.toml", "!**/.*"]
 
 [feature.tasks-lint.tasks.fix-conftest]
-description = "├ add templated conftest"
-depends-on = ["fix-deps"]
-inputs = [
-  "py/jupyterlite-pyodide-lock/tests/conftest.py",
-  "_scripts/replace-between.py",
-]
-outputs = ["py/jupyterlite-pyodide-lock-webdriver/tests/conftest.py"]
 cmd = """
   python _scripts/replace-between.py
     py/jupyterlite-pyodide-lock/tests/conftest.py
     py/jupyterlite-pyodide-lock-webdriver/tests/conftest.py
     "# shared fixtures ###" """
+depends-on = ["fix-deps"]
+description = "├ add templated conftest"
+inputs = [
+  "py/jupyterlite-pyodide-lock/tests/conftest.py",
+  "_scripts/replace-between.py",
+]
+outputs = ["py/jupyterlite-pyodide-lock-webdriver/tests/conftest.py"]
 
 [feature.tasks-lint.tasks.lint-actionlint]
-description = "├ check GitHub actions with actionlint"
 cmd = "actionlint -shellcheck=shellcheck -pyflakes=pyflakes"
+description = "├ check GitHub actions with actionlint"
 inputs = [".github/workflows"]
 
 [feature.tasks-lint.tasks.prettier--]
@@ -225,8 +273,8 @@ cmd = """prettier
   """
 
 [feature.tasks-lint.tasks.fix-prettier]
-description = "├ format web-adjacent files with prettier"
 cmd = "pixi r prettier-- --write --list-different"
+description = "├ format web-adjacent files with prettier"
 inputs = [
   "*.md",
   ".github",
@@ -235,8 +283,8 @@ inputs = [
 ]
 
 [feature.tasks-lint.tasks.lint-prettier]
-description = "├ check web-adjacent files with prettier"
 cmd = "pixi r prettier-- --check"
+description = "├ check web-adjacent files with prettier"
 inputs = [
   "*.md",
   "docs/.readthedocs.yaml",
@@ -255,9 +303,9 @@ cmd = """markdownlint-cli2
   *.md"""
 
 [feature.tasks-lint.tasks.fix-mdlint]
-description = "├ format markdown files with markdownlint2-cli"
 cmd = "pixi r mdlint-- --fix"
 depends-on = ["fix-prettier"]
+description = "├ format markdown files with markdownlint2-cli"
 inputs = [
   "*.md",
   "_scripts/.markdownlint.yaml",
@@ -265,8 +313,8 @@ inputs = [
 ]
 
 [feature.tasks-lint.tasks.lint-mdlint]
-description = "├ check markdown files with markdownlint2-cli"
 cmd = "pixi r mdlint--"
+description = "├ check markdown files with markdownlint2-cli"
 inputs = [
   "*.md",
   "_scripts/.markdownlint.yaml",
@@ -275,50 +323,38 @@ inputs = [
 
 # building #####################################################################
 [feature.tasks-build.tasks.pyproject-build--]
+args = ["p"]
 cmd = """(cat .pixi/task-cache-v0/.skip-dist && exit 0)
   || mkdir -p dist
-  && (rm -rf dist/$JLPL_BLD_GLOB || echo "nothing to delete")
-  && cd py/$JLPL_BLD_PKG
+  && (rm -rf dist/{{ p | replace('-', '_') }}-* || echo "nothing to delete")
+  && cd py/{{ p }}
   && rm -rf dist
   && pyproject-build . --no-isolation -vv
   && cp dist/* $PIXI_PROJECT_ROOT/dist"""
+inputs = [
+  "py/{{ p }}/**/*.{py,toml,md,j2}",
+  "!**/{.*,__pycache__,dist}",
+]
+outputs = ["dist/{{ p | replace('-', '_') }}-*.{tar.gz,whl}"]
 
 [feature.tasks-build.tasks.build-licenses]
-description = "├ ensure licenses in contrib packages"
 cmd = """
   cp LICENSE py/jupyterlite-pyodide-lock-webdriver/LICENSE
   && cp LICENSE py/jupyterlite-pyodide-lock/LICENSE
 """
+description = "├ ensure licenses in contrib packages"
 inputs = ["LICENSE"]
 outputs = ["py/*/LICENSE"]
 
 [feature.tasks-build.tasks.build-pypi-core]
+depends-on = [{task = "pyproject-build--", args=["jupyterlite-pyodide-lock"]}]
 description = "├ build core PyPI distributions"
-cmd = """export JLPL_BLD_PKG=jupyterlite-pyodide-lock
-  && export JLPL_BLD_GLOB='jupyterlite_pyodide_lock-*'
-  && pixi r pyproject-build--"""
-inputs = [
-  "py/jupyterlite-pyodide-lock/**/*.{py,toml,md,j2}",
-  "!**/{.*,__pycache__,dist}",
-]
-outputs = ["dist/jupyterlite_pyodide_lock-*.{tar.gz,whl}"]
 
 [feature.tasks-build.tasks.build-pypi-wd]
+depends-on = ["build-licenses", {task = "pyproject-build--", args=["jupyterlite-pyodide-lock"]}]
 description = "├ build webdriver PyPI distributions"
-cmd = """export JLPL_BLD_PKG=jupyterlite-pyodide-lock-webdriver
-  && export JLPL_BLD_GLOB='jupyterlite_pyodide_lock_webdriver-*'
-  && pixi r pyproject-build--"""
-depends-on = ["build-licenses"]
-inputs = [
-  "py/jupyterlite-pyodide-lock-webdriver/**/*.{py,toml,md,j2}",
-  "!**/{.*,__pycache__,dist}",
-]
-outputs = [
-  "dist/jupyterlite_pyodide_lock_webdriver-*.{tar.gz,whl}",
-]
 
 [feature.tasks-build.tasks.build-rattler]
-description = "├ build for conda distribution"
 cmd = """
 export JL_PL_GIT_DESCRIBE=0
 && rm -rf dist/noarch
@@ -332,23 +368,23 @@ export JL_PL_GIT_DESCRIBE=0
   --output-dir build/rattler-build
 && cp -r build/rattler-build/noarch dist/noarch
 """
-depends-on = ["build-pypi-wd", "build-pypi-core"]
+depends-on = ["build-pypi-core", "build-pypi-wd"]
+description = "├ build for conda distribution"
 inputs = ["dist/*.tar.gz", "recipe"]
 
 [feature.tasks-build.tasks.build-twine]
-description = "├ check the built distributions for PyPI"
 cmd = "twine check --strict dist/*.whl dist/*.tar.gz"
 depends-on = ["build-pypi-core", "build-pypi-wd"]
+description = "├ check the built distributions for PyPI"
 inputs = ["dist/"]
 
 [feature.tasks-build.tasks.build-wheel]
-description = "├ check the built wheel"
 cmd = "check-wheel-contents dist/*.whl"
 depends-on = ["build-pypi-core", "build-pypi-wd"]
+description = "├ check the built wheel"
 inputs = ["dist/*.whl"]
 
 [feature.tasks-build.tasks.build-hash]
-description = "├ hash the built distributions"
 cmd = """
 rm -rf dist/SHA256SUMS
   && python -c 'from hashlib import sha256; from pathlib import Path; d = Path("dist"); [
@@ -359,121 +395,14 @@ rm -rf dist/SHA256SUMS
   > dist/SHA256SUMS
   && cat dist/SHA256SUMS"""
 depends-on = ["build-pypi-core", "build-pypi-wd", "build-rattler"]
+description = "├ hash the built distributions"
 inputs = ["dist", "!dist/SHA256SUMS"]
 outputs = ["dist/SHA256SUMS"]
 
-# testing patterns #############################################################
-
-[feature.tasks-test-min.tasks.test-min-pip]
-description = "├─ prepare the min test environment with pip"
-depends-on = [{task = "pip-whl-all--", args = ["test-min"]}]
-
-[feature.tasks-test-min.tasks.test-min-cli]
-description = "├─ smoke test browsers in min test environment"
-cmd = "jupyter-pyodide-lock browsers --check"
-depends-on = ["test-min-pip"]
-inputs = ["build/pip-freeze/test-min.txt", "dist/*.whl"]
-
-[feature.tasks-test-min.tasks.test-min-core]
-description = "├─ test core in the min test environment"
-cmd = "pixi r -e test-min pytest-core--"
-depends-on = ["test-min-pip", "test-min-cli"]
-inputs = ["py/jupyterlite-pyodide-lock/tests/**/*.py", "dist/*.whl"]
-outputs = [
-  "build/reports/test-min/jupyterlite-pyodide-lock/{pytest.html,htmlcov/status.json}",
-]
-
-[feature.tasks-test-min.tasks.test-min-wd]
-description = "├─ test webdriver in the min test environment"
-depends-on = ["test-min-pip", "test-min-cli"]
-cmd = "pixi r -e test-min pytest-wd--"
-inputs = [
-  "py/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
-  "py/jupyterlite-pyodide-lock-webdriver/tests/**/*.py",
-  "dist/*.whl",
-]
-outputs = [
-  "build/reports/test-min/jupyterlite-pyodide-lock-webdriver/{pytest.html,htmlcov/status.json}",
-]
-
-[feature.tasks-test-next.tasks.test-next-pip]
-description = "├─ prepare the next test environment with pip"
-depends-on = [{task = "pip-whl-all--", args = ["test-next"]}]
-
-[feature.tasks-test-next.tasks.test-next-cli]
-description = "├─ smoke test browsers in next test environment"
-cmd = "jupyter-pyodide-lock browsers --check"
-depends-on = ["test-next-pip"]
-inputs = ["build/pip-freeze/test-next.txt", "dist/*.whl"]
-
-[feature.tasks-test-next.tasks.test-next-core]
-description = "├─ test core in the next test environment"
-cmd = "pixi r -e test-next pytest-core--"
-depends-on = ["test-next-pip", "test-next-cli"]
-inputs = ["py/jupyterlite-pyodide-lock/tests/**/*.py", "dist/*.whl"]
-outputs = [
-  "build/reports/test-next/jupyterlite-pyodide-lock/{pytest.html,htmlcov/status.json}",
-]
-
-[feature.tasks-test-next.tasks.test-next-wd]
-description = "├─ test webdriver in the next test environment"
-depends-on = ["test-next-pip", "test-next-cli"]
-cmd = "pixi r -e test-next pytest-wd--"
-inputs = [
-  "py/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
-  "py/jupyterlite-pyodide-lock-webdriver/tests/**/*.py",
-  "dist/*.whl",
-]
-outputs = [
-  "build/reports/test-next/jupyterlite-pyodide-lock-webdriver/{pytest.html,htmlcov/status.json}",
-]
-[tasks.pytest--]
-cmd = """
-  export JLPL_REPORT_ROOT=$PIXI_PROJECT_ROOT/build/reports
-  && export JLPL_TEST_REPORTS=$JLPL_REPORT_ROOT/$PIXI_ENVIRONMENT_NAME/$JLPL_TEST_PKG
-  && export COVERAGE_FILE=$JLPL_TEST_REPORTS/.coverage
-  && export COVERAGE_RCFILE=$(pwd)/pyproject.toml
-  && export JUPYTERLITE_NO_LIBARCHIVE=1
-  && rm -rf $JLPL_TEST_REPORTS
-  && mkdir -p $JLPL_TEST_REPORTS
-  && cd $JLPL_TEST_CWD
-  && pytest
-    -o cache_dir=$PIXI_PROJECT_ROOT/build/.cache/$JLPL_TEST_PKG/pytest
-    -vv
-    -W error
-    --rootdir .
-    --color=yes
-    --tb=long
-    --cov-branch
-    --cov-context=test
-    --cov-report=html:$JLPL_TEST_REPORTS/htmlcov
-    --cov-report=term-missing:skip-covered
-    --cov=$JLPL_TEST_MOD
-    --no-cov-on-fail
-    --cov-fail-under=$JLPL_TEST_COV_FAIL_UNDER
-    --html=$JLPL_TEST_REPORTS/pytest.html --self-contained-html
-    -o generate_report_on_test=True
-    tests
-    || exit 1"""
-[tasks.pytest-core--]
-cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock
-  && export JLPL_TEST_MOD=jupyterlite_pyodide_lock
-  && export JLPL_TEST_CWD=py/jupyterlite-pyodide-lock
-  && export JLPL_TEST_COV_FAIL_UNDER=99
-  && pixi r pytest--"""
-[tasks.pytest-wd--]
-cmd = """export JLPL_TEST_PKG=jupyterlite-pyodide-lock-webdriver
-  && export JLPL_TEST_MOD=jupyterlite_pyodide_lock_webdriver
-  && export JLPL_TEST_CWD=py/jupyterlite-pyodide-lock-webdriver
-  && export JLPL_TEST_COV_FAIL_UNDER=100
-  && pixi r pytest--"""
-
-# meta testing
+# testing ######################################################################
+## testing meta ################################################################
 [feature.tasks-test-repo.tasks.test-meta]
-cmd = """
-cd py/jupyterlite-pyodide-lock
-&& pytest -k test_repo -vv
-"""
+cmd = """cd py/jupyterlite-pyodide-lock && pytest -k test_repo -vv"""
 depends-on = ["test-max-pip"]
 inputs = [
   ".github",
@@ -484,68 +413,88 @@ inputs = [
   "py/jupyterlite-pyodide-lock/tests/test_repo.py",
 ]
 
-# testing default ##############################################################
-[feature.tasks-test-max.tasks.test-max-pip]
-description = "├─ prepare the default test environment with pip"
-depends-on = [{task = "pip-whl-all--", args = ["test-max"]}]
+## testing minimum #############################################################
+[feature.tasks-test-min.tasks]
+test-min-cli = {description = "├─ smoke test browsers in min test environment", depends-on = [
+  "test-min-pip",
+  {task = "cli-check--", args = ["test-min"]},
+]}
+test-min-core = {description = "├─ test core in the min test environment", depends-on = [
+  "test-min-cli",
+  {task = "pytest-core--", args = ["test-min"]},
+]}
+test-min-pip = {description = "├─ prepare the min test environment with pip", depends-on = [
+  {task = "pip-whl-all--", args = ["test-min"]},
+]}
+test-min-wd = {description = "├─ test webdriver in the min test environment", depends-on = [
+  "test-min-cli",
+  {task = "pytest-wd--", args = ["test-min"]},
+]}
 
-[feature.tasks-test-max.tasks.test-max-cli]
-description = "├─ smoke test browsers in default test environment"
-cmd = """jupyter-pyodide-lock browsers --check"""
-depends-on = ["test-max-pip"]
-inputs = ["build/pip-freeze/test-max.txt", "dist/*.whl"]
+## testing default #############################################################
+[feature.tasks-test-max.tasks]
+test-max-cli = {description = "├─ smoke test browsers in default test environment", depends-on = [
+  "test-max-pip",
+  {task = "cli-check--", args = ["test-max"]},
+]}
+test-max-core = {description = "├─ test core in the default test environment", depends-on = [
+  "test-max-cli",
+  {task = "pytest-core--", args = ["test-max"]},
+]}
+test-max-pip = {description = "├─ prepare the default test environment with pip", depends-on = [
+  {task = "pip-whl-all--", args = ["test-max"]},
+]}
+test-max-wd = {description = "├─ test webdriver in the default test environment", depends-on = [
+  "test-max-cli",
+  {task = "pytest-wd--", args = ["test-max"]},
+]}
 
-[feature.tasks-test-max.tasks.test-max-core]
-description = "├─ test core in the default test environment"
-cmd = "pixi r -e test-max pytest-core--"
-depends-on = ["test-max-pip", "test-max-cli"]
-inputs = ["py/jupyterlite-pyodide-lock/tests/**/*.py", "dist/*.whl"]
-outputs = [
-  "build/reports/test-max/jupyterlite-pyodide-lock/{pytest.html,htmlcov/status.json}",
-]
+## testing prereleases #########################################################
+[feature.tasks-test-next.tasks]
+test-next-cli = {description = "├─ smoke test browsers in next test environment", depends-on = [
+  "test-next-pip",
+  {task = "cli-check--", args = ["test-next"]},
+]}
+test-next-core = {description = "├─ test core in the next test environment", depends-on = [
+  "test-next-cli",
+  {task = "pytest-core--", args = ["test-next"]},
+]}
+test-next-pip = {description = "├─ prepare the next test environment with pip", depends-on = [
+  {task = "pip-whl-all--", args = ["test-next"]},
+]}
+test-next-wd = {description = "├─ test webdriver in the next test environment", depends-on = [
+  "test-next-cli",
+  {task = "pytest-wd--", args = ["test-next"]},
+]}
 
-[feature.tasks-test-max.tasks.test-max-wd]
-description = "├─ test webdriver in the default test environment"
-depends-on = ["test-max-pip", "test-max-cli"]
-cmd = "pixi r -e test-max pytest-wd--"
-inputs = [
-  "py/jupyterlite-pyodide-lock-webdriver/pyproject.toml",
-  "py/jupyterlite-pyodide-lock-webdriver/tests/**/*.py",
-  "dist/*.whl",
-]
-outputs = [
-  "build/reports/test-max/jupyterlite-pyodide-lock-webdriver/{pytest.html,htmlcov/status.json}",
-]
-
-# oldest supported testing #####################################################
+# docs #########################################################################
 [feature.tasks-docs.tasks.docs-pip]
-description = "├ prepare the docs environment with pip"
 depends-on = [{task = "pip-whl-all--", args = ["docs"]}]
+description = "├ prepare the docs environment with pip"
 
 [feature.tasks-docs.tasks.docs-scour]
-description = "├ optimize SVG for docs with scour"
 cmd = """export SCOUR_ARGS="scour --enable-id-stripping --enable-comment-stripping"
   && cd docs/_static
   && $SCOUR_ARGS icon-inkscape.svg icon.svg"""
+description = "├ optimize SVG for docs with scour"
 inputs = ["docs/_static/*-inkscape.svg"]
 outputs = ["docs/_static/*.svg", "docs/_static/*.svg", "!*inkscape.svg"]
 
-
 [feature.tasks-docs.tasks.docs-lite]
-description = "├ build a demo site with jupyter-lite"
 cmd = """cd examples
   && jupyter-lite doit --debug -- pre_archive:report:SHA256SUMS"""
 depends-on = ["docs-pip"]
+description = "├ build a demo site with jupyter-lite"
 inputs = ["examples", "py/**/*.py", "!**/.*"]
 outputs = ["build/docs-app/SHA256SUMS"]
 
 [feature.tasks-docs.tasks.docs-sphinx]
-description = "├ build documentation with sphinx"
 cmd = """rm -rf build/docs
   && cd docs
   && export PYDEVD_DISABLE_FILE_VALIDATION=1
   && sphinx-build -W --keep-going --color -b html . ../build/docs"""
 depends-on = ["docs-lite", "docs-scour"]
+description = "├ build documentation with sphinx"
 inputs = [
   "*.md",
   "pixi.toml",
@@ -560,7 +509,6 @@ inputs = [
 outputs = ["build/docs/.buildinfo"]
 
 [feature.tasks-docs.tasks.docs-rtd]
-description = "├ copy the documentation site to where ReadTheDocs wants it"
 cmd = """python -c "
 import os;
 assert all(map(os.getenv, ['READTHEDOCS', 'READTHEDOCS_OUTPUT'])), 'not on ReadTheDocs'
@@ -570,10 +518,10 @@ assert all(map(os.getenv, ['READTHEDOCS', 'READTHEDOCS_OUTPUT'])), 'not on ReadT
   && cp -r build/docs "$READTHEDOCS_OUTPUT/html"
   && ls -lathr "$READTHEDOCS_OUTPUT/html"
 """
+description = "├ copy the documentation site to where ReadTheDocs wants it"
 
 # checking
 [feature.tasks-check.tasks.check-links]
-description = "├ check links in html"
 cmd = """
   rm -rf build/reports/check-links
   && mkdir -p build/reports/check-links
@@ -589,12 +537,13 @@ cmd = """
     ../../docs/**/*.html
 """
 depends-on = ["docs-sphinx"]
+description = "├ check links in html"
 inputs = ["build/docs/**/*.html"]
 
 [feature.tasks-check.tasks.check-spelling]
-description = "├ check spelling in documentation"
 cmd = "python _scripts/vale/check.py"
 depends-on = ["docs-sphinx"]
+description = "├ check spelling in documentation"
 inputs = [
   "build/docs/**/*.html",
   "_scripts/vale",
@@ -605,17 +554,16 @@ outputs = ["build/reports/vale.html"]
 
 # interactive development ######################################################
 [feature.tasks-dev.tasks.dev-pip]
-description = "├ prepare the dev environment"
 cmd = """pixi r -e dev pip-e-all--"""
+description = "├ prepare the dev environment"
 outputs = ["build/pip-freeze/dev.txt"]
 
 [feature.tasks-dev.tasks.dev-lab]
-description = "├ 🔁 serve JupyterLab in the dev environment"
 cmd = """jupyter lab --no-browser --debug"""
 depends-on = ["dev-pip"]
+description = "├ 🔁 serve JupyterLab in the dev environment"
 
 [feature.tasks-dev.tasks.dev-docs]
-description = "├ 🔁 watch and serve the documentation with autoreload"
 cmd = """sphinx-autobuild -b html docs build/dev-docs
     --write-all
     --color
@@ -627,6 +575,7 @@ cmd = """sphinx-autobuild -b html docs build/dev-docs
     --watch py/jupyterlite-pyodide-lock-webdriver/src
 """
 depends-on = ["dev-pip", "docs-sphinx"]
+description = "├ 🔁 watch and serve the documentation with autoreload"
 
 # dependencies #################################################################
 [feature.deps-run.dependencies]
@@ -647,16 +596,16 @@ python = "3.10.*"
 tornado = "==6.1.0"
 
 [feature.deps-run-max.dependencies]
-python = "3.12.*"
-pyodide-lock = "==0.1.0a6"
 jupyterlite-core = "0.5.*"
 jupyterlite-pyodide-kernel = "0.5.*"
+pyodide-lock = "==0.1.0a6"
+python = "3.12.*"
 
 [feature.deps-run-next.dependencies]
-python = "3.13.*"
-pyodide-lock = "0.1.0a8.*"
 jupyterlite-core = "0.6.*"
 jupyterlite-pyodide-kernel = "0.6.*"
+pyodide-lock = "0.1.0a8.*"
+python = "3.13.*"
 # [feature.deps-run-next.dependencies.jupyterlite-core]
 # version = ">=0.6.0a1"
 # channel = "conda-forge/label/jupyterlite_core_alpha"
@@ -665,21 +614,21 @@ jupyterlite-pyodide-kernel = "0.6.*"
 # channel = "conda-forge/label/jupyterlite_pyodide_kernel_alpha"
 
 [feature.deps-pip.dependencies]
-pip = "*"
 flit-core = ">=3.9,<4.0"
+pip = "*"
 
 [feature.deps-build.dependencies]
-python-build = "*"
-flit-core = ">=3.9,<4.0"
 check-wheel-contents = "*"
-twine = "*"
+flit-core = ">=3.9,<4.0"
+python-build = "*"
 rattler-build = "*"
+twine = "*"
 
 [feature.deps-lint.dependencies]
 actionlint-with-all = "*"
 markdownlint-cli2 = "*"
-nodejs = ">=22,!=22.13.0,<23"
 nbformat = "*"
+nodejs = ">=22,!=22.13.0,<23"
 prettier = "*"
 ruff = "*"
 taplo = "*"
@@ -688,10 +637,10 @@ tomlkit = "*"
 types-psutil = "*"
 
 [feature.deps-test.dependencies]
+jupyter_server = "*"
 pytest = ">=8,<9"
 pytest-cov = "*"
 pytest-html = "*"
-jupyter_server = "*"
 
 [feature.deps-webdriver.dependencies]
 selenium = ">=4.19"
@@ -736,8 +685,19 @@ jupyterlab = ">=4.1,<4.5"
 
 # environments #################################################################
 [environments]
-lint = {features = ["deps-lint", "tasks-lint"]}
 build = {features = ["deps-build", "tasks-build"]}
+dev = {features = [
+  "deps-build",
+  "deps-demo",
+  "deps-dev",
+  "deps-docs",
+  "deps-lint",
+  "deps-pip",
+  "deps-run",
+  "deps-test",
+  "deps-webdriver",
+  "tasks-dev",
+]}
 docs = {features = [
   "deps-build",
   "deps-check",
@@ -750,6 +710,7 @@ docs = {features = [
   "tasks-check",
   "tasks-docs",
 ]}
+lint = {features = ["deps-lint", "tasks-lint"]}
 test-max = {features = [
   "deps-firefox",
   "deps-pip",
@@ -779,16 +740,4 @@ test-next = {features = [
   "deps-test",
   "deps-webdriver",
   "tasks-test-next",
-]}
-dev = {features = [
-  "deps-build",
-  "deps-demo",
-  "deps-dev",
-  "deps-docs",
-  "deps-lint",
-  "deps-pip",
-  "deps-run",
-  "deps-test",
-  "deps-webdriver",
-  "tasks-dev",
 ]}

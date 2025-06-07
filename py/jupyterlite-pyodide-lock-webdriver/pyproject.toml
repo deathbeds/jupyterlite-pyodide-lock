@@ -1,18 +1,13 @@
 [build-system]
+build-backend = "flit_core.buildapi"
 requires = [
   "flit_core >=3.9,<4",
 ]
-build-backend = "flit_core.buildapi"
 
 [project]
-name = "jupyterlite-pyodide-lock-webdriver"
-version = "0.1.2"
-description = "A WebDriver strategy for jupyterlite-pyodide-lock"
-license.text = "BSD-3-Clause"
 authors = [
   {name = "jupyterlite-pyodide-lock contributors"},
 ]
-readme = "README.md"
 classifiers = [
   "Framework :: Jupyter",
   "Framework :: Jupyter :: JupyterLab",
@@ -26,11 +21,16 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Typing :: Typed",
 ]
-requires-python = ">=3.10"
 dependencies = [
   "jupyterlite-pyodide-lock ==0.1.2",
   "selenium >=4.19",
 ]
+description = "A WebDriver strategy for jupyterlite-pyodide-lock"
+license.text = "BSD-3-Clause"
+name = "jupyterlite-pyodide-lock-webdriver"
+readme = "README.md"
+requires-python = ">=3.10"
+version = "0.1.2"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/deathbeds/jupyterlite-pyodide-lock/issues"
