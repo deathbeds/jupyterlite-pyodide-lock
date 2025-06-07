@@ -112,13 +112,13 @@ pip-check-- = """python -m pip check
   && mkdir -p build/pip-freeze
   && python -m pip list --format=freeze
   > build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt"""
+pip-dist-- = "pixi r pip-- --find-links=dist --no-index"
 pip-e-all-- = """
   pixi r pip-check--
   && pixi r pip--
     -e py/jupyterlite-pyodide-lock
     -e py/jupyterlite-pyodide-lock-webdriver
   && pixi r pip-check--"""
-pip-dist-- = "pixi r pip-- --find-links=dist --no-index"
 
 ## templates ###################################################################
 [tasks.pip-whl-all--]
@@ -140,7 +140,7 @@ cmd = "pixi r -e={{ e }} jupyter-pyodide-lock browsers --check"
 inputs = ["build/pip-freeze/{{ e }}.txt", "dist/*.whl"]
 
 [tasks.pytest--]
-args = ["e", "p", {arg="c", default="100"}]
+args = ["e", "p", {arg = "c", default = "100"}]
 cmd = """
   export JLPL_REPORT_ROOT=$PIXI_PROJECT_ROOT/build/reports
   && export JLPL_TEST_REPORTS=$JLPL_REPORT_ROOT/{{ e }}/{{ p }}
@@ -347,11 +347,14 @@ inputs = ["LICENSE"]
 outputs = ["py/*/LICENSE"]
 
 [feature.tasks-build.tasks.build-pypi-core]
-depends-on = [{task = "pyproject-build--", args=["jupyterlite-pyodide-lock"]}]
+depends-on = [{task = "pyproject-build--", args = ["jupyterlite-pyodide-lock"]}]
 description = "├ build core PyPI distributions"
 
 [feature.tasks-build.tasks.build-pypi-wd]
-depends-on = ["build-licenses", {task = "pyproject-build--", args=["jupyterlite-pyodide-lock"]}]
+depends-on = [
+  "build-licenses",
+  {task = "pyproject-build--", args = ["jupyterlite-pyodide-lock"]},
+]
 description = "├ build webdriver PyPI distributions"
 
 [feature.tasks-build.tasks.build-rattler]
