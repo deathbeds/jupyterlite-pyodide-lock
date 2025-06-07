@@ -353,7 +353,7 @@ description = "├ build core PyPI distributions"
 [feature.tasks-build.tasks.build-pypi-wd]
 depends-on = [
   "build-licenses",
-  {task = "pyproject-build--", args = ["jupyterlite-pyodide-lock"]},
+  {task = "pyproject-build--", args = ["jupyterlite-pyodide-lock-webdriver"]},
 ]
 description = "├ build webdriver PyPI distributions"
 
