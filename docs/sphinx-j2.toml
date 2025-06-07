@@ -10,7 +10,7 @@ traitlets = "https://traitlets.readthedocs.io/en/stable"
 
 [template]
 author = "{{ ppt.project.authors[0].name }}"
-copyright = "2024, {{ ppt.project.authors[0].name }}"
+copyright = "2024-, {{ ppt.project.authors[0].name }}"
 exclude_patterns = ["rtd.rst"]
 extensions = [
   "sphinx.ext.autodoc",
