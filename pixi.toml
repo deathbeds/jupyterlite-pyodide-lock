@@ -101,7 +101,7 @@ test-next = {cmd = "echo 🛸 OK test-next", description = """
 ]}
 
 ## fragments ###################################################################
-pip-- = """rm -rf build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt
+pip-- = """rm --recursive --force build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt
   && python -m pip install
     -vv
     --no-deps
@@ -142,7 +142,7 @@ cmd = """export REPORT=$(pwd)/build/reports/{{ env }}/{{ pkg }}
   && export COVERAGE_FILE=$REPORT/.coverage
   && export COVERAGE_RCFILE=$(pwd)/pyproject.toml
   && export JUPYTERLITE_NO_LIBARCHIVE=1
-  && rm --recursive --force=$REPORT
+  && rm --recursive --force $REPORT
   && mkdir --parents $REPORT
   && cd py/{{ pkg }}
   && pixi run --environment={{ env }} pytest tests
@@ -316,9 +316,9 @@ inputs = [
 args = ["pkg"]
 cmd = """(cat .pixi/task-cache-v0/.skip-dist && exit 0)
   || mkdir -p dist
-  && (rm -rf dist/{{ pkg | replace('-', '_') }}-* || echo "nothing to delete")
+  && (rm --recursive --force dist/{{ pkg | replace('-', '_') }}-* || echo "nothing to delete")
   && cd py/{{ pkg }}
-  && rm -rf dist
+  && rm --recursive --force dist
   && pyproject-build . --no-isolation -vv
   && cp dist/* $PIXI_PROJECT_ROOT/dist"""
 inputs = [
@@ -347,7 +347,7 @@ description = "├─ build webdriver PyPI distributions"
 
 [feature.tasks-build.tasks.build-rattler]
 cmd = """export JLPL_GIT_DESCRIBE=0
-&& rm -rf dist/noarch
+&& rm --recursive --force dist/noarch
 && mkdir -p build/rattler-build
 && rattler-build build
   --experimental
@@ -374,7 +374,7 @@ description = "├ check the built wheels"
 inputs = ["dist/*.whl"]
 
 [feature.tasks-build.tasks.build-hash]
-cmd = """rm -rf dist/SHA256SUMS
+cmd = """rm --recursive --force dist/SHA256SUMS
   && python -c 'from hashlib import sha256; from pathlib import Path; d = Path("dist"); [
     print(f"{sha256(p.read_bytes()).hexdigest()}  {p.relative_to(d).as_posix()}")
     for p in sorted(d.rglob("*"))
@@ -477,7 +477,7 @@ inputs = ["examples", "py/**/*.py", "!**/.*"]
 outputs = ["build/docs-app/SHA256SUMS"]
 
 [feature.tasks-docs.tasks.docs-sphinx]
-cmd = """rm -rf build/docs
+cmd = """rm --recursive --force build/docs
   && cd docs
   && export PYDEVD_DISABLE_FILE_VALIDATION=1
   && sphinx-build -W --keep-going --color -b html . ../build/docs"""
@@ -501,7 +501,7 @@ cmd = """python -c "
 import os;
 assert all(map(os.getenv, ['READTHEDOCS', 'READTHEDOCS_OUTPUT'])), 'not on ReadTheDocs'
 "
-  && rm -rf "$READTHEDOCS_OUTPUT/html"
+  && rm --recursive --force "$READTHEDOCS_OUTPUT/html"
   && mkdir -p "$READTHEDOCS_OUTPUT"
   && cp -r build/docs "$READTHEDOCS_OUTPUT/html"
   && ls -lathr "$READTHEDOCS_OUTPUT/html"
@@ -510,7 +510,7 @@ description = "├ copy the documentation site to where ReadTheDocs wants it"
 
 # checking
 [feature.tasks-check.tasks.check-links]
-cmd = """rm -rf build/reports/check-links
+cmd = """rm --recursive --force build/reports/check-links
   && mkdir -p build/reports/check-links
   && cd build/reports/check-links
   && touch pytest.ini
