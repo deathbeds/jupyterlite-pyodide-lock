@@ -6,7 +6,7 @@ labels: maintenance
 
 - [ ] merge all outstanding PRs
   - [ ] list of prs
-- [ ] ensure the versions have been bumped (check with `pixi r pr`)
+- [ ] ensure the versions have been bumped (check with `pixi run pr`)
 - [ ] ensure `CHANGELOG.md` is up-to-date
 - [ ] validate on [ReadTheDocs][rtd]
 - [ ] wait for a successful build of [`main`][main]
@@ -31,7 +31,7 @@ labels: maintenance
     - [ ] start `CHANGELOG.md` _unreleased_ section
     - [ ] rebuild `pixi.lock`
     - [ ] update release procedures with lessons learned
-    - [ ] `pixi r pr`
+    - [ ] `pixi run pr`
 
 [feedstock]:
   https://github.com/conda-forge/jupyterlite-pyodide-lock-feedstock/issues/new?template=2-bot-commands.yml&title=@conda-forge-admin+please+update+version
