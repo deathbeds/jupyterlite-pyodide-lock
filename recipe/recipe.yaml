@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
 schema_version: 1
 
 context:
@@ -46,10 +47,11 @@ outputs:
         - tornado >=6.1.0
     tests:
       - python:
-          python_version: ${{ python_min }}.*
+          imports: ${{ jlpl_m }}
           pip_check: true
-          imports:
-            - ${{ jlpl_m }}
+          python_version:
+            - ${{ python_min }}.*
+            - 3.13.*
 
   - about:
       summary: |
@@ -75,10 +77,11 @@ outputs:
         - selenium >=4.19
     tests:
       - python:
-          python_version: ${{ python_min }}.*
+          imports: ${{ jlpl_m }}_${{ wd }}
           pip_check: true
-          imports:
-            - ${{ jlpl_m }}_${{ wd }}
+          python_version:
+            - ${{ python_min }}.*
+            - 3.13.*
 
   - about:
       summary: |
@@ -97,10 +100,11 @@ outputs:
         - geckodriver
     tests:
       - python:
-          python_version: ${{ python_min }}.*
+          imports: ${{ jlpl_m }}
           pip_check: true
-          imports:
-            - ${{ jlpl_m }}
+          python_version:
+            - ${{ python_min }}.*
+            - 3.13.*
 
   - about:
       summary: |
@@ -121,10 +125,11 @@ outputs:
         - jupyterlite-core-with-lab
     tests:
       - python:
-          python_version: ${{ python_min }}.*
+          imports: ${{ jlpl_m }}
           pip_check: true
-          imports:
-            - ${{ jlpl_m }}
+          python_version:
+            - ${{ python_min }}.*
+            - 3.13.*
 
 about:
   homepage: https://github.com/deathbeds/jupyterlite-pyodide-lock

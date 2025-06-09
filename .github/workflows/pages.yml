@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 env:
-  JLPL_PIXI_VERSION: 0.40.3
+  JLPL_PIXI_VERSION: 0.48.0
 
 jobs:
   build:
@@ -19,7 +19,7 @@ jobs:
         shell: bash -l {0}
     steps:
       - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@v0.8.1
+      - uses: prefix-dev/setup-pixi@v0.8.8
         with:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true

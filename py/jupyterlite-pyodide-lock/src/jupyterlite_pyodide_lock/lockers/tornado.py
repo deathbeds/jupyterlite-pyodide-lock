@@ -107,7 +107,7 @@ class TornadoLocker(BaseLocker):
             self.cleanup()
 
         if not self.lockfile_cache.exists():
-            self.log.exception("No lockfile was created at %s", self.lockfile)
+            self.log.error("No lockfile was created at %s", self.lockfile)
             return False
 
         found = self.collect()

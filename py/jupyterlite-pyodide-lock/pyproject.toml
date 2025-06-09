@@ -1,18 +1,13 @@
 [build-system]
+build-backend = "flit_core.buildapi"
 requires = [
   "flit_core >=3.9,<4",
 ]
-build-backend = "flit_core.buildapi"
 
 [project]
-name = "jupyterlite-pyodide-lock"
-version = "0.1.2"
-description = "Create pre-solved environments for jupyterlite-pyodide-kernel with pyodide-lock"
-license.text = "BSD-3-Clause"
 authors = [
   {name = "jupyterlite-pyodide-lock contributors"},
 ]
-readme = "README.md"
 classifiers = [
   "Framework :: Jupyter",
   "Framework :: Jupyter :: JupyterLab",
@@ -26,7 +21,6 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Typing :: Typed",
 ]
-requires-python = ">=3.10"
 dependencies = [
   "jupyterlite-core >=0.3.0,<0.7.0",
   "jupyterlite-pyodide-kernel >=0.3.1,<0.7.0 ; platform_machine != \"wasm32\"",
@@ -34,6 +28,12 @@ dependencies = [
   "tornado >=6.1.0 ; platform_machine != \"wasm32\"",
   "psutil >=6",
 ]
+description = "Create pre-solved environments for jupyterlite-pyodide-kernel with pyodide-lock"
+license.text = "BSD-3-Clause"
+name = "jupyterlite-pyodide-lock"
+readme = "README.md"
+requires-python = ">=3.10"
+version = "0.1.2"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/deathbeds/jupyterlite-pyodide-lock/issues"
