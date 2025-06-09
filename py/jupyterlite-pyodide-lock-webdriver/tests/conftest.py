@@ -199,6 +199,30 @@ class LiteRunner:
         **popen_kwargs: Any,
     ) -> TLiteRunResult:
         """Run a CLI command, optionally checking stream and/or web output."""
+        env, log = self.prepare_env(popen_kwargs, expect_runnable)
+
+        with log.open("w", **UTF8) as log_fp:
+            kwargs = dict(
+                cwd=str(popen_kwargs.get("cwd", self.lite_dir)),
+                stdout=log_fp,
+                stderr=subprocess.STDOUT,
+                env=env,
+                **UTF8,
+            )
+            kwargs.update(**popen_kwargs)
+            proc = psutil.Popen(["jupyter-lite", *args], **kwargs)
+            proc.communicate()
+
+        self.check_run(expect_rc, expect_text, expect_runnable, proc, log)
+
+        return proc.returncode, log.read_text(**UTF8)
+
+    def prepare_env(
+        self,
+        popen_kwargs: dict[str, Any],
+        expect_runnable: list[tuple[str, str]] | None,
+    ) -> tuple[dict[str, str], Path]:
+        """Prepare the runtime environment for this invocation."""
         self.next_run += 1
         self.run_dir.mkdir(parents=True, exist_ok=True)
         out_dir = self.lite_dir / "_output"
@@ -210,7 +234,9 @@ class LiteRunner:
             shutil.rmtree(cache_dir, ignore_errors=True)
             for p in self.lite_dir.glob("*doit*"):
                 p.unlink()
+
         a_lite_config = self.lite_dir / JUPYTER_LITE_CONFIG
+
         env = dict(os.environ)
 
         print(
@@ -237,38 +263,7 @@ class LiteRunner:
 
         log = self.run_dir / "cli.log.txt"
         print(f"... writing log to {log}", file=sys.stderr)
-
-        with log.open("w", **UTF8) as log_fp:
-            kwargs = dict(
-                cwd=str(popen_kwargs.get("cwd", self.lite_dir)),
-                stdout=log_fp,
-                stderr=subprocess.STDOUT,
-                env=env,
-                **UTF8,
-            )
-            kwargs.update(**popen_kwargs)
-            proc = psutil.Popen(["jupyter-lite", *args], **kwargs)
-            proc.communicate()
-
-        if expect_rc is not None:
-            print("[rc]", proc.returncode)
-            if proc.returncode != expect_rc:
-                lines = "\n".join(log.read_text(**UTF8).split("\n")[-20:])
-                msg = (
-                    f"{lines}"
-                    f"Unexpected return code {proc.returncode}: see {log.as_uri()}"
-                )
-                print(msg, file=sys.stderr)
-                assert proc.returncode == expect_rc
-
-        if expect_text:
-            text = log.read_text(**UTF8)
-            assert expect_text in text
-
-        if expect_runnable:
-            self.run_web(expect_runnable)
-
-        return proc.returncode, log.read_text(**UTF8)
+        return env, log
 
     def maybe_make_notebook(self, expect_runnable: list[tuple[str, str]]) -> None:
         """Write a test notebook with the expected code."""
@@ -282,6 +277,33 @@ class LiteRunner:
         nb_content = {"cells": cells, **EMPTY_NOTEBOOK}
         nb.parent.mkdir(exist_ok=True, parents=True)
         nb.write_text(json.dumps(nb_content), **UTF8)
+
+    def check_run(
+        self,
+        expect_rc: int | None,
+        expect_text: str | None,
+        expect_runnable: list[tuple[str, str]] | None,
+        proc: psutil.Popen,
+        log: Path,
+    ) -> None:
+        """Check the outputs of the run."""
+        text = log.read_text(**UTF8)
+        rc = proc.returncode
+
+        if expect_rc is not None:
+            print("[rc]", proc.returncode)
+            if proc.returncode == expect_rc:
+                return
+            lines = "\n".join(text.splitlines()[-20:])
+            msg = f"{lines} Unexpected return code {rc}: see {log.as_uri()}"
+            print(msg, file=sys.stderr)
+            assert rc == expect_rc
+
+        if expect_text:
+            assert expect_text in text
+
+        if expect_runnable:
+            self.run_web(expect_runnable)
 
     def capture(self, prefix: str = "test") -> None:
         """Capture a screenshot."""
