@@ -31,9 +31,9 @@ from jupyterlite_pyodide_lock.utils import (
     warehouse_date_to_epoch,
 )
 
-try:
+if sys.version_info >= (3, 11):
     import tomllib
-except ImportError:
+else:
     import tomli as tomllib
 
 
@@ -208,7 +208,8 @@ class LiteRunner:
         if expect_runnable:
             # lab extensions don't get re-added
             shutil.rmtree(cache_dir, ignore_errors=True)
-            [[p.unlink(), 1] for p in self.lite_dir.glob("*doit*")]
+            for p in self.lite_dir.glob("*doit*"):
+                p.unlink()
         a_lite_config = self.lite_dir / JUPYTER_LITE_CONFIG
         env = dict(os.environ)
 
@@ -227,8 +228,7 @@ class LiteRunner:
 
         env["JUPYTERLITE_NO_JUPYTERLAB_SERVER"] = "1"
 
-        if expect_runnable:
-            self.make_notebook(expect_runnable)
+        self.maybe_make_notebook(expect_runnable or [])
 
         if a_lite_config.exists():
             run_conf = self.run_dir / a_lite_config.name
@@ -270,8 +270,10 @@ class LiteRunner:
 
         return proc.returncode, log.read_text(**UTF8)
 
-    def make_notebook(self, expect_runnable: list[tuple[str, str]]) -> None:
+    def maybe_make_notebook(self, expect_runnable: list[tuple[str, str]]) -> None:
         """Write a test notebook with the expected code."""
+        if not expect_runnable:
+            return
         files = self.lite_dir / "files"
         nb = files / "test.ipynb"
         cells = [
@@ -508,7 +510,7 @@ def the_pixi_manifest() -> dict[str, Any]:
     """Provide the the pixi manifest data."""
     if not PXT.exists():
         pytest.skip(reason="not in repo")
-    return tomllib.loads(PXT.read_text(**UTF8))
+    return dict(tomllib.loads(PXT.read_text(**UTF8)))
 
 
 @pytest.fixture(scope="session")
@@ -516,13 +518,13 @@ def the_pixi_version(the_pixi_manifest: dict[str, Any]) -> str:
     """Provide the source of truth for the pixi version."""
     import re
 
-    return re.findall(r"/v(.*?)/", the_pixi_manifest["$schema"])[0]
+    return f"""{re.findall(r"/v(.*?)/", the_pixi_manifest["$schema"])[0]}"""
 
 
 @pytest.fixture(scope="session")
 def the_py_version(the_pyproject: dict[str, Any]) -> str:
     """Provide the source of truth for the python version."""
-    return the_pyproject["project"]["version"]
+    return f"""{the_pyproject["project"]["version"]}"""
 
 
 @pytest.fixture
@@ -548,4 +550,4 @@ def a_lite_config(a_lite_dir: Path) -> Path:
             BrowserLocker=dict(extra_browser_argv=[C.CHROMIUM_NO_SANDBOX]),
         )
 
-    return config
+    return Path(config)

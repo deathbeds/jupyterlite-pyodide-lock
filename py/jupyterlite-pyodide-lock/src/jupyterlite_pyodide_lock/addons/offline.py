@@ -8,6 +8,7 @@ import json
 import re
 import urllib.parse
 from copy import deepcopy
+from hashlib import sha256
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from doit.tools import config_changed
@@ -195,7 +196,7 @@ class PyodideLockOfflineAddon(BaseAddon):
         """Rewrite a single package's info (if needed)."""
         pkg_info = packages[pkg_name]
         if not re.match(RE_REMOTE_URL, pkg_info["file_name"]):
-            self.log.debug("[offline] already available locally %s", pkg_name)
+            self.log.debug("[offline] [%s] already available locally %s")
             return
         url = urllib.parse.urlparse(pkg_info["file_name"])
         whl_name = url.path.split("/")[-1]
@@ -214,6 +215,17 @@ class PyodideLockOfflineAddon(BaseAddon):
             self.copy_one(cache_whl, dest)
 
         pkg_info["file_name"] = dest_url or f"""{stem}/{whl_name}"""
+        old_sha256 = pkg_info["sha256"]
+        whl_sha256 = sha256(dest.read_bytes()).hexdigest()
+        if old_sha256 != whl_sha256:
+            self.log.warning(
+                "[offline] fixing sha256 for %s: lock:%s observed:%s wheel:%s",
+                pkg_name,
+                old_sha256,
+                whl_sha256,
+                whl_name,
+            )
+            pkg_info["sha256"] = whl_sha256
 
     def get_pruned_packges(
         self,

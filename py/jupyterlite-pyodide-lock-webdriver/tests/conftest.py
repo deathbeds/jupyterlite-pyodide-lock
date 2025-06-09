@@ -31,9 +31,9 @@ from jupyterlite_pyodide_lock.utils import (
     warehouse_date_to_epoch,
 )
 
-try:
+if sys.version_info >= (3, 11):
     import tomllib
-except ImportError:
+else:
     import tomli as tomllib
 
 
@@ -208,7 +208,8 @@ class LiteRunner:
         if expect_runnable:
             # lab extensions don't get re-added
             shutil.rmtree(cache_dir, ignore_errors=True)
-            [[p.unlink(), 1] for p in self.lite_dir.glob("*doit*")]
+            for p in self.lite_dir.glob("*doit*"):
+                p.unlink()
         a_lite_config = self.lite_dir / JUPYTER_LITE_CONFIG
         env = dict(os.environ)
 
@@ -227,8 +228,7 @@ class LiteRunner:
 
         env["JUPYTERLITE_NO_JUPYTERLAB_SERVER"] = "1"
 
-        if expect_runnable:
-            self.make_notebook(expect_runnable)
+        self.maybe_make_notebook(expect_runnable or [])
 
         if a_lite_config.exists():
             run_conf = self.run_dir / a_lite_config.name
@@ -270,8 +270,10 @@ class LiteRunner:
 
         return proc.returncode, log.read_text(**UTF8)
 
-    def make_notebook(self, expect_runnable: list[tuple[str, str]]) -> None:
+    def maybe_make_notebook(self, expect_runnable: list[tuple[str, str]]) -> None:
         """Write a test notebook with the expected code."""
+        if not expect_runnable:
+            return
         files = self.lite_dir / "files"
         nb = files / "test.ipynb"
         cells = [
