@@ -4,10 +4,13 @@
 channels = [
   "conda-forge",
   ## channels we enable during pre-release cycles
-  # "conda-forge/label/jupyterlite_core_alpha",
+  "conda-forge/label/jupyterlab_alpha",
+  # "conda-forge/label/jupyterlab_beta",
+  # "conda-forge/label/jupyterlab_rc",
+  "conda-forge/label/jupyterlite_core_alpha",
   # "conda-forge/label/jupyterlite_core_beta",
   # "conda-forge/label/jupyterlite_core_rc",
-  # "conda-forge/label/jupyterlite_pyodide_kernel_alpha",
+  "conda-forge/label/jupyterlite_pyodide_kernel_alpha",
   # "conda-forge/label/jupyterlite_pyodide_kernel_beta",
 ]
 name = "jlpl"
@@ -587,16 +590,16 @@ pyodide-lock = "==0.1.0a6"
 python = "3.12.*"
 
 [feature.deps-run-next.dependencies]
-jupyterlite-core = "0.6.*"
-jupyterlite-pyodide-kernel = "0.6.*"
-pyodide-lock = "0.1.0a8.*"
+# jupyterlite-core = "0.6.*"
+# jupyterlite-pyodide-kernel = "0.6.*"
+pyodide-lock = "0.1.0a9.*"
 python = "3.13.*"
-# [feature.deps-run-next.dependencies.jupyterlite-core]
-# version = ">=0.6.0a1"
-# channel = "conda-forge/label/jupyterlite_core_alpha"
-# [feature.deps-run-next.dependencies.jupyterlite-pyodide-kernel]
-# version = ">=0.6.0a1"
-# channel = "conda-forge/label/jupyterlite_pyodide_kernel_alpha"
+[feature.deps-run-next.dependencies.jupyterlite-core]
+channel = "conda-forge/label/jupyterlite_core_alpha"
+version = ">=0.7.0a1"
+[feature.deps-run-next.dependencies.jupyterlite-pyodide-kernel]
+channel = "conda-forge/label/jupyterlite_pyodide_kernel_alpha"
+version = ">=0.7.0a0"
 
 [feature.deps-pip.dependencies]
 flit-core = ">=3.9,<4.0"

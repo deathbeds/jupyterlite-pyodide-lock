@@ -184,7 +184,6 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
 
 - visit the site at `http://127.0.0.1:8000/`
 - make a new Notebook
-
   - see that `ipywidgets` can be imported, and widgets work:
 
     ```python
@@ -203,7 +202,6 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
   packages _not_ included in `pyodide-lock.json`. These may be served along with an HTML
   page, downloaded from PyPI, or anywhere on the internet. `jupyterlite-pyodide-kernel`
   uses this capability to install itself, and its dependencies.
-
   - At run time, `piplite` provides a `micropip`-based shim for the IPython `%pip`
     magic, the most portable approach for interactive package management in Notebook
     documents.
