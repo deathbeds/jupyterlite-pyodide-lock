@@ -581,7 +581,7 @@ tomlkit = "*"
 types-psutil = "*"
 
 [feature.deps-test.dependencies]
-jupyter_server = "*"
+jupyter_server = ">=2"
 pytest = ">=8,<9"
 pytest-cov = ">=7"
 pytest-html = ">=4"
