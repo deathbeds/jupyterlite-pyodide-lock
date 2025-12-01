@@ -308,7 +308,7 @@ inputs = [
 # building #####################################################################
 [feature.tasks-build.tasks._pyproject_build]
 args = ["pkg"]
-cmd = """(cat .pixi/task-cache-v0/.skip-dist && exit 0)
+cmd = """(cat .pixi/task-cache-v0/.skip-pypi-dist && exit 0)
   || mkdir -p dist
   && (rm --recursive --force dist/{{ pkg | replace('-', '_') }}-* || echo "nothing to delete")
   && cd py/{{ pkg }}
@@ -339,23 +339,6 @@ depends-on = [
 ]
 description = "├─ build webdriver PyPI distributions"
 
-[feature.tasks-build.tasks.build-rattler]
-cmd = """export JLPL_GIT_DESCRIBE=0
-&& rm --recursive --force dist/noarch
-&& mkdir -p build/rattler-build
-&& rattler-build build
-  --experimental
-  --color=always
-  --verbose
-  --channel conda-forge
-  --recipe recipe
-  --output-dir build/rattler-build
-&& cp -r build/rattler-build/noarch dist/noarch"""
-depends-on = ["build-pypi-core", "build-pypi-wd"]
-description = "├ build for conda distribution"
-inputs = ["dist/*.tar.gz", "recipe"]
-outputs = ["dist/*/*.conda"]
-
 [feature.tasks-build.tasks.build-wheel-twine]
 cmd = "twine check --strict dist/*.whl dist/*.tar.gz"
 depends-on = ["build-pypi-core", "build-pypi-wd"]
@@ -377,10 +360,28 @@ cmd = """rm --recursive --force dist/SHA256SUMS
   ]'
   > dist/SHA256SUMS
   && cat dist/SHA256SUMS"""
-depends-on = ["build-pypi-core", "build-pypi-wd", "build-rattler"]
+depends-on = ["build-pypi-core", "build-pypi-wd"]
 description = "├ hash the built distributions"
 inputs = ["dist", "!dist/SHA256SUMS"]
 outputs = ["dist/SHA256SUMS"]
+
+# conda ########################################################################
+[feature.tasks-rattler.tasks.build-rattler]
+cmd = """export JLPL_GIT_DESCRIBE=0
+&& rm --recursive --force dist/noarch
+&& mkdir -p build/rattler-build
+&& rattler-build build
+  --experimental
+  --color=always
+  --verbose
+  --channel conda-forge
+  --recipe recipe
+  --output-dir build/rattler-build
+&& cp -r build/rattler-build/noarch dist/noarch"""
+depends-on = ["build-pypi-core", "build-pypi-wd"]
+description = "├ build for conda distribution"
+inputs = ["dist/*.tar.gz", "recipe"]
+outputs = ["dist/*/*.conda"]
 
 # testing ######################################################################
 ## testing meta ################################################################
@@ -458,7 +459,7 @@ cmd = """rm --recursive --force build/docs
   && cd docs
   && export PYDEVD_DISABLE_FILE_VALIDATION=1
   && sphinx-build -W --keep-going --color -b html . ../build/docs"""
-depends-on = ["docs-lite", "docs-scour"]
+depends-on = ["build-hash", "docs-lite", "docs-scour"]
 description = "├ build documentation with sphinx"
 inputs = [
   "*.md",
@@ -544,6 +545,7 @@ description = "├ 🔁 watch and serve the documentation with autoreload"
 deps--oldest.solve-strategy = "lowest-direct"
 # singletons
 deps-flit.dependencies.flit-core = ">=3.12,<4.0"
+deps-rattler.dependencies.rattler-build = "*"
 deps-uv.dependencies.uv = "*"
 deps-webdriver.dependencies.selenium = ">=4.19"
 
@@ -566,7 +568,6 @@ python = "3.12.*"
 [feature.deps-build.dependencies]
 check-wheel-contents = "*"
 python-build = "*"
-rattler-build = "*"
 twine = "*"
 
 [feature.deps-lint.dependencies]
@@ -647,6 +648,7 @@ docs = {features = [
   "tasks-docs",
 ]}
 lint = {features = ["deps-lint", "tasks-lint"]}
+rattler = ["deps-rattler", "tasks-rattler"]
 test-max = {features = [
   "deps-firefox",
   "deps-flit",

@@ -19,7 +19,7 @@ env:
   JLPL_PIXI_VERSION: 0.59.0
 
 jobs:
-  build:
+  build-pypi:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
@@ -28,20 +28,36 @@ jobs:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true
           environments: build
-      - run: pixi run build
+      - run: pixi run build-pypi
       - run: |-
           mkdir -p build && echo ${{ github.run_number }} \
-          > .pixi/task-cache-v0/.skip-dist
+          > .pixi/task-cache-v0/.skip-pypi-dist
       - name: upload dist
         uses: actions/upload-artifact@v5
         with:
-          name: jlpl-${{ github.run_number }}-dist
+          name: jlpl-${{ github.run_number }}-dist-pypi
           path: dist
       - name: upload build
         uses: actions/upload-artifact@v5
         with:
           name: jlpl-${{ github.run_number }}-build
           path: .pixi/task-cache-v0
+
+  build-conda:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: prefix-dev/setup-pixi@v0.9.3
+        with:
+          pixi-version: v${{ env.JLPL_PIXI_VERSION }}
+          cache: true
+          environments: rattler
+      - run: pixi run build-rattler
+      - name: upload conda dist
+        uses: actions/upload-artifact@v5
+        with:
+          name: jlpl-${{ github.run_number }}-dist-conda
+          path: dist
 
   lint:
     runs-on: ubuntu-24.04
@@ -56,7 +72,7 @@ jobs:
 
   test:
     name: ${{ matrix.test-env }} (${{ matrix.vm }} ${{ matrix.browser }})
-    needs: [build]
+    needs: [build-pypi]
     runs-on: ${{ matrix.vm }}
     strategy:
       fail-fast: false
@@ -81,7 +97,7 @@ jobs:
       - name: download dist
         uses: actions/download-artifact@v6
         with:
-          name: jlpl-${{ github.run_number }}-dist
+          name: jlpl-${{ github.run_number }}-dist-pypi
           path: dist
       - name: download build
         uses: actions/download-artifact@v6
@@ -103,7 +119,7 @@ jobs:
 
   docs:
     name: docs
-    needs: [build]
+    needs: [build-pypi, build-conda]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -115,7 +131,12 @@ jobs:
       - name: download dist
         uses: actions/download-artifact@v6
         with:
-          name: jlpl-${{ github.run_number }}-dist
+          name: jlpl-${{ github.run_number }}-dist-pypi
+          path: dist
+      - name: download dist
+        uses: actions/download-artifact@v6
+        with:
+          name: jlpl-${{ github.run_number }}-dist-conda
           path: dist
       - name: download builds
         uses: actions/download-artifact@v6
