@@ -3,6 +3,7 @@
 # coverage #####################################################################
 [tool.coverage.run]
 disable_warnings = ["no-data-collected", "module-not-measured"]
+patch = ["subprocess"]
 
 [tool.coverage.report]
 exclude_lines = [

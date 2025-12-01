@@ -197,7 +197,9 @@ class PyodideLockOfflineAddon(BaseAddon):
         pkg_info = packages[pkg_name]
         file_name = pkg_info["file_name"]
         if not re.match(RE_REMOTE_URL, file_name):
-            self.log.debug("[offline] [%s] already available locally %s", pkg_name, file_name)
+            self.log.debug(
+                "[offline] [%s] already available locally %s", pkg_name, file_name
+            )
             return
         url = urllib.parse.urlparse(file_name)
         whl_name = url.path.split("/")[-1]
