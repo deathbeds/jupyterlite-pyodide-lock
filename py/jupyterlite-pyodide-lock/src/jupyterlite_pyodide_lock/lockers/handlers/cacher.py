@@ -73,7 +73,9 @@ class CachingRemoteFiles(ExtraMimeFiles):
                     msg = f"Don't know what to do with {type(replacement)}"
                     raise NotImplementedError(msg)
 
-        cache_path.write_bytes(body)
+        await asyncio.get_running_loop().run_in_executor(
+            None, cache_path.write_bytes, body
+        )
 
     async def fetch_body_with_retries(self, url: str, retries: int = 5) -> bytes:
         """Fetch the raw bytes of URL with retries.

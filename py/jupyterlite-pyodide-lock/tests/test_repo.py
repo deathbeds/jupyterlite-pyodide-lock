@@ -44,7 +44,7 @@ PY_PATTERNS = {
 @pytest.mark.parametrize(("glob"), PIXI_PATTERNS.keys())
 def test_repo_pixi_version(the_pixi_version: str, glob: str) -> None:
     """Verify consistent ``pixi`` versions."""
-    _verify_patterns("python version", the_pixi_version, glob, PIXI_PATTERNS)
+    _verify_patterns("pixi version", the_pixi_version, glob, PIXI_PATTERNS)
 
 
 @pytest.mark.parametrize(("glob"), PY_PATTERNS.keys())

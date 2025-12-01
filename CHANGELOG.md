@@ -9,7 +9,7 @@
 ### `jupyterlite-pyodide-lock 0.1.2`
 
 - [#38] adds a `--check` flag to the CLI, which fails if _no_ browsers are available
-- [#41] adds support for `micropip 0.9.0` constraints when locking
+- [#41] adds support for `micropip >=0.9.0` constraints when locking
 
 [#38]: https://github.com/deathbeds/jupyterlite-pyodide-lock/pull/33
 [#41]: https://github.com/deathbeds/jupyterlite-pyodide-lock/pull/41

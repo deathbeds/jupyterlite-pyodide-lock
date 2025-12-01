@@ -117,17 +117,19 @@ EXPECT_WIDGETS_RUN = [
 CUSTOM_EXPECT_RUNNABLE: dict[str, list[tuple[str, str]]] = {}
 
 IS_PYODIDE_027 = Version(PYODIDE_VERSION) >= Version("0.27")
+IS_PYODIDE_029 = Version(PYODIDE_VERSION) >= Version("0.29")
 
 if IS_PYODIDE_027:
-    MICROPIP_09_WHEEL = "micropip-0.9.0-py3-none-any.whl"
-    MICROPIP_09_URL = f"{PY_HOSTED}/m/micropip/{MICROPIP_09_WHEEL}"
+    MICROPIP_VERSION = "0.11.0" if IS_PYODIDE_029 else "0.9.0"
+    MICROPIP_WHEEL = f"micropip-{MICROPIP_VERSION}-py3-none-any.whl"
+    MICROPIP_URL = f"{PY_HOSTED}/m/micropip/{MICROPIP_WHEEL}"
     OLD_TRAITLETS_VERSION = "5.14.2"
     OLD_TRAITLETS_SPEC = "traitlets <5.14.3"
 
     WIDGETS_CONFIG.update(
         constraints_09={
             "packages": [WIDGETS_WHEEL],
-            "bootstrap_wheels": [MICROPIP_09_URL],
+            "bootstrap_wheels": [MICROPIP_URL],
             "constraints": [OLD_TRAITLETS_SPEC],
         }
     )

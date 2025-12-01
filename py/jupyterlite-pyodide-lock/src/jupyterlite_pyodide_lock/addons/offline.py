@@ -195,10 +195,11 @@ class PyodideLockOfflineAddon(BaseAddon):
     ) -> None:
         """Rewrite a single package's info (if needed)."""
         pkg_info = packages[pkg_name]
-        if not re.match(RE_REMOTE_URL, pkg_info["file_name"]):
-            self.log.debug("[offline] [%s] already available locally %s")
+        file_name = pkg_info["file_name"]
+        if not re.match(RE_REMOTE_URL, file_name):
+            self.log.debug("[offline] [%s] already available locally %s", pkg_name, file_name)
             return
-        url = urllib.parse.urlparse(pkg_info["file_name"])
+        url = urllib.parse.urlparse(file_name)
         whl_name = url.path.split("/")[-1]
         cache_whl = self.package_cache / whl_name
         pyodide_whl = self.pyodide_addon.output_pyodide / whl_name
@@ -211,7 +212,7 @@ class PyodideLockOfflineAddon(BaseAddon):
 
         if not dest.exists():
             if not cache_whl.exists():  # pragma: no cover
-                self.fetch_one(pkg_info["file_name"], cache_whl)
+                self.fetch_one(file_name, cache_whl)
             self.copy_one(cache_whl, dest)
 
         pkg_info["file_name"] = dest_url or f"""{stem}/{whl_name}"""

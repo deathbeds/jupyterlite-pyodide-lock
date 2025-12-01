@@ -16,7 +16,7 @@ env:
   PIP_DISABLE_PIP_VERSION_CHECK: 1
   FORCE_COLOR: 1
   JLPL_TIMEOUT: 500
-  JLPL_PIXI_VERSION: 0.48.0
+  JLPL_PIXI_VERSION: 0.59.0
 
 jobs:
   build:
@@ -68,7 +68,6 @@ jobs:
           - { test-env: test-min, vm: macos-13, browser: firefox }
           - { test-env: test-min, vm: ubuntu-22.04, browser: firefox }
           - { test-env: test-min, vm: windows-latest, browser: firefox }
-          - { test-env: test-next, vm: ubuntu-latest, browser: firefox }
     env:
       JLPL_BROWSER: ${{ matrix.browser }}
     steps:

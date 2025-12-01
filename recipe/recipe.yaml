@@ -35,7 +35,7 @@ outputs:
           - ${{ jlpl }} = "${{ jlpl_m }}.app:main"
     requirements:
       host:
-        - flit-core >=3.9.0,<4
+        - flit-core >=3.12.0,<4
         - pip
         - python ${{ python_min }}.*
       run:
@@ -68,7 +68,7 @@ outputs:
           python -m pip install . -vv --no-deps --no-build-isolation --disable-pip-version-check
     requirements:
       host:
-        - flit-core >=3.9.0,<4
+        - flit-core >=3.12.0,<4
         - pip
         - python ${{ python_min }}.*
       run:

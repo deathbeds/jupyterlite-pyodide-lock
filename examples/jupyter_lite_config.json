@@ -9,7 +9,7 @@
     "specs": ["ipywidgets >=8.1.2,<8.1.3"],
     "constraints": ["traitlets <5.14.3"],
     "bootstrap_wheels": [
-      "https://files.pythonhosted.org/packages/py3/m/micropip/micropip-0.9.0-py3-none-any.whl"
+      "https://files.pythonhosted.org/packages/py3/m/micropip/micropip-0.11.0-py3-none-any.whl"
     ]
   },
   "PyodideLockOfflineAddon": {
