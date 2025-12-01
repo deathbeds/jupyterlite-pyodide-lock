@@ -45,6 +45,7 @@ jobs:
 
   build-conda:
     runs-on: ubuntu-24.04
+    needs: [build-pypi]
     steps:
       - uses: actions/checkout@v6
       - uses: prefix-dev/setup-pixi@v0.9.3
@@ -52,6 +53,11 @@ jobs:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true
           environments: rattler
+      - name: download dist
+        uses: actions/download-artifact@v6
+        with:
+          name: jlpl-${{ github.run_number }}-dist-pypi
+          path: dist
       - run: pixi run build-rattler
       - name: upload conda dist
         uses: actions/upload-artifact@v5
