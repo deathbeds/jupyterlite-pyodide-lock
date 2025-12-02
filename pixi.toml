@@ -190,14 +190,26 @@ inputs = ["_scripts/fix-deps.py", "py/jupyterlite-pyodide-lock/pyproject.toml"]
 outputs = ["py/*/pyproject.toml"]
 
 [feature.tasks-lint.tasks.fix-ipynb]
-cmd = "python _scripts/nb-lint.py --fix docs"
+cmd = """
+  nbstripout
+    --keep-id
+    docs/**/*.ipynb
+    examples/**/*.ipynb
+  && python _scripts/nb-lint.py --fix docs examples
+"""
 description = "├ fix notebooks"
-inputs = ["_scripts/nb-lint.py", "docs/**/*.ipynb", "!**/.*"]
+inputs = ["_scripts/nb-lint.py", "{docs,examples}/**/*.ipynb", "!**/.*"]
 
 [feature.tasks-lint.tasks.lint-ipynb]
-cmd = "python _scripts/nb-lint.py docs"
+cmd = """
+  nbstripout
+    --keep-id
+    docs/**/*.ipynb
+    examples/**/*.ipynb
+  && python _scripts/nb-lint.py docs examples
+"""
 description = "├ check notebooks"
-inputs = ["_scripts/nb-lint.py", "docs/**/*.ipynb", "!**/.*"]
+inputs = ["_scripts/nb-lint.py", "{docs,examples}/**/*.ipynb", "!**/.*"]
 
 [feature.tasks-lint.tasks.fix-ruff]
 cmd = "ruff check --fix-only && ruff format"
@@ -566,10 +578,10 @@ python = ">=3.10"
 tornado = ">=6.1.0"
 
 [feature.deps-run-max.dependencies]
-jupyterlite-core = "0.5.*"
-jupyterlite-pyodide-kernel = "0.5.*"
-pyodide-lock = "==0.1.0a6"
-python = "3.12.*"
+jupyterlite-core = ">=0.7.0"
+jupyterlite-pyodide-kernel = ">=0.7.0"
+pyodide-lock = ">=0.1.0"
+python = "3.14.*"
 
 [feature.deps-build.dependencies]
 check-wheel-contents = "*"
@@ -580,6 +592,7 @@ twine = "*"
 actionlint-with-all = "*"
 markdownlint-cli2 = "*"
 nbformat = "*"
+nbstripout = "*"
 nodejs = ">=22,!=22.13.0,<23"
 prettier = "*"
 ruff = "*"

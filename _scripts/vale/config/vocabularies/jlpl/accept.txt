@@ -10,6 +10,7 @@ _.+_
 (e\.g\.|i\.e\.)
 (JSON|TOML|YAML)
 (platforms/pythons|and/or|Fix/lint)
+(task|file)_dep
 [A-Z]+[\d]+
 [a-zA-Z\d_.]+\(
 @default
@@ -39,7 +40,9 @@ entrypoints
 feedstock
 firefox
 found_path
+ignore_attributes
 ignore\[.*
+image/.*
 IPython
 Jupyter(|Lite)
 labextensions
@@ -51,6 +54,7 @@ lockfile
 mamba/conda
 micropip.*
 Miniforge
+MyBinder
 noarch
 noqa
 osx
