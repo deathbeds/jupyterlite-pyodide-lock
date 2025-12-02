@@ -103,11 +103,6 @@ _pip_check = """
   && pixi run _uv list --format=freeze
   > build/pip-freeze/$PIXI_ENVIRONMENT_NAME.txt"""
 _pip_dist = "pixi run _pip --find-links=dist --no-index"
-_pip_e_all = """pixi run _pip_check
-  && pixi run _pip
-    -e py/jupyterlite-pyodide-lock
-    -e py/jupyterlite-pyodide-lock-webdriver
-  && pixi run _pip_check"""
 _this_python = "echo UV_PYTHON=$(python -c 'import sys; print(sys.executable)')"
 _uv = "pixi run --quiet --environment=uv uv pip"
 
@@ -123,6 +118,18 @@ cmd = """
   && pixi run --environment={{ env }} _pip_check"""
 depends-on = ["build-pypi-core", "build-pypi-wd"]
 inputs = ["dist/*.whl"]
+outputs = ["build/pip-freeze/{{ env }}.txt"]
+
+[tasks._pip_e_all]
+args = ["env"]
+cmd = """
+  export $(pixi run --quiet --environment={{ env }} _this_python)
+  && pixi run --environment={{ env }} _pip_check
+  && pixi run --environment={{ env }} _pip
+    -e py/jupyterlite-pyodide-lock
+    -e py/jupyterlite-pyodide-lock-webdriver
+  && pixi run _pip_check"""
+inputs = ["py/*/pyproject.toml"]
 outputs = ["build/pip-freeze/{{ env }}.txt"]
 
 [tasks._cli_check]
@@ -518,9 +525,8 @@ outputs = ["build/reports/vale.html"]
 
 # interactive development ######################################################
 [feature.tasks-dev.tasks.dev-pip]
-cmd = """pixi run -e dev _pip_e_all"""
+depends-on = [{task = "_pip_e_all", args = ["dev"]}]
 description = "├ prepare the dev environment"
-outputs = ["build/pip-freeze/dev.txt"]
 
 [feature.tasks-dev.tasks.dev-lab]
 cmd = """jupyter lab --no-browser --debug"""
@@ -618,7 +624,11 @@ watchfiles = "*"
 
 [feature.deps-demo.dependencies]
 ipywidgets = ">=8.1,<8.2"
-jupyterlab = ">=4.1,<4.5"
+jupyterlab = ">=4.1,<4.6"
+notebook = "*"
+
+[feature.deps-demo-voici.dependencies]
+voici_core = "*"
 
 # environments #################################################################
 [environments]
@@ -639,6 +649,7 @@ docs = {features = [
   "deps-build",
   "deps-check",
   "deps-demo",
+  "deps-demo-voici",
   "deps-docs",
   "deps-firefox",
   "deps-flit",

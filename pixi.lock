@@ -411,8 +411,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_pygments-0.3.0-pyhd8ed1ab_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_server-2.28.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_widgets-3.0.16-pyhcf101f3_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.7.0-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.7.0-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.6.4-pyhe01879c_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.6.1-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/keyring-25.7.0-pyha804496_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/keyutils-1.6.3-hb9d3cd8_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/krb5-1.21.3-h659f571_0.conda
@@ -457,6 +457,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/nest-asyncio-1.6.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/nh3-0.3.2-py310h1570de5_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/nodejs-22.19.0-heeeca48_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/notebook-7.4.7-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/notebook-shim-0.2.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/openssl-3.6.0-h26f9b46_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/outcome-1.3.0.post0-pyhd8ed1ab_1.conda
@@ -668,8 +669,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_pygments-0.3.0-pyhd8ed1ab_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_server-2.28.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_widgets-3.0.16-pyhcf101f3_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.7.0-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.7.0-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.6.4-pyhe01879c_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.6.1-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/keyring-25.7.0-pyh534df25_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/krb5-1.21.3-h37d8d59_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/lark-1.3.1-pyhd8ed1ab_0.conda
@@ -706,6 +707,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/nest-asyncio-1.6.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/nh3-0.3.2-py310h6cf5e2e_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/nodejs-22.19.0-h8a401be_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/notebook-7.4.7-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/notebook-shim-0.2.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/openssl-3.6.0-h230baf5_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/outcome-1.3.0.post0-pyhd8ed1ab_1.conda
@@ -917,8 +919,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_pygments-0.3.0-pyhd8ed1ab_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_server-2.28.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_widgets-3.0.16-pyhcf101f3_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.7.0-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.7.0-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.6.4-pyhe01879c_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.6.1-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/keyring-25.7.0-pyh534df25_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/krb5-1.21.3-h237132a_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/lark-1.3.1-pyhd8ed1ab_0.conda
@@ -955,6 +957,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/nest-asyncio-1.6.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/nh3-0.3.2-py310h06fc29a_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/nodejs-22.19.0-h08a63db_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/notebook-7.4.7-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/notebook-shim-0.2.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.6.0-h5503f6c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/outcome-1.3.0.post0-pyhd8ed1ab_1.conda
@@ -1163,8 +1166,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_pygments-0.3.0-pyhd8ed1ab_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_server-2.28.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_widgets-3.0.16-pyhcf101f3_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.7.0-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.7.0-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.6.4-pyhe01879c_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.6.1-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/keyring-25.7.0-pyh7428d3b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/krb5-1.21.3-hdf4eb48_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/lark-1.3.1-pyhd8ed1ab_0.conda
@@ -1197,6 +1200,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/nest-asyncio-1.6.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/nh3-0.3.2-py310hdba2031_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/nodejs-22.19.0-he453025_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/notebook-7.4.7-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/notebook-shim-0.2.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/openssl-3.6.0-h725018a_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/outcome-1.3.0.post0-pyhd8ed1ab_1.conda
@@ -1417,8 +1421,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_pygments-0.3.0-pyhd8ed1ab_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_server-2.28.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_widgets-3.0.16-pyhcf101f3_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.7.0-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.7.0-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.6.4-pyhe01879c_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.6.1-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/keyring-25.7.0-pyha804496_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/keyutils-1.6.3-hb9d3cd8_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/krb5-1.21.3-h659f571_0.conda
@@ -1462,6 +1466,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ncurses-6.5-h2d0b736_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nest-asyncio-1.6.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/nh3-0.3.2-py310h1570de5_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/notebook-7.4.7-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/notebook-shim-0.2.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/openssl-3.6.0-h26f9b46_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/outcome-1.3.0.post0-pyhd8ed1ab_1.conda
@@ -1557,10 +1562,13 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/urllib3-2.5.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/vale-3.9.3-h5888daf_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/vale-spelling-aoo-mozilla-en-dict-us-2024.03.01-hd8ed1ab_2.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/voici_core-0.9.0-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/voila-0.5.11-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.2.14-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/webcolors-25.10.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/webencodings-0.5.1-pyhd8ed1ab_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/websocket-client-1.9.0-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/websockets-15.0.1-py314h31f8a6b_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/wheel-filename-1.4.2-pyhe01879c_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/widgetsnbextension-4.0.15-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/wsproto-1.3.2-pyhd8ed1ab_0.conda
@@ -1658,8 +1666,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_pygments-0.3.0-pyhd8ed1ab_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_server-2.28.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_widgets-3.0.16-pyhcf101f3_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.7.0-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.7.0-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.6.4-pyhe01879c_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.6.1-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/keyring-25.7.0-pyh534df25_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/krb5-1.21.3-h37d8d59_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/lark-1.3.1-pyhd8ed1ab_0.conda
@@ -1694,6 +1702,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-64/ncurses-6.5-h0622a9a_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nest-asyncio-1.6.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/nh3-0.3.2-py310h6cf5e2e_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/notebook-7.4.7-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/notebook-shim-0.2.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/openssl-3.6.0-h230baf5_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/outcome-1.3.0.post0-pyhd8ed1ab_1.conda
@@ -1789,10 +1798,13 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/urllib3-2.5.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/vale-3.9.3-ha2cd848_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/vale-spelling-aoo-mozilla-en-dict-us-2024.03.01-hd8ed1ab_2.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/voici_core-0.9.0-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/voila-0.5.11-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.2.14-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/webcolors-25.10.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/webencodings-0.5.1-pyhd8ed1ab_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/websocket-client-1.9.0-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-64/websockets-15.0.1-py312h6efa6bc_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/wheel-filename-1.4.2-pyhe01879c_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/widgetsnbextension-4.0.15-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/wsproto-1.3.2-pyhd8ed1ab_0.conda
@@ -1889,8 +1901,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_pygments-0.3.0-pyhd8ed1ab_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_server-2.28.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_widgets-3.0.16-pyhcf101f3_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.7.0-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.7.0-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.6.4-pyhe01879c_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.6.1-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/keyring-25.7.0-pyh534df25_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/krb5-1.21.3-h237132a_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/lark-1.3.1-pyhd8ed1ab_0.conda
@@ -1926,6 +1938,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ncurses-6.5-h5e97a16_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nest-asyncio-1.6.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/nh3-0.3.2-py310h06fc29a_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/notebook-7.4.7-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/notebook-shim-0.2.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.6.0-h5503f6c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/outcome-1.3.0.post0-pyhd8ed1ab_1.conda
@@ -2021,10 +2034,13 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/urllib3-2.5.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/vale-3.9.3-h286801f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/vale-spelling-aoo-mozilla-en-dict-us-2024.03.01-hd8ed1ab_2.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/voici_core-0.9.0-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/voila-0.5.11-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.2.14-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/webcolors-25.10.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/webencodings-0.5.1-pyhd8ed1ab_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/websocket-client-1.9.0-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/websockets-15.0.1-py314hf17b0b1_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/wheel-filename-1.4.2-pyhe01879c_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/widgetsnbextension-4.0.15-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/wsproto-1.3.2-pyhd8ed1ab_0.conda
@@ -2121,8 +2137,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_pygments-0.3.0-pyhd8ed1ab_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_server-2.28.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlab_widgets-3.0.16-pyhcf101f3_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.7.0-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.7.0-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.6.4-pyhe01879c_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.6.1-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/keyring-25.7.0-pyh7428d3b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/krb5-1.21.3-hdf4eb48_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/lark-1.3.1-pyhd8ed1ab_0.conda
@@ -2159,6 +2175,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/nbformat-5.10.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nest-asyncio-1.6.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/nh3-0.3.2-py310hdba2031_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/notebook-7.4.7-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/notebook-shim-0.2.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/openssl-3.6.0-h725018a_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/outcome-1.3.0.post0-pyhd8ed1ab_1.conda
@@ -2256,10 +2273,13 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/vc-14.3-h2b53caa_32.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/vc14_runtime-14.44.35208-h818238b_32.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/vcomp14-14.44.35208-h818238b_32.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/voici_core-0.9.0-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/voila-0.5.11-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.2.14-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/webcolors-25.10.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/webencodings-0.5.1-pyhd8ed1ab_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/websocket-client-1.9.0-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/websockets-15.0.1-py314h4667ab5_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/wheel-filename-1.4.2-pyhe01879c_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/widgetsnbextension-4.0.15-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/win_inet_pton-1.1.0-pyh7428d3b_8.conda
@@ -6057,18 +6077,19 @@ packages:
   license_family: BSD
   size: 14815862
   timestamp: 1738154566104
-- conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.7.0-pyhcf101f3_0.conda
-  sha256: 311365f733dceb4f47058dbc374c2420c41537b1c23db61f5c0ce558e2afc008
-  md5: 4797b73e8813dce0afe8c96839118294
+- conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-core-0.6.4-pyhe01879c_0.conda
+  sha256: 9e42ec9f74851c04db16c47a52cf8d45b37b06c7154bf432f1928f7582f5ac65
+  md5: b1f5663c5ccf466416fb822d11e1aff3
   depends:
   - doit >=0.34,<1
+  - importlib-metadata >=3.6
   - jupyter_core >=4.7
-  - python >=3.10
+  - python >=3.9
   - python
   license: BSD-3-Clause
   license_family: BSD
-  size: 16224226
-  timestamp: 1764165502874
+  size: 16033775
+  timestamp: 1754658203367
 - conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.3.1-pyhd8ed1ab_0.conda
   sha256: b21b0d77ea4dc1644d525ed60a7858c0835023defcca7be89117fb4acdd4b613
   md5: 4adbaa45a8bd418525142e0809761200
@@ -6091,18 +6112,18 @@ packages:
   license_family: BSD
   size: 241127
   timestamp: 1737296316917
-- conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.7.0-pyhcf101f3_0.conda
-  sha256: 0ddc2c61c39f17106a825c4cef938133b14b32ee25472db4d67ca71e2aa2d5e6
-  md5: 97624651e6fc9ca05effe0b4a80766e3
+- conda: https://conda.anaconda.org/conda-forge/noarch/jupyterlite-pyodide-kernel-0.6.1-pyhe01879c_0.conda
+  sha256: 327649a469b1c6b36f27e5c4d596d94ce8bf6c6f5a96d4398ddf2861fe2553ed
+  md5: b55913693e8934299585267ce95af06e
   depends:
-  - jupyterlite-core >=0.7.0
+  - jupyterlite-core >=0.6.0,<0.7.0
   - pkginfo
-  - python >=3.10
+  - python >=3.9
   - python
   license: BSD-3-Clause
   license_family: BSD
-  size: 359192
-  timestamp: 1764169495508
+  size: 369663
+  timestamp: 1749124243774
 - conda: https://conda.anaconda.org/conda-forge/noarch/keyring-25.7.0-pyh534df25_0.conda
   sha256: 9def5c6fb3b3b4952a4f6b55a019b5c7065b592682b84710229de5a0b73f6364
   md5: c88f9579d08eb4031159f03640714ce3
@@ -7622,6 +7643,20 @@ packages:
   license_family: MIT
   size: 29657770
   timestamp: 1758381330859
+- conda: https://conda.anaconda.org/conda-forge/noarch/notebook-7.4.7-pyhd8ed1ab_0.conda
+  sha256: 9d785a993dd149cae89382e24dfc234bf0295d310a34ca8288818c401c097d40
+  md5: 8265e246510553a4bcec1af4378d3c96
+  depends:
+  - jupyter_server >=2.4.0,<3
+  - jupyterlab >=4.4.9,<4.5
+  - jupyterlab_server >=2.27.1,<3
+  - notebook-shim >=0.2,<0.3
+  - python >=3.10
+  - tornado >=6.2.0
+  license: BSD-3-Clause
+  license_family: BSD
+  size: 10391640
+  timestamp: 1759152183508
 - conda: https://conda.anaconda.org/conda-forge/noarch/notebook-shim-0.2.4-pyhd8ed1ab_1.conda
   sha256: 7b920e46b9f7a2d2aa6434222e5c8d739021dbc5cc75f32d124a8191d86f9056
   md5: e7f89ea5f7ea9401642758ff50a2d9c1
@@ -10951,6 +10986,36 @@ packages:
   license_family: Proprietary
   size: 114846
   timestamp: 1760418593847
+- conda: https://conda.anaconda.org/conda-forge/noarch/voici_core-0.9.0-pyhd8ed1ab_0.conda
+  sha256: 3a4eabd175440473a5c19701386dcf14607cdbe25d7482830d896cc35a24fb1f
+  md5: 805268472350bf5f7dc3a47fd0c3b3db
+  depends:
+  - jupyterlite-core >=0.2.0,<0.7.0
+  - python >=3.10
+  - voila >=0.5.5,<0.6
+  license: BSD-3-Clause
+  license_family: BSD
+  size: 2127596
+  timestamp: 1759905758004
+- conda: https://conda.anaconda.org/conda-forge/noarch/voila-0.5.11-pyhd8ed1ab_1.conda
+  sha256: 9766b970d848d9902a94e4a7b904d9331eb60658f427d73c8493501ad5c894f9
+  md5: 2a1de13cdf50ded5f8046f8f007b8bf1
+  depends:
+  - jupyter_client >=7.4.4,<=9
+  - jupyter_core >=4.11.0
+  - jupyter_server >=1,<3
+  - jupyterlab_server >=2.3.0,<3
+  - nbclient >=0.4.0
+  - nbconvert >=6.4.5,<8
+  - python >=3.9
+  - traitlets >=5.0.3,<6
+  - websockets >=9
+  constrains:
+  - ipywidgets >=7
+  license: BSD-3-Clause
+  license_family: BSD
+  size: 3078589
+  timestamp: 1756138491338
 - conda: https://conda.anaconda.org/conda-forge/linux-64/watchfiles-1.1.1-py314ha5689aa_0.conda
   sha256: fcec93ca26320764c55042fc56b772a88533ed01f1c713553c985b379e174d09
   md5: fb190bbf05b3b963bea7ab7c20624d5d
@@ -11057,6 +11122,17 @@ packages:
   license_family: BSD
   size: 380425
   timestamp: 1756476367704
+- conda: https://conda.anaconda.org/conda-forge/osx-64/websockets-15.0.1-py312h6efa6bc_2.conda
+  sha256: 534ed704450130d7038af3af3915963119d848f79710787cc1dd10f4dddfc5c4
+  md5: 690ab6288050f51fb4cdee3a0d5ed807
+  depends:
+  - python
+  - __osx >=10.13
+  - python_abi 3.12.* *_cp312
+  license: BSD-3-Clause
+  license_family: BSD
+  size: 356373
+  timestamp: 1756476446042
 - conda: https://conda.anaconda.org/conda-forge/osx-64/websockets-15.0.1-py313h6865ccc_2.conda
   sha256: f1dfd801e487aa46ba2750422c22abbb80d95efdf798b587655295f85f572776
   md5: cdc04e0138416cb02bb184d8e96b426a

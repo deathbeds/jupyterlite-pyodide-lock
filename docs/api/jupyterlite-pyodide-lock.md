@@ -16,6 +16,13 @@
 .. automodule:: jupyterlite_pyodide_lock.addons.offline
 ```
 
+### FixHtmlConfigAddon
+
+```{eval-rst}
+.. currentmodule:: jupyterlite_pyodide_lock
+.. automodule:: jupyterlite_pyodide_lock.addons.fix_html_config
+```
+
 ## Lockers
 
 ### BrowserLocker

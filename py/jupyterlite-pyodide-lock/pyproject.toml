@@ -47,6 +47,7 @@ Source = "https://github.com/deathbeds/jupyterlite-pyodide-lock/tree/main"
 jupyter-pyodide-lock = "jupyterlite_pyodide_lock.app:main"
 
 [project.entry-points."jupyterlite.addon.v0"]
+fix-html-config = "jupyterlite_pyodide_lock.addons.fix_html_config:FixHtmlConfigAddon"
 jupyterlite-pyodide-lock = "jupyterlite_pyodide_lock.addons.lock:PyodideLockAddon"
 jupyterlite-pyodide-lock-offline = "jupyterlite_pyodide_lock.addons.offline:PyodideLockOfflineAddon"
 

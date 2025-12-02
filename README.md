@@ -115,9 +115,9 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
     - conda-forge
     - nodefaults
   dependencies:
-    - ipywidgets ==8.1.5
-    - jupyterlite-core ==0.5.1
-    - jupyterlite-pyodide-kernel ==0.5.2
+    - ipywidgets ==8.1.8
+    - jupyterlite-core ==0.7.0
+    - jupyterlite-pyodide-kernel ==0.7.0
     - jupyterlite-pyodide-lock-recommended ==0.1.2
   ```
 
@@ -144,11 +144,8 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
     "PyodideLockAddon": {
       "enabled": true,
       "constraints": ["traitlets ==5.14.3"],
-      "specs": ["ipywidgets ==8.1.5"],
-      "extra_preload_packages": ["ipywidgets"],
-      "bootstrap_wheels": [
-        "https://files.pythonhosted.org/packages/py3/m/micropip/micropip-0.9.0-py3-none-any.whl"
-      ]
+      "specs": ["ipywidgets ==8.1.8"],
+      "extra_preload_packages": ["ipywidgets"]
     },
     "PyodideLockOfflineAddon": {
       "enabled": true
@@ -157,7 +154,7 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
   ```
 
   - _note the tight `ipywidgets` pin, ensuring compatibility with the build environment_
-  - _while not required, the `constraints` option allows for controlling transient
+  - _while not required, the `constraints` option allows for controlling transitive
     dependencies_
     - _this feature requires `micropip >=0.9.0`, which is only compatible with
       `pyodide >=0.27`_
