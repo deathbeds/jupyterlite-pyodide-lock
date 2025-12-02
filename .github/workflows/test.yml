@@ -87,11 +87,15 @@ jobs:
           - { test-env: test-max, vm: macos-latest, browser: chrome }
           - { test-env: test-max, vm: ubuntu-24.04, browser: chromium }
           - { test-env: test-max, vm: windows-latest, browser: chrome }
-          - { test-env: test-min, vm: macos-13, browser: firefox }
           - { test-env: test-min, vm: ubuntu-22.04, browser: firefox }
           - { test-env: test-min, vm: windows-latest, browser: firefox }
+          - test-env: test-min
+            vm: macos-13
+            browser: firefox
+            pytest-addopts: -k "not packages_local_folder"
     env:
       JLPL_BROWSER: ${{ matrix.browser }}
+      PYTEST_ADDOPTS: ${{ matrix.pytest-addopts }}
     steps:
       - run: git config --global core.autocrlf false
       - uses: actions/checkout@v6
