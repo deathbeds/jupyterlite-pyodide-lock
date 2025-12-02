@@ -47,6 +47,7 @@ if TYPE_CHECKING:
 
     TLiteRunResult = tuple[int, str | None]
 
+CI = os.environ.get("CI") is not None
 
 HERE = Path(__file__).parent
 PKG = HERE.parent
@@ -296,10 +297,17 @@ class LiteRunner:
             print("[rc]", proc.returncode)
             if proc.returncode == expect_rc:
                 return
-            lines = "\n".join(text.splitlines()[-20:])
-            msg = f"{lines} Unexpected return code {rc}: see {log.as_uri()}"
+            num_lines = 0 if CI else -20
+            lines = textwrap.indent("\n".join(text.splitlines()[num_lines:]), "\t")
+            msg = f"""{log}
+
+                {lines}
+
+            """
             print(msg, file=sys.stderr)
-            assert rc == expect_rc
+            assert rc == expect_rc, (
+                f"""Unexpected return code {rc}: see {log.as_uri()}"""
+            )
 
         if expect_text:
             assert expect_text in text

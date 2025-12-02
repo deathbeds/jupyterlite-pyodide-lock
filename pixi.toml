@@ -605,6 +605,7 @@ types-psutil = "*"
 jupyter_server = ">=2"
 pytest = ">=8,<9"
 pytest-cov = ">=7"
+pytest-github-actions-annotate-failures = ">=0.3.0"
 pytest-html = ">=4"
 
 [feature.deps-firefox.dependencies]
