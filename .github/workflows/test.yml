@@ -77,7 +77,8 @@ jobs:
       - run: pixi run lint
 
   test:
-    name: ${{ matrix.test-env }} (${{ matrix.vm }} ${{ matrix.browser }})
+    name:
+      ${{ matrix.os }} ${{ matrix.test-env }} ${{ matrix.pkg }} (${{ matrix.browser }})
     needs: [build-pypi]
     runs-on: ${{ matrix.vm }}
     strategy:
@@ -85,14 +86,14 @@ jobs:
       matrix:
         os: [osx, win, linux]
         pkg: [wd, core]
-        test-env: [test-max, test-min]
+        test-env: [max, min]
         include:
-          - { test-env: test-max, os: osx, vm: macos-latest, browser: chrome }
-          - { test-env: test-max, os: linux, vm: ubuntu-24.04, browser: chromium }
-          - { test-env: test-max, os: win, vm: windows-latest, browser: chrome }
-          - { test-env: test-min, os: osx, vm: macos-13, browser: firefox }
-          - { test-env: test-min, os: linux, vm: ubuntu-22.04, browser: firefox }
-          - { test-env: test-min, os: win, vm: windows-latest, browser: firefox }
+          - { test-env: max, os: osx, vm: macos-latest, browser: chrome }
+          - { test-env: max, os: linux, vm: ubuntu-24.04, browser: chromium }
+          - { test-env: max, os: win, vm: windows-latest, browser: chrome }
+          - { test-env: min, os: osx, vm: macos-13, browser: firefox }
+          - { test-env: min, os: linux, vm: ubuntu-22.04, browser: firefox }
+          - { test-env: min, os: win, vm: windows-latest, browser: firefox }
     env:
       JLPL_BROWSER: ${{ matrix.browser }}
     steps:
@@ -102,7 +103,7 @@ jobs:
         with:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true
-          environments: build ${{ matrix.test-env }}
+          environments: build test-${{ matrix.test-env }}
       - name: download dist
         uses: actions/download-artifact@v6
         with:
@@ -113,14 +114,14 @@ jobs:
         with:
           name: jlpl-${{ github.run_number }}-build
           path: .pixi/task-cache-v0
-      - run: pixi run -v ${{ matrix.test-env }}-pip
-      - run: pixi run ${{ matrix.test-env }}-cli
-      - run: pixi run ${{ matrix.test-env }}-${{ matrix.pkg }}
+      - run: pixi run -v test-${{ matrix.test-env }}-pip
+      - run: pixi run test-${{ matrix.test-env }}-cli
+      - run: pixi run test-${{ matrix.test-env }}-${{ matrix.pkg }}
       - if: always()
         uses: actions/upload-artifact@v5
         with:
           name: |-
-            jlpl-${{ github.run_number }}-${{ matrix.test-env }}-${{ matrix.vm }}
+            jlpl-${{ github.run_number }}-${{ matrix.os }}-${{ matrix.test-env }}-${{ matrix.pkg }}
           path: |
             .pixi/task-cache-v0
             build/reports
