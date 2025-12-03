@@ -1,18 +1,19 @@
-"""Utilities for working with the Warehouse API, and browsers."""
+"""Utilities for ``psutil``, the PyPI Warehouse API, and browsers."""
 # Copyright (c) jupyterlite-pyodide-lock contributors.
 # Distributed under the terms of the BSD-3-Clause License.
 
 from __future__ import annotations
 
-import logging
+import contextlib
 import os
 import shutil
 import socket
 from datetime import datetime, timezone
+from logging import Logger, getLogger
 from pathlib import Path
 from urllib.parse import urlparse
 
-import psutil
+from psutil import NoSuchProcess, Process, wait_procs
 
 from .constants import (
     BROWSER_BIN_ALIASES,
@@ -28,7 +29,14 @@ from .constants import (
     WIN_PROGRAM_FILES_DIRS,
 )
 
-logger = logging.getLogger(__name__)
+#: some processes
+TProcs = list[Process]
+
+#: the returned
+TWaitProcs = tuple[TProcs, TProcs]
+
+#: a fallback logger
+_log = getLogger(__name__)
 
 
 def warehouse_date_to_epoch(iso8601_str: str) -> int:
@@ -55,8 +63,9 @@ def epoch_to_warehouse_date(epoch: int) -> str:
     )
 
 
-def find_browser_binary(browser_binary: str, log: logging.Logger = logger) -> str:
+def find_browser_binary(browser_binary: str, log: Logger | None) -> str:
     """Resolve an absolute path to a browser binary."""
+    log = log or _log
     path_var = get_browser_search_path()
 
     exe: str | None = None
@@ -135,18 +144,11 @@ def get_unused_port(host: str = LOCALHOST) -> int:
     return int(port)
 
 
-def terminate_all(
-    *parents: psutil.Process,
-    log: logging.Logger | None = None,
-) -> tuple[list[psutil.Process], list[psutil.Process]]:
-    """Terminate a processes and their children and wait for them to exit."""
-    log = log or logger
-    procs = [
-        *[
-            p
-            for parent in parents
-            for p in (parent.children(recursive=True) if parent else [])
-        ],
+def terminate_all(*parents: Process, log: Logger | None = None) -> TWaitProcs:
+    """Terminate processes and their children and wait for them to exit."""
+    log = log or _log
+    procs: list[Process] = [
+        *[child for parent in parents for child in find_children(parent)],
         *parents,
     ]
 
@@ -157,13 +159,19 @@ def terminate_all(
         log.warning("stopping process %s", p)
         try:
             p.terminate()
-        except psutil.NoSuchProcess:  # pragma: no cover
+        except NoSuchProcess:  # pragma: no cover
             log.debug("was already stopped %s", p)
 
-    result: tuple[list[psutil.Process], list[psutil.Process]] = psutil.wait_procs(
-        r for r in procs if r.is_running()
-    )
-    return result
+    return wait_procs(r for r in procs if r.is_running())
+
+
+def find_children(parent: Process | None) -> TProcs:
+    """Try to find children processes."""
+    children: list[Process] = []
+    if parent:
+        with contextlib.suppress(NoSuchProcess):
+            children = parent.children(recursive=True)
+    return children
 
 
 def url_wheel_filename(url_or_name: str) -> str | None:

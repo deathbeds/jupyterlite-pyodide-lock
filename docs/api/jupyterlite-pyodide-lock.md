@@ -47,3 +47,19 @@
 .. currentmodule:: jupyterlite_pyodide_lock
 .. automodule:: jupyterlite_pyodide_lock.lockers.tornado
 ```
+
+## Miscellaneous
+
+### Constants
+
+```{eval-rst}
+.. currentmodule:: jupyterlite_pyodide_lock
+.. automodule:: jupyterlite_pyodide_lock.constants
+```
+
+### Utilities
+
+```{eval-rst}
+.. currentmodule:: jupyterlite_pyodide_lock
+.. automodule:: jupyterlite_pyodide_lock.utils
+```

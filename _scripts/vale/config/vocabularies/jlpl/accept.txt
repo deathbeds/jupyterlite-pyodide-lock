@@ -20,7 +20,7 @@ _.+_
 args
 async
 base_url
-browser_(argv|path)
+browser_(argv|path|binary)
 builtins
 cache_(dir|root)
 CDN
@@ -47,6 +47,8 @@ labextensions
 leaf_included
 libs
 lifecycle
+LOCK_HTML
+LOCKER_ENTRYPOINT
 lock_dir
 lockfile
 mamba/conda
@@ -88,10 +90,10 @@ str
 Subclasses
 subprocess
 sys\.modules
+T(Wait|Procs|Handler)
 TBD
 temp_profile
 templated
-THandler
 tornado_settings
 TornadoLoacker
 trait_name
