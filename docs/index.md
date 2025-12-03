@@ -21,8 +21,8 @@
   - doesn't require rebuilding a full custom `pyodide` distribution
     - but will patch a custom deployed `pyodide`
     - all downloaded wheels can be optionally shipped along with the application
-  - optionally age gate PyPI packages to a known timestamp to ensure newer packages aren't
-    found during a future solve
+  - optionally age gate PyPI packages to a known timestamp to ensure newer packages
+    aren't found during a future solve
   - supports multiple sources of custom wheels and dependencies
 
 ### Feature Comparison

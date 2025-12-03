@@ -27,14 +27,27 @@ View the full documentation on [ReadTheDocs][rtfd].
 
 ## Overview
 
-`jupyterlite-pyodide-lock` avoids **run time** `pyodide` and `jupyterlite` package
-management ambiguity by using a full web browser at **build time** to customize a
-`pyodide-lock.json`.
+`jupyterlite-pyodide-lock` avoids **run time** [`jupyterlite-pyodide-kernel`][jlpk]
+package management ambiguity with a **build time** `package-lock.json`, built in a full
+web browser.
+
+This works by:
+
+- downloading a `pyodide-lock.json`
+- running a minimal `pyodide` runtime in a browser managed by Python
+  - _(optional) or `selenium`_
+- installing a configurable set of packages from the build environment, PyPI, or
+  elsewhere
+- returning the list to build a new `package-lock.json`
+  - _(optional) copying all downloaded wheels to be served along with the site_
+- configuring [`jupyterlite-pyodide-kernel`][jlpk] to use the new `pyodide-lock.json`
+  - _(optional) rewriting other generated `jupyter-config-data` in JupyterLite app
+    pages_
 
 ## Examples
 
 Use `jupyterlite-pyodide-lock` to [minimally](#minimal-example) provide a more
-controlled baseline `pyodide` runtime environment, or ensure complex dependencies like
+predictable baseline `pyodide` runtime environment, or ensure complex dependencies like
 [widgets](#widgets-example) are consistent over time.
 
 ### Minimal Example
