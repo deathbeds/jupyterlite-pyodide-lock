@@ -10,18 +10,18 @@
 
 ## Why Use This?
 
-- in the browser
+- in a user's browser
   - fetches `pyodide-kernel`, its dependencies, and configured packages in parallel
     while `pyodide` is starting, skipping `micropip.install` and its requests to the
     PyPI API
   - doesn't require `%pip install` for locked packages and their dependencies
     - notebooks and scripts still need to be well-formed, e.g. `import my_package`
     - once shipped, package versions loaded in the browser won't change over time
-- during a build
+- in a site owner's build environment
   - doesn't require rebuilding a full custom `pyodide` distribution
-    - but will patch an custom deployed `pyodide`
+    - but will patch a custom deployed `pyodide`
     - all downloaded wheels can be optionally shipped along with the application
-  - optionally clamp PyPI packages to a known timestamp to ensure newer packages aren't
+  - optionally age gate PyPI packages to a known timestamp to ensure newer packages aren't
     found during a future solve
   - supports multiple sources of custom wheels and dependencies
 
@@ -43,8 +43,8 @@ requires some trades of simplicity, reproducibility, flexibility, and performanc
 | feature                               | `jupyterlite-pyodide-lock` | `piplite`    | [jupyterlite-xeus] | [micropip]  |
 | :------------------------------------ | -------------------------- | ------------ | ------------------ | ----------- |
 | needs separate `install` and `import` | no (for locked packages)   | yes (`%pip`) | no                 | no          |
-| allows install by PyPI name           | yes                        | yes          | yes                | yes         |
-| allows install from URL               | yes                        | yes          | no                 | yes         |
+| allows runtime install by PyPI name   | yes                        | yes          | yes                | yes         |
+| allows runtime install from URL       | yes                        | yes          | no                 | yes         |
 | blocks interaction per package        | run cell                   | run cell     | start kernel       | run cell    |
 | caches in the browser                 | per package                | per package  | whole environment  | per package |
 
@@ -54,15 +54,15 @@ requires some trades of simplicity, reproducibility, flexibility, and performanc
 
 <summary>An <b>author</b> of a JupyterLite site may have additional needs...</summary>
 
-| feature                                 | `jupyterlite-pyodide-lock`       | `piplite` | [jupyterlite-xeus]  | [pyodide-build]  |
-| :-------------------------------------- | -------------------------------- | --------- | ------------------- | ---------------- |
-| requires "heavy" build dependencies     | real browser (and/or `selenium`) | no        | minimal, _see repo_ | many, _see repo_ |
-| ships local wheels                      | yes                              | yes       | maybe?              | yes              |
-| ships noarch PyPI wheels                | yes                              | yes       | yes                 | yes              |
-| ships pyodide emscripten wheels         | yes                              | yes       | no                  | yes              |
-| ships arbitrary pyodide zip C libs      | no                               | yes       | no                  | yes              |
-| locks multiple versions of same package | no                               | yes       | no                  | no               |
-| optionally clamp to a timestamp         | yes                              | no        | no                  | no               |
+| feature                                 | `jupyterlite-pyodide-lock`            | `piplite` | [jupyterlite-xeus]  | [pyodide-build]  |
+| :-------------------------------------- | ------------------------------------- | --------- | ------------------- | ---------------- |
+| requires "heavy" build dependencies     | yes, (real browser and/or `selenium`) | no        | minimal, _see repo_ | many, _see repo_ |
+| ships local wheels                      | yes                                   | yes       | yes                 | yes              |
+| ships noarch PyPI wheels                | yes                                   | yes       | yes                 | yes              |
+| ships pyodide emscripten wheels         | yes                                   | yes       | no                  | yes              |
+| ships arbitrary pyodide zip C libs      | no                                    | yes       | no                  | yes              |
+| ships multiple versions of same package | no                                    | yes       | no                  | no               |
+| age gates dependencies                  | yes (optional)                        | no        | no                  | n/a              |
 
 </details>
 
