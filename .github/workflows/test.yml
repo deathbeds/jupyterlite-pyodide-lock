@@ -91,7 +91,7 @@ jobs:
           - { test-env: max, os: osx, vm: macos-latest, browser: chrome }
           - { test-env: max, os: linux, vm: ubuntu-24.04, browser: chromium }
           - { test-env: max, os: win, vm: windows-latest, browser: chrome }
-          - { test-env: min, os: osx, vm: macos-13, browser: firefox }
+          - { test-env: min, os: osx, vm: macos-13, browser: chrome }
           - { test-env: min, os: linux, vm: ubuntu-22.04, browser: firefox }
           - { test-env: min, os: win, vm: windows-latest, browser: firefox }
     env:
