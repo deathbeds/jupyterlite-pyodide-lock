@@ -71,7 +71,7 @@ class BaseLocker(LoggingConfigurable):
         self.log.info("Resolving with %s second deadline", self.timeout)
         try:
             return await asyncio.wait_for(self.resolve(), self.timeout)
-        except TimeoutError:  # pragma: no cover
+        except asyncio.TimeoutError:  # pragma: no cover
             self.log.exception("Failed to lock within %s seconds", self.timeout)
         return None
 
