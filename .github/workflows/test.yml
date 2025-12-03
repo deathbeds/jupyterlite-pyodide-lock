@@ -83,14 +83,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [osx, win, linux]
         pkg: [wd, core]
+        test-env: [test-max, test-min]
         include:
-          - { test-env: test-max, vm: macos-latest, browser: chrome }
-          - { test-env: test-max, vm: ubuntu-24.04, browser: chromium }
-          - { test-env: test-max, vm: windows-latest, browser: chrome }
-          - { test-env: test-min, vm: macos-13, browser: firefox }
-          - { test-env: test-min, vm: ubuntu-22.04, browser: firefox }
-          - { test-env: test-min, vm: windows-latest, browser: firefox }
+          - { test-env: test-max, os: osx, vm: macos-latest, browser: chrome }
+          - { test-env: test-max, os: linux, vm: ubuntu-24.04, browser: chromium }
+          - { test-env: test-max, os: win, vm: windows-latest, browser: chrome }
+          - { test-env: test-min, os: osx, vm: macos-13, browser: firefox }
+          - { test-env: test-min, os: linux, vm: ubuntu-22.04, browser: firefox }
+          - { test-env: test-min, os: win, vm: windows-latest, browser: firefox }
     env:
       JLPL_BROWSER: ${{ matrix.browser }}
     steps:
