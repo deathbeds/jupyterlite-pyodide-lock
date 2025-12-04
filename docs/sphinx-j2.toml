@@ -5,7 +5,8 @@ ppt = "../py/jupyterlite-pyodide-lock/pyproject.toml"
 [intersphinx]
 jupyterlite_core = "https://jupyterlite.readthedocs.io/en/stable"
 jupyterlite_pyodide_kernel = "https://jupyterlite-pyodide-kernel.readthedocs.io/en/stable"
-psutil = "https://psutil.readthedocs.io/en/stable/"
+micropip = "https://micropip.pyodide.org/en/stable"
+psutil = "https://psutil.readthedocs.io/en/stable"
 python = "https://docs.python.org/3"
 traitlets = "https://traitlets.readthedocs.io/en/stable"
 
@@ -23,6 +24,7 @@ extensions = [
   "sphinx_copybutton",
   "autodoc_traits",
   "sphinx.ext.coverage",
+  "sphinx_tippy",
 ]
 language = "en"
 project = "{{ ppt.project.name }}"

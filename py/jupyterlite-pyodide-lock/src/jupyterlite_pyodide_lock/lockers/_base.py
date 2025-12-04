@@ -24,7 +24,7 @@ class BaseLocker(LoggingConfigurable):
     """Common traits and methods for 'pyodide-lock.json' resolving strategies."""
 
     # configurables
-    extra_micropip_args = Dict(help="options for 'micropip.install'").tag(config=True)
+    extra_micropip_args = Dict(help="options for ``micropip.install``").tag(config=True)
     pyodide_cdn_url = Unicode(
         f"https://cdn.jsdelivr.net/pyodide/v{PYODIDE_VERSION}/full",
         help=(

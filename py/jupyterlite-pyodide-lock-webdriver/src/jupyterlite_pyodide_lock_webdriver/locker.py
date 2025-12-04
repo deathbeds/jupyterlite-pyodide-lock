@@ -33,10 +33,10 @@ class WebDriverLocker(TornadoLocker):
         default_value=True, help="run the browser in headless mode"
     ).tag(config=True)  # type: ignore[assignment]
     browser_path: str = Unicode(
-        help="an absolute path to a browser, if not well-known or on PATH",
+        help="an absolute path to a browser, if not well-known or on ``$PATH``",
     ).tag(config=True)  # type: ignore[assignment]
     webdriver_path: str = Unicode(
-        help="an absolute path to a driver, if not well-known or on PATH",
+        help="an absolute path to a driver, if not well-known or on ``$PATH``",
     ).tag(config=True)  # type: ignore[assignment]
     webdriver_service_args: list[str] = List(
         Unicode(), help="arguments for the webdriver binary"

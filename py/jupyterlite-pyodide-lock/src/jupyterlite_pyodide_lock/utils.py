@@ -106,7 +106,7 @@ def find_browser_binary(browser_binary: str, log: Logger | None) -> str:
                     break
 
     if exe is None or not Path(exe).exists():  # pragma: no cover
-        log.warning("[browser] no '%s' on PATH (or other means)", browser_binary)
+        log.warning("[browser] no '%s' on $PATH (or other means)", browser_binary)
         msg = f"No browser found for '{browser_binary}'"
         raise ValueError(msg)
 
@@ -114,7 +114,7 @@ def find_browser_binary(browser_binary: str, log: Logger | None) -> str:
 
 
 def get_browser_search_path() -> str:  # pragma: no cover
-    """Append well-known browser locations to PATH."""
+    """Append well-known browser locations to ``$PATH``."""
     paths = [os.environ["PATH"]]
 
     if WIN:

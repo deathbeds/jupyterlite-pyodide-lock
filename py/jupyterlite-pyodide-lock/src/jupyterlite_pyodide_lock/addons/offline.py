@@ -75,7 +75,8 @@ class PyodideLockOfflineAddon(BaseAddon):
     def _default_includes(self) -> tuple[str, ...]:
         """Provide default patterns of package names to always include.
 
-        The list of default packages are buried inside `jupyterlite-pyodide-kernel`:
+        The list of default packages are buried inside the TypeScript side
+        of ``jupyterlite-pyodide-kernel``:
 
         * ``packages/pyodide-kernel/src/worker.ts:initKernel``
 

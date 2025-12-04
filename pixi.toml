@@ -647,6 +647,7 @@ scour = "*"
 sphinx = "*"
 sphinx-autodoc-typehints = "*"
 sphinx-copybutton = "*"
+sphinx-tippy = "*"
 
 [feature.deps-check.dependencies]
 pytest-check-links = "*"
