@@ -24,10 +24,13 @@ class BaseLocker(LoggingConfigurable):
     """Common traits and methods for 'pyodide-lock.json' resolving strategies."""
 
     # configurables
-    extra_micropip_args = Dict(help="options for 'micropip.install'").tag(config=True)
+    extra_micropip_args = Dict(help="options for ``micropip.install``").tag(config=True)
     pyodide_cdn_url = Unicode(
         f"https://cdn.jsdelivr.net/pyodide/v{PYODIDE_VERSION}/full",
-        help="remote URL for the version of a full pyodide distribution",
+        help=(
+            "remote URL for the version of a full pyodide distribution;"
+            " defaults to the version provided by ``jupyterlite_pyodide_kernel``"
+        ),
     ).tag(config=True)
     pypi_api_url = Unicode(
         "https://pypi.org/pypi",
@@ -70,9 +73,10 @@ class BaseLocker(LoggingConfigurable):
         """
         self.log.info("Resolving with %s second deadline", self.timeout)
         try:
-            await asyncio.wait_for(self.resolve(), self.timeout)
-        except TimeoutError:  # pragma: no cover
+            return await asyncio.wait_for(self.resolve(), self.timeout)
+        except asyncio.TimeoutError:  # pragma: no cover
             self.log.exception("Failed to lock within %s seconds", self.timeout)
+        return None
 
     async def resolve(self) -> bool | None:  # pragma: no cover
         """Asynchronous solve.

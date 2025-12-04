@@ -41,7 +41,7 @@ class BaseAddon(_BaseAddon):  # type: ignore[misc]
     # traits
     enabled: bool = Bool(
         default_value=False,
-        help="whether 'pyodide-lock' integration is enabled",
+        help="whether ``pyodide-lock`` integration is enabled",
     ).tag(config=True)  # type: ignore[assignment]
 
     # properties
@@ -69,17 +69,17 @@ class BaseAddon(_BaseAddon):  # type: ignore[misc]
 
     @property
     def output_dir(self) -> Path:
-        """Provide `jupyterlite_core.addons.base.LiteBuildConfig.output_dir`."""
+        """Provide ``jupyterlite_core.addons.base.LiteBuildConfig.output_dir``."""
         return Path(self.manager.output_dir)
 
     @property
     def lite_dir(self) -> Path:
-        """Provide `jupyterlite_core.addons.base.LiteBuildConfig.lite_dir`."""
+        """Provide ``jupyterlite_core.addons.base.LiteBuildConfig.lite_dir``."""
         return Path(self.manager.lite_dir)
 
     @property
     def cache_dir(self) -> Path:
-        """Provide `jupyterlite_core.addons.base.LiteBuildConfig.cache_dir`."""
+        """Provide ``jupyterlite_core.addons.base.LiteBuildConfig.cache_dir``."""
         return Path(self.manager.cache_dir)
 
     @property

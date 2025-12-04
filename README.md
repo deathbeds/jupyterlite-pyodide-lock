@@ -27,14 +27,27 @@ View the full documentation on [ReadTheDocs][rtfd].
 
 ## Overview
 
-`jupyterlite-pyodide-lock` avoids **run time** `pyodide` and `jupyterlite` package
-management ambiguity by using a full web browser at **build time** to customize a
-`pyodide-lock.json`.
+`jupyterlite-pyodide-lock` avoids **run time** [`jupyterlite-pyodide-kernel`][jlpk]
+package management ambiguity with a **build time** `package-lock.json`, built in a full
+web browser.
+
+This works by:
+
+- downloading a `pyodide-lock.json`
+- running a minimal `pyodide` runtime in a browser managed by Python
+  - _(optional) or `selenium`_
+- installing a configurable set of packages from the build environment, PyPI, or
+  elsewhere
+- returning the list to build a new `package-lock.json`
+  - _(optional) copying all downloaded wheels to be served along with the site_
+- configuring [`jupyterlite-pyodide-kernel`][jlpk] to use the new `pyodide-lock.json`
+  - _(optional) rewriting other generated `jupyter-config-data` in JupyterLite app
+    pages_
 
 ## Examples
 
 Use `jupyterlite-pyodide-lock` to [minimally](#minimal-example) provide a more
-controlled baseline `pyodide` runtime environment, or ensure complex dependencies like
+predictable baseline `pyodide` runtime environment, or ensure complex dependencies like
 [widgets](#widgets-example) are consistent over time.
 
 ### Minimal Example
@@ -51,9 +64,9 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
 - make a `requirements.txt`
 
   ```text
-  jupyterlite-core ==0.5.1
-  jupyterlite-pyodide-kernel ==0.5.2
-  jupyterlite-pyodide-lock ==0.1.2
+  jupyterlite-core ==0.7.0
+  jupyterlite-pyodide-kernel ==0.7.0
+  jupyterlite-pyodide-lock ==0.2.0
   ```
 
 - Run:
@@ -115,10 +128,10 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
     - conda-forge
     - nodefaults
   dependencies:
-    - ipywidgets ==8.1.5
-    - jupyterlite-core ==0.5.1
-    - jupyterlite-pyodide-kernel ==0.5.2
-    - jupyterlite-pyodide-lock-recommended ==0.1.2
+    - ipywidgets ==8.1.8
+    - jupyterlite-core ==0.7.0
+    - jupyterlite-pyodide-kernel ==0.7.0
+    - jupyterlite-pyodide-lock-recommended ==0.2.0
   ```
 
   - _the `-recommended` package includes `firefox` and `geckodriver`_
@@ -144,11 +157,8 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
     "PyodideLockAddon": {
       "enabled": true,
       "constraints": ["traitlets ==5.14.3"],
-      "specs": ["ipywidgets ==8.1.5"],
-      "extra_preload_packages": ["ipywidgets"],
-      "bootstrap_wheels": [
-        "https://files.pythonhosted.org/packages/py3/m/micropip/micropip-0.9.0-py3-none-any.whl"
-      ]
+      "specs": ["ipywidgets ==8.1.8"],
+      "extra_preload_packages": ["ipywidgets"]
     },
     "PyodideLockOfflineAddon": {
       "enabled": true
@@ -157,7 +167,7 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
   ```
 
   - _note the tight `ipywidgets` pin, ensuring compatibility with the build environment_
-  - _while not required, the `constraints` option allows for controlling transient
+  - _while not required, the `constraints` option allows for controlling transitive
     dependencies_
     - _this feature requires `micropip >=0.9.0`, which is only compatible with
       `pyodide >=0.27`_
@@ -184,7 +194,6 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
 
 - visit the site at `http://127.0.0.1:8000/`
 - make a new Notebook
-
   - see that `ipywidgets` can be imported, and widgets work:
 
     ```python
@@ -203,7 +212,6 @@ controlled baseline `pyodide` runtime environment, or ensure complex dependencie
   packages _not_ included in `pyodide-lock.json`. These may be served along with an HTML
   page, downloaded from PyPI, or anywhere on the internet. `jupyterlite-pyodide-kernel`
   uses this capability to install itself, and its dependencies.
-
   - At run time, `piplite` provides a `micropip`-based shim for the IPython `%pip`
     magic, the most portable approach for interactive package management in Notebook
     documents.

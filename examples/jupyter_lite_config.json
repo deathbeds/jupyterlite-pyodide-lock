@@ -1,16 +1,24 @@
 {
   "LiteBuildConfig": {
     "cache_dir": "../build/.cache/lite",
-    "output_dir": "../build/docs-app"
+    "output_dir": "../build/docs-app",
+    "apps": ["consoles", "edit", "tree", "lab", "notebooks", "repl", "voici"],
+    "strict": true
   },
   "PyodideLockAddon": {
     "enabled": true,
     "locker": "BrowserLocker",
+    "packages": [
+      "https://files.pythonhosted.org/packages/py3/i/ipython/ipython-9.8.0-py3-none-any.whl",
+      "https://files.pythonhosted.org/packages/py3/m/matplotlib-inline/matplotlib_inline-0.2.1-py3-none-any.whl"
+    ],
     "specs": ["ipywidgets >=8.1.2,<8.1.3"],
-    "constraints": ["traitlets <5.14.3"],
-    "bootstrap_wheels": [
-      "https://files.pythonhosted.org/packages/py3/m/micropip/micropip-0.9.0-py3-none-any.whl"
-    ]
+    "constraints": ["traitlets <5.14.3"]
+  },
+  "FixHtmlConfigAddon": {
+    "enabled": true,
+    "task_dep": ["post_build:voici:voici:update_index:{output_dir}"],
+    "file_dep": ["voici/render/**/*.html"]
   },
   "PyodideLockOfflineAddon": {
     "enabled": true,

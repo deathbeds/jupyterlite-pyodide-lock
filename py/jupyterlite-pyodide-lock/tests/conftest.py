@@ -47,6 +47,7 @@ if TYPE_CHECKING:
 
     TLiteRunResult = tuple[int, str | None]
 
+CI = os.environ.get("CI") is not None
 
 HERE = Path(__file__).parent
 PKG = HERE.parent
@@ -117,17 +118,19 @@ EXPECT_WIDGETS_RUN = [
 CUSTOM_EXPECT_RUNNABLE: dict[str, list[tuple[str, str]]] = {}
 
 IS_PYODIDE_027 = Version(PYODIDE_VERSION) >= Version("0.27")
+IS_PYODIDE_029 = Version(PYODIDE_VERSION) >= Version("0.29")
 
 if IS_PYODIDE_027:
-    MICROPIP_09_WHEEL = "micropip-0.9.0-py3-none-any.whl"
-    MICROPIP_09_URL = f"{PY_HOSTED}/m/micropip/{MICROPIP_09_WHEEL}"
+    MICROPIP_VERSION = "0.11.0" if IS_PYODIDE_029 else "0.9.0"
+    MICROPIP_WHEEL = f"micropip-{MICROPIP_VERSION}-py3-none-any.whl"
+    MICROPIP_URL = f"{PY_HOSTED}/m/micropip/{MICROPIP_WHEEL}"
     OLD_TRAITLETS_VERSION = "5.14.2"
     OLD_TRAITLETS_SPEC = "traitlets <5.14.3"
 
     WIDGETS_CONFIG.update(
         constraints_09={
             "packages": [WIDGETS_WHEEL],
-            "bootstrap_wheels": [MICROPIP_09_URL],
+            "bootstrap_wheels": [MICROPIP_URL],
             "constraints": [OLD_TRAITLETS_SPEC],
         }
     )
@@ -294,10 +297,17 @@ class LiteRunner:
             print("[rc]", proc.returncode)
             if proc.returncode == expect_rc:
                 return
-            lines = "\n".join(text.splitlines()[-20:])
-            msg = f"{lines} Unexpected return code {rc}: see {log.as_uri()}"
+            num_lines = 0 if CI else -20
+            lines = textwrap.indent("\n".join(text.splitlines()[num_lines:]), "\t")
+            msg = f"""{log}
+
+                {lines}
+
+            """
             print(msg, file=sys.stderr)
-            assert rc == expect_rc
+            assert rc == expect_rc, (
+                f"""Unexpected return code {rc}: see {log.as_uri()}"""
+            )
 
         if expect_text:
             assert expect_text in text

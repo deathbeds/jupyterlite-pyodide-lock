@@ -75,7 +75,8 @@ class PyodideLockOfflineAddon(BaseAddon):
     def _default_includes(self) -> tuple[str, ...]:
         """Provide default patterns of package names to always include.
 
-        The list of default packages are buried inside `jupyterlite-pyodide-kernel`:
+        The list of default packages are buried inside the TypeScript side
+        of ``jupyterlite-pyodide-kernel``:
 
         * ``packages/pyodide-kernel/src/worker.ts:initKernel``
 
@@ -129,6 +130,7 @@ class PyodideLockOfflineAddon(BaseAddon):
                 f"""includes:     {"  ".join(self.all_includes)}""",
                 f"""excludes:     {"  ".join(self.all_excludes)}""",
                 f"""version:      {__version__}""",
+                f"""static path:  {self.lock_output_dir}""",
             ]
             print(indent("\n".join(lines), "    "), flush=True)
 
@@ -195,10 +197,13 @@ class PyodideLockOfflineAddon(BaseAddon):
     ) -> None:
         """Rewrite a single package's info (if needed)."""
         pkg_info = packages[pkg_name]
-        if not re.match(RE_REMOTE_URL, pkg_info["file_name"]):
-            self.log.debug("[offline] [%s] already available locally %s")
+        file_name = pkg_info["file_name"]
+        if not re.match(RE_REMOTE_URL, file_name):
+            self.log.debug(
+                "[offline] [%s] already available locally %s", pkg_name, file_name
+            )
             return
-        url = urllib.parse.urlparse(pkg_info["file_name"])
+        url = urllib.parse.urlparse(file_name)
         whl_name = url.path.split("/")[-1]
         cache_whl = self.package_cache / whl_name
         pyodide_whl = self.pyodide_addon.output_pyodide / whl_name
@@ -211,13 +216,14 @@ class PyodideLockOfflineAddon(BaseAddon):
 
         if not dest.exists():
             if not cache_whl.exists():  # pragma: no cover
-                self.fetch_one(pkg_info["file_name"], cache_whl)
+                self.log.info("[offline] [%s] fetching %s", pkg_name, file_name)
+                self.fetch_one(file_name, cache_whl)
             self.copy_one(cache_whl, dest)
 
         pkg_info["file_name"] = dest_url or f"""{stem}/{whl_name}"""
         old_sha256 = pkg_info["sha256"]
         whl_sha256 = sha256(dest.read_bytes()).hexdigest()
-        if old_sha256 != whl_sha256:
+        if old_sha256 != whl_sha256:  # pragma: no cover
             self.log.warning(
                 "[offline] fixing sha256 for %s: lock:%s observed:%s wheel:%s",
                 pkg_name,
@@ -298,14 +304,12 @@ class PyodideLockOfflineAddon(BaseAddon):
         excludes: list[str],
     ) -> bool:
         """Get the URL and filename if a package should be downloaded."""
-        skip = "[offline] excluding"
-
         if any(re.match(exclude, pkg_name) for exclude in excludes):
-            self.log.debug("%s: excluded file %s [%s]", skip, pkg_name, excludes)
+            self.log.debug("[offline] [%s] explicitly excluded", pkg_name)
             return False
 
         if not any(re.match(include, pkg_name) for include in includes):
-            self.log.debug("%s: not included %s [%s]", skip, pkg_name, includes)
-            return False
+            self.log.debug("[offline] [%s] not included", pkg_name)
+            return True
 
         return True

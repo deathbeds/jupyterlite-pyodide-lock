@@ -1,7 +1,7 @@
 [build-system]
 build-backend = "flit_core.buildapi"
 requires = [
-  "flit_core >=3.9,<4",
+  "flit-core >=3.12.0,<4",
 ]
 
 [project]
@@ -12,28 +12,29 @@ classifiers = [
   "Framework :: Jupyter",
   "Framework :: Jupyter :: JupyterLab",
   "Framework :: Jupyter :: JupyterLab :: 4",
-  "License :: OSI Approved :: BSD License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Typing :: Typed",
 ]
 dependencies = [
-  "jupyterlite-core >=0.3.0,<0.7.0",
-  "jupyterlite-pyodide-kernel >=0.3.1,<0.7.0 ; platform_machine != \"wasm32\"",
+  "jupyterlite-core >=0.3.0,<0.8.0",
+  "jupyterlite-pyodide-kernel >=0.3.1,<0.8.0 ; platform_machine != \"wasm32\"",
   "pyodide-lock[wheel] >=0.1.0a4,<0.2.0",
   "tornado >=6.1.0 ; platform_machine != \"wasm32\"",
   "psutil >=6",
 ]
 description = "Create pre-solved environments for jupyterlite-pyodide-kernel with pyodide-lock"
-license.text = "BSD-3-Clause"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 name = "jupyterlite-pyodide-lock"
 readme = "README.md"
 requires-python = ">=3.10"
-version = "0.1.2"
+version = "0.2.0"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/deathbeds/jupyterlite-pyodide-lock/issues"
@@ -46,6 +47,7 @@ Source = "https://github.com/deathbeds/jupyterlite-pyodide-lock/tree/main"
 jupyter-pyodide-lock = "jupyterlite_pyodide_lock.app:main"
 
 [project.entry-points."jupyterlite.addon.v0"]
+fix-html-config = "jupyterlite_pyodide_lock.addons.fix_html_config:FixHtmlConfigAddon"
 jupyterlite-pyodide-lock = "jupyterlite_pyodide_lock.addons.lock:PyodideLockAddon"
 jupyterlite-pyodide-lock-offline = "jupyterlite_pyodide_lock.addons.offline:PyodideLockOfflineAddon"
 

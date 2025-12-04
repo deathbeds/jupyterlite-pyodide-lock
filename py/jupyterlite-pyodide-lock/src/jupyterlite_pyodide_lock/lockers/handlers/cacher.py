@@ -73,19 +73,21 @@ class CachingRemoteFiles(ExtraMimeFiles):
                     msg = f"Don't know what to do with {type(replacement)}"
                     raise NotImplementedError(msg)
 
-        cache_path.write_bytes(body)
+        await asyncio.get_running_loop().run_in_executor(
+            None, cache_path.write_bytes, body
+        )
 
-    async def fetch_body_with_retries(self, url: str, retries: int = 5) -> bytes:
+    async def fetch_body_with_retries(self, fetch_url: str, retries: int = 5) -> bytes:
         """Fetch the raw bytes of URL with retries.
 
         In the event of a timeout, wait for an increasing number of seconds
         """
-        self.log.debug("[cacher] fetching:    %s", url)
+        self.log.debug("[cacher] fetching:    %s", fetch_url)
         last_error: HTTPError | None = None
         for attempt in range(retries):
             await asyncio.sleep(2**attempt)
             try:
-                res = await self.client.fetch(url)
+                res = await self.client.fetch(fetch_url)
             except HTTPTimeoutError as err:  # pragma: no cover
                 last_error = err
                 continue

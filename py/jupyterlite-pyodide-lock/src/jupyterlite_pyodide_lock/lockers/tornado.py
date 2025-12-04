@@ -181,13 +181,15 @@ class TornadoLocker(BaseLocker):
         found: Path | None = None
         file_name: str = package["file_name"]
 
-        if file_name.startswith(self.base_url):
-            stem = file_name.replace(f"{self.base_url}/", "")
-            if stem.startswith(PROXY):
-                stem = stem.replace(f"{PROXY}/", "")
-                found = self.cache_dir / stem
-            else:
-                found = self.parent.manager.output_dir / stem
+        if not file_name.startswith(self.base_url):  # pragma: no cover
+            return {}
+
+        stem = file_name.replace(f"{self.base_url}/", "")
+        if stem.startswith(PROXY):
+            stem = stem.replace(f"{PROXY}/", "")
+            found = self.cache_dir / stem
+        else:
+            found = self.parent.manager.output_dir / stem
 
         if found and found.exists():
             return {found.name: found}
@@ -237,10 +239,11 @@ class TornadoLocker(BaseLocker):
         root_posix: str,
         lock_dir: Path,
         package: dict[str, Any],
-        found_path: Path,
+        found_path: Path | None,
     ) -> None:
         """Update a ``pyodide-lock`` URL for deployment."""
         file_name = package["file_name"]
+        just_file_name = file_name.rsplit("/")[-1]
         new_file_name = file_name
 
         if found_path:
@@ -254,7 +257,7 @@ class TornadoLocker(BaseLocker):
                 shutil.copy2(found_path, dest)
                 new_file_name = f"../../static/{PYODIDE_LOCK_STEM}/{file_name}"
         else:
-            new_file_name = f"{self.parent.pyodide_cdn_url}/{file_name}"
+            new_file_name = f"{self.parent.pyodide_cdn_url}/{just_file_name}"
 
         if file_name == new_file_name:  # pragma: no cover
             self.log.debug("[tornado] file did not need fixing %s", file_name)

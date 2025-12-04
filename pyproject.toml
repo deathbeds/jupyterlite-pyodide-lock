@@ -3,6 +3,8 @@
 # coverage #####################################################################
 [tool.coverage.run]
 disable_warnings = ["no-data-collected", "module-not-measured"]
+omit = ["*/fix_html_config.py"]
+patch = ["subprocess"]
 
 [tool.coverage.report]
 exclude_lines = [
@@ -84,6 +86,7 @@ ignore = [
   "T201",
   "TRY004",
   "PLC0207",
+  "N812",
 ]
 "**/tests/**/*.py" = [
   "PLC0415",

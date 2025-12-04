@@ -1,4 +1,4 @@
-"""`pyodide-lock.json` resolvers."""
+"""``pyodide-lock.json`` resolvers."""
 # Copyright (c) jupyterlite-pyodide-lock contributors.
 # Distributed under the terms of the BSD-3-Clause License.
 

@@ -15,39 +15,61 @@ env:
   PYTHONUNBUFFERED: 1
   PIP_DISABLE_PIP_VERSION_CHECK: 1
   FORCE_COLOR: 1
-  JLPL_TIMEOUT: 500
-  JLPL_PIXI_VERSION: 0.48.0
+  JLPL_TIMEOUT: 300
+  JLPL_PIXI_VERSION: 0.59.0
 
 jobs:
-  build:
+  build-pypi:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@v0.8.8
+      - uses: actions/checkout@v6
+      - uses: prefix-dev/setup-pixi@v0.9.3
         with:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true
           environments: build
-      - run: pixi run build
+      - run: pixi run build-pypi
       - run: |-
-          mkdir -p build && echo ${{ github.run_number }} \
-          > .pixi/task-cache-v0/.skip-dist
+          mkdir -p build && \
+          echo ${{ github.run_number }} > .pixi/task-cache-v0/.skip-pypi-dist
       - name: upload dist
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
-          name: jlpl-${{ github.run_number }}-dist
+          name: jlpl-${{ github.run_number }}-dist-pypi
           path: dist
       - name: upload build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: jlpl-${{ github.run_number }}-build
           path: .pixi/task-cache-v0
 
+  build-conda:
+    runs-on: ubuntu-24.04
+    needs: [build-pypi]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: prefix-dev/setup-pixi@v0.9.3
+        with:
+          pixi-version: v${{ env.JLPL_PIXI_VERSION }}
+          cache: true
+          environments: rattler
+      - name: download dist
+        uses: actions/download-artifact@v6
+        with:
+          name: jlpl-${{ github.run_number }}-dist-pypi
+          path: dist
+      - run: pixi run build-rattler
+      - name: upload conda dist
+        uses: actions/upload-artifact@v5
+        with:
+          name: jlpl-${{ github.run_number }}-dist-conda
+          path: dist
+
   lint:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@v0.8.8
+      - uses: actions/checkout@v6
+      - uses: prefix-dev/setup-pixi@v0.9.3
         with:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true
@@ -55,77 +77,87 @@ jobs:
       - run: pixi run lint
 
   test:
-    name: ${{ matrix.test-env }} (${{ matrix.vm }} ${{ matrix.browser }})
-    needs: [build]
+    name: |-
+      test ${{ matrix.os }} ${{ matrix.test-env }} (${{ matrix.browser }})
+    needs: [build-pypi]
     runs-on: ${{ matrix.vm }}
     strategy:
       fail-fast: false
       matrix:
+        test-env: [min, max]
+        os: [linux, osx, win]
         include:
-          - { test-env: test-max, vm: macos-latest, browser: chrome }
-          - { test-env: test-max, vm: ubuntu-24.04, browser: chromium }
-          - { test-env: test-max, vm: windows-latest, browser: chrome }
-          - { test-env: test-min, vm: macos-13, browser: firefox }
-          - { test-env: test-min, vm: ubuntu-22.04, browser: firefox }
-          - { test-env: test-min, vm: windows-latest, browser: firefox }
-          - { test-env: test-next, vm: ubuntu-latest, browser: firefox }
+          # see https://github.com/actions/runner-images#available-images
+          - { test-env: max, os: osx, vm: macos-15, browser: chrome }
+          - { test-env: max, os: linux, vm: ubuntu-24.04, browser: chromium }
+          - { test-env: max, os: linux, vm: ubuntu-24.04, browser: firefox }
+          - { test-env: max, os: win, vm: windows-2025, browser: chrome }
+          - { test-env: min, os: osx, vm: macos-13, browser: chrome }
+          - { test-env: min, os: linux, vm: ubuntu-22.04, browser: firefox }
+          - { test-env: min, os: win, vm: windows-2022, browser: firefox }
     env:
       JLPL_BROWSER: ${{ matrix.browser }}
     steps:
       - run: git config --global core.autocrlf false
-      - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@v0.8.8
+      - uses: actions/checkout@v6
+      - uses: prefix-dev/setup-pixi@v0.9.3
         with:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true
-          environments: build ${{ matrix.test-env }}
+          environments: build test-${{ matrix.test-env }}
       - name: download dist
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
-          name: jlpl-${{ github.run_number }}-dist
+          name: jlpl-${{ github.run_number }}-dist-pypi
           path: dist
       - name: download build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: jlpl-${{ github.run_number }}-build
           path: .pixi/task-cache-v0
-      - run: pixi run -v ${{ matrix.test-env }}-pip
-      - run: pixi run ${{ matrix.test-env }}-cli
-      - run: pixi run ${{ matrix.test-env }}-core
-      - run: pixi run ${{ matrix.test-env }}-wd
+      - run: pixi run -v test-${{ matrix.test-env }}-pip
+      - run: pixi run test-${{ matrix.test-env }}-cli
+      - run: pixi run test-${{ matrix.test-env }}-core
       - if: always()
-        uses: actions/upload-artifact@v4
+        run: pixi run test-${{ matrix.test-env }}-wd
+      - if: always()
+        uses: actions/upload-artifact@v5
         with:
           name: |-
-            jlpl-${{ github.run_number }}-${{ matrix.test-env }}-${{ matrix.vm }}
+            jlpl-${{ github.run_number }}-${{ matrix.os }}-${{ matrix.test-env }}
           path: |
             .pixi/task-cache-v0
             build/reports
 
   docs:
     name: docs
-    needs: [build]
+    needs: [build-pypi, build-conda]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@v0.8.8
+      - uses: actions/checkout@v6
+      - uses: prefix-dev/setup-pixi@v0.9.3
         with:
           pixi-version: v${{ env.JLPL_PIXI_VERSION }}
           cache: true
           environments: build docs
       - name: download dist
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
-          name: jlpl-${{ github.run_number }}-dist
+          name: jlpl-${{ github.run_number }}-dist-pypi
+          path: dist
+      - name: download dist
+        uses: actions/download-artifact@v6
+        with:
+          name: jlpl-${{ github.run_number }}-dist-conda
           path: dist
       - name: download builds
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: jlpl-${{ github.run_number }}-build
           path: .pixi/task-cache-v0
       - run: pixi run docs-lite
       - run: pixi run docs-sphinx
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: |-
             jlpl-${{ github.run_number }}-docs
