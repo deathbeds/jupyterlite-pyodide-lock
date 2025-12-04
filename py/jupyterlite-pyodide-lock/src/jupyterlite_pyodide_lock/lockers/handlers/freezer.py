@@ -5,6 +5,8 @@
 from __future__ import annotations
 
 import json
+import textwrap
+from pprint import pformat
 from typing import TYPE_CHECKING, Any
 
 from jupyterlite_core.constants import JSON_FMT, UTF8
@@ -34,8 +36,12 @@ class MicropipFreeze(RequestHandler):
             lockfile.write_text(json.dumps(lock_json, **JSON_FMT), **UTF8)
             self.locker.log.info("[micropip] wrote 'freeze' output to %s", lockfile)
         else:
+            msg = pformat(lock_json)
+            if "error" in lock_json:
+                msg = lock_json["error"]
             self.locker.log.error(
-                "[micropip] unexpected 'freeze' response %s", lock_json
+                "[micropip] unexpected 'freeze' response:\n%s",
+                textwrap.indent(msg, "\t"),
             )
 
         self.locker._solve_halted = True  # noqa: SLF001

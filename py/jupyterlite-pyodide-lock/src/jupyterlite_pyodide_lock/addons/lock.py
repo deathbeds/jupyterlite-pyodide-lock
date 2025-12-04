@@ -96,13 +96,16 @@ class PyodideLockAddon(BaseAddon):
 
     specs: tuple[str] = TypedTuple(
         Unicode(),
-        help="PEP-508 specifications for ``pyodide`` dependencies",
+        help=(
+            "simple PEP-508 specifications for ``pyodide`` dependencies; may "
+            " not be of the form ``name@http:..`` (use ``.packages``)"
+        ),
     ).tag(config=True)
 
     constraints: tuple[str] = TypedTuple(
         Unicode(),
         help=(
-            "PEP-508 specifications that constrain the bootstrap solve."
+            "simple PEP-508 specifications that constrain the bootstrap solve."
             " Requires ``micropip >=0.9.0``."
         ),
     ).tag(config=True)

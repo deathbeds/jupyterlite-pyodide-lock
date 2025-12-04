@@ -129,6 +129,7 @@ class PyodideLockOfflineAddon(BaseAddon):
                 f"""includes:     {"  ".join(self.all_includes)}""",
                 f"""excludes:     {"  ".join(self.all_excludes)}""",
                 f"""version:      {__version__}""",
+                f"""static path:  {self.lock_output_dir}""",
             ]
             print(indent("\n".join(lines), "    "), flush=True)
 
@@ -214,6 +215,7 @@ class PyodideLockOfflineAddon(BaseAddon):
 
         if not dest.exists():
             if not cache_whl.exists():  # pragma: no cover
+                self.log.info("[offline] [%s] fetching %s", pkg_name, file_name)
                 self.fetch_one(file_name, cache_whl)
             self.copy_one(cache_whl, dest)
 
@@ -301,14 +303,12 @@ class PyodideLockOfflineAddon(BaseAddon):
         excludes: list[str],
     ) -> bool:
         """Get the URL and filename if a package should be downloaded."""
-        skip = "[offline] excluding"
-
         if any(re.match(exclude, pkg_name) for exclude in excludes):
-            self.log.debug("%s: excluded file %s [%s]", skip, pkg_name, excludes)
+            self.log.debug("[offline] [%s] explicitly excluded", pkg_name)
             return False
 
         if not any(re.match(include, pkg_name) for include in includes):
-            self.log.debug("%s: not included %s [%s]", skip, pkg_name, includes)
-            return False
+            self.log.debug("[offline] [%s] not included", pkg_name)
+            return True
 
         return True
