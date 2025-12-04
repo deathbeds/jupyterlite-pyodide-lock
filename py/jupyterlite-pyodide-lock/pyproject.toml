@@ -34,7 +34,7 @@ license-files = ["LICENSE"]
 name = "jupyterlite-pyodide-lock"
 readme = "README.md"
 requires-python = ">=3.10"
-version = "0.1.2"
+version = "0.2.0"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/deathbeds/jupyterlite-pyodide-lock/issues"

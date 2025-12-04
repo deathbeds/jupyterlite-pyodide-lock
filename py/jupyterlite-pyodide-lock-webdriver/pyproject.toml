@@ -22,7 +22,7 @@ classifiers = [
   "Typing :: Typed",
 ]
 dependencies = [
-  "jupyterlite-pyodide-lock ==0.1.2",
+  "jupyterlite-pyodide-lock ==0.2.0",
   "selenium >=4.19",
 ]
 description = "A WebDriver strategy for jupyterlite-pyodide-lock"
@@ -31,7 +31,7 @@ license-files = ["LICENSE"]
 name = "jupyterlite-pyodide-lock-webdriver"
 readme = "README.md"
 requires-python = ">=3.10"
-version = "0.1.2"
+version = "0.2.0"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/deathbeds/jupyterlite-pyodide-lock/issues"
