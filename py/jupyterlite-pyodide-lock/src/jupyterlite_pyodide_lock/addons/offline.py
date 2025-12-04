@@ -222,7 +222,7 @@ class PyodideLockOfflineAddon(BaseAddon):
         pkg_info["file_name"] = dest_url or f"""{stem}/{whl_name}"""
         old_sha256 = pkg_info["sha256"]
         whl_sha256 = sha256(dest.read_bytes()).hexdigest()
-        if old_sha256 != whl_sha256:
+        if old_sha256 != whl_sha256:  # pragma: no cover
             self.log.warning(
                 "[offline] fixing sha256 for %s: lock:%s observed:%s wheel:%s",
                 pkg_name,

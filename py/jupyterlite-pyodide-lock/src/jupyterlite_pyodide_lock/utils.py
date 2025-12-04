@@ -167,10 +167,11 @@ def terminate_all(*parents: Process, log: Logger | None = None) -> TWaitProcs:
 
 def find_children(parent: Process | None) -> TProcs:
     """Try to find children processes."""
-    children: list[Process] = []
-    if parent:
-        with contextlib.suppress(NoSuchProcess):
-            children = parent.children(recursive=True)
+    children: TProcs = []
+    if not parent:  # pragma: no cover
+        return children
+    with contextlib.suppress(NoSuchProcess):
+        children = parent.children(recursive=True)
     return children
 
 
