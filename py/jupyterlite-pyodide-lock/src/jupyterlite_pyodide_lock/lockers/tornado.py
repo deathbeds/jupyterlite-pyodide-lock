@@ -181,13 +181,15 @@ class TornadoLocker(BaseLocker):
         found: Path | None = None
         file_name: str = package["file_name"]
 
-        if file_name.startswith(self.base_url):
-            stem = file_name.replace(f"{self.base_url}/", "")
-            if stem.startswith(PROXY):
-                stem = stem.replace(f"{PROXY}/", "")
-                found = self.cache_dir / stem
-            else:
-                found = self.parent.manager.output_dir / stem
+        if not file_name.startswith(self.base_url):  # pragma: no cover
+            return {}
+
+        stem = file_name.replace(f"{self.base_url}/", "")
+        if stem.startswith(PROXY):
+            stem = stem.replace(f"{PROXY}/", "")
+            found = self.cache_dir / stem
+        else:
+            found = self.parent.manager.output_dir / stem
 
         if found and found.exists():
             return {found.name: found}

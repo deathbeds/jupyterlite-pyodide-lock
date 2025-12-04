@@ -25,15 +25,21 @@ from .utils import find_browser_binary, get_browser_search_path
 class BrowsersApp(DescribedMixin, JupyterApp):
     """An app that lists discoverable browsers."""
 
-    version: str = Unicode(default_value=__version__)  # type: ignore[assignment]
-    format: str = Unicode(allow_none=True).tag(config=True)  # type: ignore[assignment]
-    check_versions: bool = Bool(default_value=False).tag(config=True)  # type: ignore[assignment]
-    check_timeout: float = Float(default_value=5.0).tag(config=True)  # type: ignore[assignment]
+    version: str = Unicode(default_value=__version__, help="version of the app")  # type: ignore[assignment]
+    format: str = Unicode(allow_none=True, help="output format, e.g. ``json``").tag(
+        config=True
+    )  # type: ignore[assignment]
+    check_versions: bool = Bool(
+        default_value=False, help="fail if no browser versions are found"
+    ).tag(config=True)  # type: ignore[assignment]
+    check_timeout: float = Float(
+        default_value=5.0, help="max seconds to wait to check a browser version"
+    ).tag(config=True)  # type: ignore[assignment]
 
     flags: ClassVar[dict[str, tuple[dict[str, Any], str]]] = {  # type: ignore[misc]
         "json": (
             {"BrowsersApp": {"format": "json"}},
-            "output json",
+            "output JSON",
         ),
         "check": (
             {"BrowsersApp": {"check_versions": True}},

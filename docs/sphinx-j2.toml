@@ -22,6 +22,7 @@ extensions = [
   "sphinx.ext.autosectionlabel",
   "sphinx_copybutton",
   "autodoc_traits",
+  "sphinx.ext.coverage",
 ]
 language = "en"
 project = "{{ ppt.project.name }}"
@@ -36,6 +37,20 @@ autodoc_default_options = {members = true, show-inheritance = true, undoc-member
 autosectionlabel_prefix_document = true
 typehints_defaults = "comma"
 typehints_use_signature_return = true
+
+## api doc coverage
+coverage_ignore_classes = [
+  "jupyterlite_pyodide_lock_webdriver.browsers.ArgOptions",
+  "jupyterlite_pyodide_lock_webdriver.browsers.Service",
+  "jupyterlite_pyodide_lock_webdriver.browsers.WebDriver",
+]
+coverage_ignore_modules = ["selenium"]
+coverage_modules = [
+  "jupyterlite_pyodide_lock",
+  "jupyterlite_pyodide_lock_webdriver",
+]
+coverage_show_missing_items = true
+coverage_statistics_to_stdout = false
 
 ## myst
 myst_heading_anchors = 3

@@ -37,7 +37,7 @@ build-pypi = {cmd = "echo 🐍 OK build-pypi", description = """
 check = {cmd = "echo 🤓 OK check", description = """
 🤓 check all build/test artifacts""", depends-on = ["check-links", "check-spelling"]}
 docs = {cmd = "echo 🖨️ OK docs", description = """
-🖨️  build all documentation""", depends-on = ["docs-lite", "docs-sphinx"]}
+🖨️  build all documentation""", depends-on = ["docs-lite", "docs-sphinx", "docs-cov"]}
 fix = {description = """
 🧹 fix ALL source files""", cmd = "echo 🧹 OK fix", depends-on = [
   "fix-deps",
@@ -60,6 +60,7 @@ pr = {cmd = "echo 🧲 OK pr", description = """
   "fix",
   "lint",
   "test-meta",
+  "docs-cov",
   "check",
 ]}
 test = {cmd = "echo 🚀 OK test", description = """
@@ -152,7 +153,7 @@ cmd = """export REPORT=$(pwd)/build/reports/{{ env }}/{{ pkg }}
     --rootdir=.
     --color=yes
     --tb=long
-    --retries=2
+    --timeout=1000
     --cov-branch
     --cov-context=test
     --cov-report=html:$REPORT/htmlcov
@@ -171,7 +172,7 @@ outputs = ["build/reports/{{ env }}/{{ pkg }}/{pytest.html,htmlcov/status.json}"
 [tasks._pytest_core]
 args = ["env"]
 depends-on = [
-  {task = "_pytest", args = ["{{ env }}", "jupyterlite-pyodide-lock", "99"]},
+  {task = "_pytest", args = ["{{ env }}", "jupyterlite-pyodide-lock", "98"]},
 ]
 
 [tasks._pytest_wd]
@@ -474,13 +475,19 @@ description = "├ build a demo site with jupyter-lite"
 inputs = ["examples", "py/**/*.py", "!**/.*"]
 outputs = ["build/docs-app/SHA256SUMS"]
 
-[feature.tasks-docs.tasks.docs-sphinx]
-cmd = """rm --recursive --force build/docs
+[feature.tasks-docs.tasks._sphinx]
+args = ["builder", "output", "canary", "extra_args"]
+cmd = """rm --recursive --force build/{{ output }}
   && cd docs
   && export PYDEVD_DISABLE_FILE_VALIDATION=1
-  && sphinx-build -W --keep-going --color -b html . ../build/docs"""
+  && sphinx-build
+    --keep-going
+    --color
+    -b {{ builder }}
+    {{ extra_args }}
+    .
+    ../build/{{ output }}"""
 depends-on = ["build-hash", "docs-lite", "docs-scour"]
-description = "├ build documentation with sphinx"
 inputs = [
   "*.md",
   "pixi.toml",
@@ -492,7 +499,19 @@ inputs = [
   "!**/.*",
   "!**/{__pycache__,vale}",
 ]
-outputs = ["build/docs/.buildinfo"]
+outputs = ["build/{{ output }}/{{ canary }}"]
+
+[feature.tasks-docs.tasks.docs-cov]
+depends-on = [
+  {task = "_sphinx", args = ["coverage", "docs-cov", "python.txt", "--fresh-env"]},
+]
+description = "├ check API documentation coverage with sphinx"
+
+[feature.tasks-docs.tasks.docs-sphinx]
+depends-on = [
+  {task = "_sphinx", args = ["html", "docs", ".buildinfo", "--fail-on-warning"]},
+]
+description = "├ build documentation with sphinx"
 
 [feature.tasks-docs.tasks.docs-rtd]
 cmd = """python -c "
@@ -608,7 +627,7 @@ pytest = ">=8,<9"
 pytest-cov = ">=7"
 pytest-github-actions-annotate-failures = ">=0.3.0"
 pytest-html = ">=4"
-pytest-retry = ">=1.7.0"
+pytest-timeout = ">=2.4.0"
 
 [feature.deps-firefox.dependencies]
 firefox = ">=140"

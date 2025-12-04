@@ -25,7 +25,7 @@ jobs:
           cache: true
           environments: build docs
       - run: pixi run docs-lite
-      - run: pixi run docs
+      - run: pixi run docs-sphinx
       - uses: actions/upload-pages-artifact@v4
         with:
           path: build/docs

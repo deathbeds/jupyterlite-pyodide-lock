@@ -55,9 +55,13 @@ LOCKERS = get_locker_entry_points()
 class PyodideLockAddon(BaseAddon):
     """Patches a ``pyodide``  to include ``pyodide-kernel`` and custom packages.
 
-    Can handle PEP508 specs, wheels, and their dependencies.
+    Can handle simple PEP508 specs, wheels, and their dependencies.
 
-    Special ``pyodide``-specific ``.zip`` packages are not supported.
+    Known Limitations:
+
+        * Special ``pyodide``-specific ``.zip`` packages are not supported.
+        * ``specs`` and ``constraints`` may not use the ``pkg-name@http...``
+          form as they don't resolve well in ``micropip`` yet
     """
 
     #: advertise JupyterLite lifecycle hooks

@@ -41,7 +41,7 @@ class BaseAddon(_BaseAddon):  # type: ignore[misc]
     # traits
     enabled: bool = Bool(
         default_value=False,
-        help="whether 'pyodide-lock' integration is enabled",
+        help="whether ``pyodide-lock`` integration is enabled",
     ).tag(config=True)  # type: ignore[assignment]
 
     # properties
