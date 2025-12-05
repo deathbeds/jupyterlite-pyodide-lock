@@ -28,12 +28,18 @@ build = {cmd = "echo 🏗️ OK build", description = """
   "build-hash",
 ]}
 build-pypi = {cmd = "echo 🐍 OK build-pypi", description = """
-🐍 build ALL PyPI distributions""", depends-on = [
-  "build-pypi-core",
-  "build-pypi-wd",
+🐍 build and check ALL PyPI distributions""", depends-on = [
+  "build-pypi-wheels",
   "build-wheel-check",
   "build-wheel-twine",
 ]}
+build-pypi-wheels = {description = """
+├─ 🛞 build PyPI distributions""", depends-on = [
+  "build-pypi-core",
+  "build-pypi-uv",
+  "build-pypi-wd",
+]}
+
 check = {cmd = "echo 🤓 OK check", description = """
 🤓 check all build/test artifacts""", depends-on = ["check-links", "check-spelling"]}
 docs = {cmd = "echo 🖨️ OK docs", description = """
@@ -79,18 +85,21 @@ test-max = {cmd = "echo 🚗 OK test-max", description = """
   "test-max-cli",
   "test-max-core",
   "test-max-wd",
+  "test-max-uv",
 ]}
 test-min = {cmd = "echo 🐎 OK test-min", description = """
 ├ 🐎 run tests in the oldest supported environment""", depends-on = [
   "test-min-cli",
   "test-min-core",
   "test-min-wd",
+  "test-max-uv",
 ]}
 
 ## fragments ###################################################################
 _pip = """
   pixi run --quiet _uv uninstall
     jupyterlite-pyodide-lock
+    jupyterlite-pyodide-lock-uv
     jupyterlite-pyodide-lock-webdriver
   && pixi run --quiet _uv install
     --no-deps
@@ -115,9 +124,10 @@ cmd = """
   && pixi run --environment={{ env }} _pip_check
   && pixi run --environment={{ env }} _pip_dist
     jupyterlite-pyodide-lock
+    jupyterlite-pyodide-lock-uv
     jupyterlite-pyodide-lock-webdriver
   && pixi run --environment={{ env }} _pip_check"""
-depends-on = ["build-pypi-core", "build-pypi-wd"]
+depends-on = ["build-pypi"]
 inputs = ["dist/*.whl"]
 outputs = ["build/pip-freeze/{{ env }}.txt"]
 
@@ -128,6 +138,7 @@ cmd = """
   && pixi run --environment={{ env }} _pip_check
   && pixi run --environment={{ env }} _pip
     -e py/jupyterlite-pyodide-lock
+    -e py/jupyterlite-pyodide-lock-uv
     -e py/jupyterlite-pyodide-lock-webdriver
   && pixi run _pip_check"""
 inputs = ["py/*/pyproject.toml"]
@@ -179,6 +190,12 @@ depends-on = [
 args = ["env"]
 depends-on = [
   {task = "_pytest", args = ["{{ env }}", "jupyterlite-pyodide-lock-webdriver"]},
+]
+
+[tasks._pytest_uv]
+args = ["env"]
+depends-on = [
+  {task = "_pytest", args = ["{{ env }}", "jupyterlite-pyodide-lock-uv"]},
 ]
 
 # real tasks ###################################################################
@@ -360,15 +377,22 @@ depends-on = [
 ]
 description = "├─ build webdriver PyPI distributions"
 
+[feature.tasks-build.tasks.build-pypi-uv]
+depends-on = [
+  "build-licenses",
+  {task = "_pyproject_build", args = ["jupyterlite-pyodide-lock-uv"]},
+]
+description = "├─ build uv PyPI distributions"
+
 [feature.tasks-build.tasks.build-wheel-twine]
 cmd = "twine check --strict dist/*.whl dist/*.tar.gz"
-depends-on = ["build-pypi-core", "build-pypi-wd"]
+depends-on = ["build-pypi-wheels"]
 description = "├ check the built distributions for PyPI"
 inputs = ["dist/"]
 
 [feature.tasks-build.tasks.build-wheel-check]
 cmd = "check-wheel-contents dist/*.whl"
-depends-on = ["build-pypi-core", "build-pypi-wd"]
+depends-on = ["build-pypi-wheels"]
 description = "├ check the built wheels"
 inputs = ["dist/*.whl"]
 
@@ -381,7 +405,7 @@ cmd = """rm --recursive --force dist/SHA256SUMS
   ]'
   > dist/SHA256SUMS
   && cat dist/SHA256SUMS"""
-depends-on = ["build-pypi-core", "build-pypi-wd"]
+depends-on = ["build-pypi-wheels"]
 description = "├ hash the built distributions"
 inputs = ["dist", "!dist/SHA256SUMS"]
 outputs = ["dist/SHA256SUMS"]
@@ -399,7 +423,7 @@ cmd = """export JLPL_GIT_DESCRIBE=0
   --recipe recipe
   --output-dir build/rattler-build
 && cp -r build/rattler-build/noarch dist/noarch"""
-depends-on = ["build-pypi-core", "build-pypi-wd"]
+depends-on = ["build-pypi"]
 description = "├ build for conda distribution"
 inputs = ["dist/*.tar.gz", "recipe"]
 outputs = ["dist/*/*.conda"]
@@ -431,6 +455,10 @@ test-min-core = {description = "├─ test core in the min test environment", d
 test-min-pip = {description = "├─ prepare the min test environment with pip", depends-on = [
   {task = "_pip_whl_all", args = ["test-min"]},
 ]}
+test-min-uv = {description = "├─ test uv in the min test environment", depends-on = [
+  "test-min-cli",
+  {task = "_pytest_uv", args = ["test-min"]},
+]}
 test-min-wd = {description = "├─ test webdriver in the min test environment", depends-on = [
   "test-min-cli",
   {task = "_pytest_wd", args = ["test-min"]},
@@ -448,6 +476,10 @@ test-max-core = {description = "├─ test core in the default test environment
 ]}
 test-max-pip = {description = "├─ prepare the default test environment with pip", depends-on = [
   {task = "_pip_whl_all", args = ["test-max"]},
+]}
+test-max-uv = {description = "├─ test uv in the default test environment", depends-on = [
+  "test-max-cli",
+  {task = "_pytest_uv", args = ["test-max"]},
 ]}
 test-max-wd = {description = "├─ test webdriver in the default test environment", depends-on = [
   "test-max-cli",
@@ -584,8 +616,9 @@ deps--oldest.solve-strategy = "lowest-direct"
 # singletons
 deps-flit.dependencies.flit-core = ">=3.12,<4.0"
 deps-rattler.dependencies.rattler-build = "*"
+deps-run-uv.dependencies.python-uv = ">=0.9"
+deps-run-wd.dependencies.selenium = ">=4.19"
 deps-uv.dependencies.uv = "*"
-deps-webdriver.dependencies.selenium = ">=4.19"
 
 # dependencies #################################################################
 [feature.deps-run.dependencies]
@@ -678,7 +711,8 @@ dev = {features = [
   "deps-flit",
   "deps-run",
   "deps-test",
-  "deps-webdriver",
+  "deps-run-uv",
+  "deps-run-wd",
   "tasks-dev",
 ]}
 docs = {features = [
@@ -690,7 +724,8 @@ docs = {features = [
   "deps-firefox",
   "deps-flit",
   "deps-run",
-  "deps-webdriver",
+  "deps-run-uv",
+  "deps-run-wd",
   "tasks-check",
   "tasks-docs",
 ]}
@@ -702,7 +737,8 @@ test-max = {features = [
   "deps-run-max",
   "deps-run",
   "deps-test",
-  "deps-webdriver",
+  "deps-run-uv",
+  "deps-run-wd",
   "tasks-test-repo",
   "tasks-test-max",
 ]}
@@ -712,7 +748,8 @@ test-min = {features = [
   "deps-flit",
   "deps-run",
   "deps-test",
-  "deps-webdriver",
+  "deps-run-uv",
+  "deps-run-wd",
   "tasks-test-min",
 ]}
 uv = ["deps-uv"]

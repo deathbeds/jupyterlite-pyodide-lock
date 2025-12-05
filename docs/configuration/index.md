@@ -17,4 +17,5 @@ Configuring JupyterLite to use `pyodide-lock` requires adding some data to
 
 core
 webdriver
+uv
 ```

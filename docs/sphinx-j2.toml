@@ -49,6 +49,7 @@ coverage_ignore_classes = [
 coverage_ignore_modules = ["selenium"]
 coverage_modules = [
   "jupyterlite_pyodide_lock",
+  "jupyterlite_pyodide_lock_uv",
   "jupyterlite_pyodide_lock_webdriver",
 ]
 coverage_show_missing_items = true
