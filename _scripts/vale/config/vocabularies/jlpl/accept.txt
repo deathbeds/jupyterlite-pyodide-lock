@@ -6,7 +6,7 @@ _.+_
 (all|any|one)Of
 (all|extra)_excludes
 (all|extra)_includes
-(Browser|Base|Tornado)Locker
+(Browser|Base|Tornado|Uv)Locker
 (e\.g\.|i\.e\.)
 (JSON|TOML|YAML)
 (platforms/pythons|and/or|Fix/lint)

@@ -18,6 +18,10 @@
 [#41]: https://github.com/deathbeds/jupyterlite-pyodide-lock/pull/41
 [#44]: https://github.com/deathbeds/jupyterlite-pyodide-lock/pull/44
 
+### `jupyterlite-pyodide-lock-uv 0.2.0`
+
+- initial release
+
 ### `jupyterlite-pyodide-lock-webdriver 0.2.0`
 
 > TBD

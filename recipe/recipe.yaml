@@ -58,7 +58,7 @@ outputs:
       summary: |
         Build reproducible JupyterLite sites with `pyodide-lock` and `selenium`
     package:
-      name: ${{ jlpl }}-webdriver
+      name: ${{ jlpl }}-${{ wd }}
       version: ${{ v }}
     source:
       path: ../dist/${{ jlpl_m  }}_${{ wd }}-${{ v }}.tar.gz
@@ -79,6 +79,36 @@ outputs:
     tests:
       - python:
           imports: ${{ jlpl_m }}_${{ wd }}
+          pip_check: true
+          python_version:
+            - ${{ python_min }}.*
+            - ${{ python_check_max }}.*
+
+  - about:
+      summary: |
+        Build reproducible JupyterLite sites with `pyodide-lock` and `uv`
+    package:
+      name: ${{ jlpl }}-uv
+      version: ${{ v }}
+    source:
+      path: ../dist/${{ jlpl_m  }}_uv-${{ v }}.tar.gz
+    build:
+      noarch: python
+      script:
+        - |
+          python -m pip install . -vv --no-deps --no-build-isolation --disable-pip-version-check
+    requirements:
+      host:
+        - flit-core >=3.12.0,<4
+        - pip
+        - python ${{ python_min }}.*
+      run:
+        - ${{ pin_subpackage(jlpl, exact=True) }}
+        - python >=${{ python_min }}
+        - python-uv >=0.9
+    tests:
+      - python:
+          imports: ${{ jlpl_m }}_uv
           pip_check: true
           python_version:
             - ${{ python_min }}.*

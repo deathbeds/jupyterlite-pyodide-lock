@@ -28,15 +28,16 @@ View the full documentation on [ReadTheDocs][rtfd].
 ## Overview
 
 `jupyterlite-pyodide-lock` avoids **run time** [`jupyterlite-pyodide-kernel`][jlpk]
-package management ambiguity with a **build time** `package-lock.json`, built in a full
-web browser.
+package management ambiguity with a **build time** `package-lock.json`.
 
 This works by:
 
 - downloading a `pyodide-lock.json`
-- running a minimal `pyodide` runtime in a browser managed by Python
-  - _(optional) or `selenium`_
-- installing a configurable set of packages from the build environment, PyPI, or
+- either
+  - running a minimal `pyodide` runtime in a browser managed by Python
+    - _(optional) or `selenium`_
+  - using a `pyodide`-aware solver like `uv`
+- compiling a configurable set of packages from the build environment, PyPI, or
   elsewhere
 - returning the list to build a new `package-lock.json`
   - _(optional) copying all downloaded wheels to be served along with the site_

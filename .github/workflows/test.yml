@@ -78,14 +78,15 @@ jobs:
 
   test:
     name: |-
-      test ${{ matrix.os }} ${{ matrix.test-env }} (${{ matrix.browser }})
+      test ${{ matrix.pkg }} ${{ matrix.os }} ${{ matrix.test-env }} (${{ matrix.browser }})
     needs: [build-pypi]
     runs-on: ${{ matrix.vm }}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         test-env: [min, max]
         os: [linux, osx, win]
+        pkg: [core, uv, wd]
         include:
           # see https://github.com/actions/runner-images#available-images
           - { test-env: max, os: osx, vm: macos-15, browser: chrome }
@@ -117,14 +118,13 @@ jobs:
           path: .pixi/task-cache-v0
       - run: pixi run -v test-${{ matrix.test-env }}-pip
       - run: pixi run test-${{ matrix.test-env }}-cli
-      - run: pixi run test-${{ matrix.test-env }}-core
       - if: always()
-        run: pixi run test-${{ matrix.test-env }}-wd
+        run: pixi run test-${{ matrix.test-env }}-${{ matrix.pkg }}
       - if: always()
         uses: actions/upload-artifact@v5
         with:
           name: |-
-            jlpl-${{ github.run_number }}-${{ matrix.os }}-${{ matrix.test-env }}
+            jlpl-${{ github.run_number }}-${{ matrix.os }}-${{ matrix.test-env }}-${{ matrix.pkg }}
           path: |
             .pixi/task-cache-v0
             build/reports
