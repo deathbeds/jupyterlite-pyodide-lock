@@ -34,11 +34,10 @@ This works by:
 
 - downloading a `pyodide-lock.json`
 - either
-  - running a minimal `pyodide` runtime in a browser managed by Python
-    - _(optional) or `selenium`_
+  - running a minimal `pyodide` runtime in a browser managed by Python's `webbrowser` or
+    `selenium`
   - using a `pyodide`-aware solver like `uv`
-- compiling a configurable set of packages from the build environment, PyPI, or
-  elsewhere
+- compiling a set of packages from the build environment, PyPI, or elsewhere
 - returning the list to build a new `package-lock.json`
   - _(optional) copying all downloaded wheels to be served along with the site_
 - configuring [`jupyterlite-pyodide-kernel`][jlpk] to use the new `pyodide-lock.json`
@@ -57,7 +56,7 @@ predictable baseline `pyodide` runtime environment, or ensure complex dependenci
 
 <summary>
   <i>Ensure <code>pyodide-kernel</code>'s dependencies are locked, assuming
-  <code>pip</code> and <code>firefox</code>.</i>
+  <code>pip</code>.</i>
 </summary>
 
 #### Create the Minimal Build Environment
@@ -68,6 +67,7 @@ predictable baseline `pyodide` runtime environment, or ensure complex dependenci
   jupyterlite-core ==0.7.0
   jupyterlite-pyodide-kernel ==0.7.0
   jupyterlite-pyodide-lock ==0.2.0
+  jupyterlite-pyodide-lock-uv ==0.2.0
   ```
 
 - Run:
@@ -83,7 +83,8 @@ predictable baseline `pyodide` runtime environment, or ensure complex dependenci
   ```json
   {
     "PyodideLockAddon": {
-      "enabled": true
+      "enabled": true,
+      "locker": "UvLocker"
     }
   }
   ```

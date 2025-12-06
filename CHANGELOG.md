@@ -14,17 +14,18 @@
 - [#38] adds a `--check` flag to the CLI, which fails if _no_ browsers are available
 - [#41] adds support for `micropip >=0.9.0` constraints when locking
 
-[#38]: https://github.com/deathbeds/jupyterlite-pyodide-lock/pull/33
-[#41]: https://github.com/deathbeds/jupyterlite-pyodide-lock/pull/41
-[#44]: https://github.com/deathbeds/jupyterlite-pyodide-lock/pull/44
-
 ### `jupyterlite-pyodide-lock-uv 0.2.0`
 
-- initial release
+- [#45] adds `UvLocker`, which requires `uv` (but not a web browser)
 
 ### `jupyterlite-pyodide-lock-webdriver 0.2.0`
 
 > TBD
+
+[#38]: https://github.com/deathbeds/jupyterlite-pyodide-lock/pull/33
+[#41]: https://github.com/deathbeds/jupyterlite-pyodide-lock/pull/41
+[#44]: https://github.com/deathbeds/jupyterlite-pyodide-lock/pull/44
+[#45]: https://github.com/deathbeds/jupyterlite-pyodide-lock/pull/44
 
 </details>
 

@@ -195,7 +195,7 @@ depends-on = [
 [tasks._pytest_uv]
 args = ["env"]
 depends-on = [
-  {task = "_pytest", args = ["{{ env }}", "jupyterlite-pyodide-lock-uv"]},
+  {task = "_pytest", args = ["{{ env }}", "jupyterlite-pyodide-lock-uv", "90"]},
 ]
 
 # real tasks ###################################################################
@@ -721,7 +721,6 @@ docs = {features = [
   "deps-demo",
   "deps-demo-voici",
   "deps-docs",
-  "deps-firefox",
   "deps-flit",
   "deps-run",
   "deps-run-uv",

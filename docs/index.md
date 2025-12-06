@@ -54,15 +54,15 @@ requires some trades of simplicity, reproducibility, flexibility, and performanc
 
 <summary>An <b>author</b> of a JupyterLite site may have additional needs...</summary>
 
-| feature                                 | `jupyterlite-pyodide-lock`            | `piplite` | [jupyterlite-xeus]  | [pyodide-build]  |
-| :-------------------------------------- | ------------------------------------- | --------- | ------------------- | ---------------- |
-| requires "heavy" build dependencies     | yes, (real browser and/or `selenium`) | no        | minimal, _see repo_ | many, _see repo_ |
-| ships local wheels                      | yes                                   | yes       | yes                 | yes              |
-| ships noarch PyPI wheels                | yes                                   | yes       | yes                 | yes              |
-| ships pyodide emscripten wheels         | yes                                   | yes       | no                  | yes              |
-| ships arbitrary pyodide zip C libs      | no                                    | yes       | no                  | yes              |
-| ships multiple versions of same package | no                                    | yes       | no                  | no               |
-| age gates dependencies                  | yes (optional)                        | no        | no                  | n/a              |
+| feature                                 | `jupyterlite-pyodide-lock` | `piplite` | [jupyterlite-xeus]  | [pyodide-build]  |
+| :-------------------------------------- | -------------------------- | --------- | ------------------- | ---------------- |
+| requires "heavy" build dependencies     | no                         | no        | minimal, _see repo_ | many, _see repo_ |
+| ships local wheels                      | yes                        | yes       | yes                 | yes              |
+| ships noarch PyPI wheels                | yes                        | yes       | yes                 | yes              |
+| ships pyodide emscripten wheels         | yes                        | yes       | no                  | yes              |
+| ships arbitrary pyodide zip C libs      | no                         | yes       | no                  | yes              |
+| ships multiple versions of same package | no                         | yes       | no                  | no               |
+| age gates dependencies                  | optional                   | no        | no                  | n/a              |
 
 </details>
 

@@ -47,6 +47,7 @@ fetch_url
 firefox
 formatters?
 found_(bin|path)
+found_wheels
 ignore_attributes
 ignore\[.*
 image/.*
@@ -88,6 +89,7 @@ prox(ied|ying)
 PRs
 pydantic
 PyData
+pylock
 pyodide
 PyPI
 pytest
@@ -118,6 +120,7 @@ TornadoLoacker
 trait_name
 traitlets
 UI
+uv_(bin|platform)
 Warehouse/pythonhosted
 WebAssembly
 webdriver|WebDriver

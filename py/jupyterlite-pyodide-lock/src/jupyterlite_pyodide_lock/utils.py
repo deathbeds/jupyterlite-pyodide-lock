@@ -63,6 +63,32 @@ def epoch_to_warehouse_date(epoch: int) -> str:
     )
 
 
+def find_binary(
+    names: list[str], *, path: str | None = None, raise_on_missing: bool | None = True
+) -> tuple[str, list[str]]:
+    """Find a binary based on some names."""
+    extensions = [""]
+
+    if WIN:  # pragma: no covers
+        extensions += [".exe", ".bat", ".cmd", ".com"]
+
+    checked: list[str] = []
+    for name in names:
+        for ext in extensions:
+            candidate = f"{name}{ext}"
+            found = shutil.which(candidate, path=path)
+            if found:
+                return found, checked
+
+    if raise_on_missing:
+        msg = f"No {names} found: looked in {checked}"
+        if path:
+            msg += f" (on PATH: {path})"
+        raise FileNotFoundError(msg)
+
+    return "", checked
+
+
 def find_browser_binary(browser_binary: str, log: Logger | None) -> str:
     """Resolve an absolute path to a browser binary."""
     log = log or _log
