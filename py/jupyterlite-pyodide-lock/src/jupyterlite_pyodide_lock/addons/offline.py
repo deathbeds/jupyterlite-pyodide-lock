@@ -304,11 +304,7 @@ class PyodideLockOfflineAddon(BaseAddon):
     def is_included(
         self, pkg_name: str, includes: list[str], excludes: list[str]
     ) -> bool:
-        """Get the URL and filename if a package should be downloaded."""
-        if any(re.match(exclude, pkg_name) for exclude in excludes):
-            return False
-
-        if not any(re.match(include, pkg_name) for include in includes):
-            return False
-
-        return True
+        """Get whether a package should be downloaded for offline use."""
+        included = any(re.match(i, pkg_name) for i in includes)
+        excluded = any(re.match(e, pkg_name) for e in excludes)
+        return included or not excluded
