@@ -27,7 +27,7 @@ from jupyterlite_pyodide_lock.constants import (
 )
 from jupyterlite_pyodide_lock.utils import get_unused_port
 
-from ._base import BaseLocker
+from ._base import MicropipLocker
 from .handlers import make_handlers
 
 if TYPE_CHECKING:
@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 THandler = tuple[str, type, dict[str, Any]]
 
 
-class TornadoLocker(BaseLocker):
+class TornadoLocker(MicropipLocker):
     """Start a web server and a browser (somehow) to build a ``pyodide-lock.json``.
 
     For an example strategy, see :class:`..browser.BrowserLocker`.

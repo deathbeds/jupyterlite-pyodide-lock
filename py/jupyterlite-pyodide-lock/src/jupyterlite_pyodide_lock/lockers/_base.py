@@ -24,7 +24,6 @@ class BaseLocker(LoggingConfigurable):
     """Common traits and methods for 'pyodide-lock.json' resolving strategies."""
 
     # configurables
-    extra_micropip_args = Dict(help="options for ``micropip.install``").tag(config=True)
     pyodide_cdn_url = Unicode(
         f"https://cdn.jsdelivr.net/pyodide/v{PYODIDE_VERSION}/full",
         help=(
@@ -32,14 +31,6 @@ class BaseLocker(LoggingConfigurable):
             " defaults to the version provided by ``jupyterlite_pyodide_kernel``"
         ),
     ).tag(config=True)
-    pypi_api_url = Unicode(
-        "https://pypi.org/pypi",
-        help="remote URL for a Warehouse-compatible JSON API",
-    ).tag(config=True)
-    pythonhosted_cdn_url = Unicode(
-        FILES_PYTHON_HOSTED,
-        help="remote URL for python packages (third-party not supported)",
-    )
 
     timeout = Int(help="seconds to wait for a solve").tag(config=True)
 
@@ -53,7 +44,6 @@ class BaseLocker(LoggingConfigurable):
     parent: PyodideLockAddon = Instance(  # type: ignore[assignment]
         "jupyterlite_pyodide_lock.addons.lock.PyodideLockAddon",
     )
-    micropip_args = Dict()
 
     # API methods
     def resolve_sync(self) -> bool | None:
@@ -89,3 +79,18 @@ class BaseLocker(LoggingConfigurable):
     @default("timeout")
     def _default_timeout(self) -> int:
         return int(json.loads(os.environ.get(ENV_VAR_TIMEOUT, "").strip() or "120"))
+
+
+class MicropipLocker(BaseLocker):
+    """Common traits and methods for ``micropip``-based lockers."""
+
+    extra_micropip_args = Dict(help="options for ``micropip.install``").tag(config=True)
+    pypi_api_url = Unicode(
+        "https://pypi.org/pypi",
+        help="remote URL for a Warehouse-compatible JSON API",
+    ).tag(config=True)
+    pythonhosted_cdn_url = Unicode(
+        FILES_PYTHON_HOSTED,
+        help="remote URL for python packages (third-party not supported)",
+    )
+    micropip_args = Dict()

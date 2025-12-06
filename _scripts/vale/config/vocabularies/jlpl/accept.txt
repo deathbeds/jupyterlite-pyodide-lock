@@ -6,7 +6,7 @@ _.+_
 (all|any|one)Of
 (all|extra)_excludes
 (all|extra)_includes
-(Browser|Base|Tornado)Locker
+(Browser|Base|Micropip|Tornado|Uv)Locker
 (e\.g\.|i\.e\.)
 (JSON|TOML|YAML)
 (platforms/pythons|and/or|Fix/lint)
@@ -47,6 +47,7 @@ fetch_url
 firefox
 formatters?
 found_(bin|path)
+found_wheels
 ignore_attributes
 ignore\[.*
 image/.*
@@ -88,6 +89,7 @@ prox(ied|ying)
 PRs
 pydantic
 PyData
+pylock
 pyodide
 PyPI
 pytest
@@ -118,6 +120,7 @@ TornadoLoacker
 trait_name
 traitlets
 UI
+uv_(bin|platform)
 Warehouse/pythonhosted
 WebAssembly
 webdriver|WebDriver

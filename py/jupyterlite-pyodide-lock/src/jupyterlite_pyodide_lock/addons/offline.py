@@ -1,4 +1,4 @@
-"""A JupyterLite addon for resolving remote ``pyodide-lock.json``."""
+"""A JupyterLite addon for replacing remote URLs in ``pyodide-lock`` with local ones."""
 # Copyright (c) jupyterlite-pyodide-lock contributors.
 # Distributed under the terms of the BSD-3-Clause License.
 
@@ -31,12 +31,13 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from jupyterlite_core.manager import LiteManager
+    from packaging.utils import NormalizedName
 
     from jupyterlite_pyodide_lock.addons._base import TTaskGenerator
 
 
 class PyodideLockOfflineAddon(BaseAddon):
-    """Rewrite ``pyodide-lock.json`` with locally-downloaded packages."""
+    """Rewrite ``pyodide-lock.json`` URLs with locally-downloaded packages."""
 
     #: advertise JupyterLite lifecycle hooks
     __all__: ClassVar = ["status", "post_build"]
@@ -113,10 +114,7 @@ class PyodideLockOfflineAddon(BaseAddon):
     @property
     def all_excludes(self) -> list[str]:
         """Get all exclusion patterns."""
-        return sorted({
-            *self.excludes,
-            *self.extra_excludes,
-        })
+        return sorted({*self.excludes, *self.extra_excludes})
 
     # JupyterLite API methods
     def status(self, manager: LiteManager) -> TTaskGenerator:
@@ -172,7 +170,8 @@ class PyodideLockOfflineAddon(BaseAddon):
         raw_packages: dict[str, dict[str, Any]] = lock_data["packages"]
 
         leaf_included, dep_included = self.get_included_names(raw_packages)
-        new_packages = self.get_pruned_packges(
+
+        new_packages = self.get_pruned_packages(
             raw_packages, leaf_included, dep_included
         )
 
@@ -233,11 +232,11 @@ class PyodideLockOfflineAddon(BaseAddon):
             )
             pkg_info["sha256"] = whl_sha256
 
-    def get_pruned_packges(
+    def get_pruned_packages(
         self,
         raw_packages: dict[str, dict[str, Any]],
-        leaf_included: set[str],
-        dep_included: set[str],
+        leaf_included: set[NormalizedName],
+        dep_included: set[NormalizedName],
     ) -> dict[str, dict[str, Any]]:
         """Provide a copy of packages, potentially with pruning."""
         any_included = {*leaf_included, *dep_included}
@@ -264,26 +263,31 @@ class PyodideLockOfflineAddon(BaseAddon):
 
     def get_included_names(
         self, raw_packages: dict[str, dict[str, Any]]
-    ) -> tuple[set[str], set[str]]:
+    ) -> tuple[set[NormalizedName], set[NormalizedName]]:
         """Generate the lock."""
         includes = self.all_includes
         excludes = self.all_excludes
 
-        leaf_included: set[str] = set()
-        check_deps: set[str] = set()
+        leaf_included: set[NormalizedName] = set()
+        check_deps: set[NormalizedName] = set()
 
         # get leaf deps on first pass
-        for pkg_name, pkg_info in raw_packages.items():
-            if self.is_included(pkg_name, includes=includes, excludes=excludes):
-                leaf_included = {pkg_name, *leaf_included}
-                new_deps = {*map(canonicalize_name, pkg_info["depends"])}
-                if new_deps:
-                    self.log.debug(
-                        "[offline] leaf %s depends on: %s", pkg_name, new_deps
-                    )
-                    check_deps = {*check_deps, *new_deps}
+        for raw_name, pkg_info in raw_packages.items():
+            pkg_name = canonicalize_name(raw_name)
+            if not self.is_included(raw_name, includes=includes, excludes=excludes):
+                self.log.debug("[offline] [%s] is excluded", pkg_name)
+                continue
+            leaf_included = {pkg_name, *leaf_included}
+            check_deps = {*check_deps, *map(canonicalize_name, pkg_info["depends"])}
 
-        dep_included: set[str] = set()
+        self.log.debug(
+            "[offline] %s leaf deps: %s", len(leaf_included), sorted(leaf_included)
+        )
+        self.log.debug(
+            "[offline] %s deps to check: %s", len(check_deps), sorted(check_deps)
+        )
+
+        dep_included: set[NormalizedName] = set()
 
         while check_deps:
             pkg_name = check_deps.pop()
@@ -298,18 +302,9 @@ class PyodideLockOfflineAddon(BaseAddon):
         return leaf_included, dep_included
 
     def is_included(
-        self,
-        pkg_name: str,
-        includes: list[str],
-        excludes: list[str],
+        self, pkg_name: str, includes: list[str], excludes: list[str]
     ) -> bool:
-        """Get the URL and filename if a package should be downloaded."""
-        if any(re.match(exclude, pkg_name) for exclude in excludes):
-            self.log.debug("[offline] [%s] explicitly excluded", pkg_name)
-            return False
-
-        if not any(re.match(include, pkg_name) for include in includes):
-            self.log.debug("[offline] [%s] not included", pkg_name)
-            return True
-
-        return True
+        """Get whether a package should be downloaded for offline use."""
+        included = any(re.match(i, pkg_name) for i in includes)
+        excluded = any(re.match(e, pkg_name) for e in excludes)
+        return included or not excluded

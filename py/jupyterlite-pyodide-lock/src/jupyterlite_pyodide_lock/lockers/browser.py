@@ -183,7 +183,7 @@ class BrowserLocker(TornadoLocker):
     ) -> str:  # pragma: no cover
         """Create a temporary browser profile."""
         if self._temp_profile_path is None:
-            path = self.cache_dir / ".browser" / self.browser
+            path = self.cache_dir / ".jlpl-browser" / self.browser
             if baseline and baseline.is_dir():
                 path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copytree(baseline, path)
