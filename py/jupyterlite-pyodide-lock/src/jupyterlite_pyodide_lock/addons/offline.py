@@ -1,4 +1,4 @@
-"""A JupyterLite addon for resolving remote ``pyodide-lock.json``."""
+"""A JupyterLite addon for replacing remote URLs in ``pyodide-lock`` with local ones."""
 # Copyright (c) jupyterlite-pyodide-lock contributors.
 # Distributed under the terms of the BSD-3-Clause License.
 
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
 
 class PyodideLockOfflineAddon(BaseAddon):
-    """Rewrite ``pyodide-lock.json`` with locally-downloaded packages."""
+    """Rewrite ``pyodide-lock.json`` URLs with locally-downloaded packages."""
 
     #: advertise JupyterLite lifecycle hooks
     __all__: ClassVar = ["status", "post_build"]

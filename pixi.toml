@@ -183,7 +183,7 @@ outputs = ["build/reports/{{ env }}/{{ pkg }}/{pytest.html,htmlcov/status.json}"
 [tasks._pytest_core]
 args = ["env"]
 depends-on = [
-  {task = "_pytest", args = ["{{ env }}", "jupyterlite-pyodide-lock", "98"]},
+  {task = "_pytest", args = ["{{ env }}", "jupyterlite-pyodide-lock", "96"]},
 ]
 
 [tasks._pytest_wd]

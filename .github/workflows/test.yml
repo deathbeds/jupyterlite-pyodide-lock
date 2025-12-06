@@ -82,7 +82,7 @@ jobs:
     needs: [build-pypi]
     runs-on: ${{ matrix.vm }}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         test-env: [min, max]
         os: [linux, osx, win]
