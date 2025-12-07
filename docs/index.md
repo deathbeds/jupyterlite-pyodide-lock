@@ -1,6 +1,6 @@
 <section class="jlpl-hero">
 
-🕹️ Try the [demo](./demo.md)
+🕹️ Try a [demo](./demo.md)
 
 </section>
 

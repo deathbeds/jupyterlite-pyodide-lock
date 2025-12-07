@@ -15,9 +15,12 @@
     "specs": ["ipywidgets >=8.1.2,<8.1.3"],
     "constraints": ["traitlets <5.14.3", "prompt-toolkit >=3.0.52"]
   },
-  "FixHtmlConfigAddon": {
+  "FixHtmlAddon": {
     "enabled": true,
-    "task_dep": ["post_build:voici:voici:update_index:{output_dir}"],
+    "rewrite_missing": {
+      "^(.*)$": "/files/\\1\" target=\"_blank"
+    },
+    "task_dep": ["post_build:voici:voici:generate:render/README.html"],
     "file_dep": ["voici/render/**/*.html"]
   },
   "PyodideLockOfflineAddon": {
