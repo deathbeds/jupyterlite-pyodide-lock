@@ -142,6 +142,9 @@ ignore = [
 ]
 "examples/*.ipynb" = [
   "T201",
+  "ANN201",
+  "ANN002",
+  "D103",
 ]
 "utils.py" = [
   "C901",

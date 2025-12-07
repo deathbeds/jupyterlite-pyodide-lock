@@ -235,7 +235,7 @@ cmd = "ruff check --fix-only && ruff format"
 depends-on = ["fix-conftest"]
 description = "├ fix python with ruff"
 inputs = [
-  "{_scripts,py,tests,docs,contrib}/**/*.{ipynb,py}",
+  "{_scripts,py,docs,contrib,examples}/**/*.{ipynb,py}",
   "pyproject.toml",
   "!**/.*",
 ]
@@ -244,7 +244,7 @@ inputs = [
 cmd = "ruff check && ruff format --check"
 description = "├ check python with ruff"
 inputs = [
-  "{_scripts,py,tests,docs,contrib}/**/*.{ipynb,py}",
+  "{_scripts,py,tests,docs,contrib,examples}/**/*.{ipynb,py}",
   "pyproject.toml",
   "!**/.*",
 ]
