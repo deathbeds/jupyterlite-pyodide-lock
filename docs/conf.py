@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from sphinx.application import Sphinx
 
 
@@ -19,7 +21,6 @@ CONF_PY = Path(__file__)
 HERE = CONF_PY.parent
 ROOT = HERE.parent
 SPX_J2 = HERE / "sphinx-j2.toml"
-
 
 if not os.getenv("PIXI_PROJECT_ROOT"):
     # provide a fake root doc
@@ -36,6 +37,28 @@ if not os.getenv("PIXI_PROJECT_ROOT"):
         app.connect("build-finished", _run_pixi)
 
 else:
+    from sphinx.builders.html._assets import _file_checksum  # noqa: PLC2701
+
+    def setup(app: Sphinx) -> None:
+        """Gather builder info."""
+
+        def update_context(
+            app: Sphinx,
+            pagename: str,  # noqa: ARG001
+            templatename: str,  # noqa: ARG001
+            context: dict[str, Any],
+            doctree: Any,  # noqa: ARG001
+        ) -> None:
+            def with_v(pathto: Callable[[str, int], str], filename: str) -> str:
+                outdir = app.builder.outdir
+                return (
+                    f"""{pathto(filename, 1)}?"""
+                    f"""?v={_file_checksum(filename=filename, outdir=outdir)}"""
+                )
+
+            context["with_v"] = with_v
+
+        app.connect("html-page-context", update_context)
 
     def load_from_pyproject_toml() -> dict[str, Any]:
         """Read templated sphinx config."""
@@ -50,7 +73,7 @@ else:
             k: tomllib.load((HERE / f"{v}").open("rb"))
             for k, v in spx_j2["context"].items()
         }
-        config = json.loads(Template(json.dumps(spx_j2["template"])).render(**ctx))
+        config = {**json.loads(Template(json.dumps(spx_j2["template"])).render(**ctx))}
         config.update(
             intersphinx_mapping={k: (v, None) for k, v in spx_j2["intersphinx"].items()}
         )

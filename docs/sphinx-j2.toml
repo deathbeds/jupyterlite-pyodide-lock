@@ -55,11 +55,14 @@ coverage_modules = [
 coverage_show_missing_items = true
 coverage_statistics_to_stdout = false
 
+## templates
+templates_path = ['_templates']
+
 ## myst
 myst_heading_anchors = 3
 
 ## theme
-html_css_files = ["theme.css"]
+html_css_files = ["jlpl.css"]
 html_favicon = "_static/icon.svg"
 html_logo = "_static/icon.svg"
 html_static_path = ["_static", "../dist", "../build/docs-app"]

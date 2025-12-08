@@ -532,7 +532,7 @@ inputs = [
   "py/*/src/**/*.py",
   "build/docs-app/SHA256SUMS",
   "dist/*.whl",
-  "docs/**/*.{css,ipynb,md,py,toml}",
+  "docs/**/*.{css,ipynb,html,md,py,toml}",
   "!**/.*",
   "!**/{__pycache__,vale}",
 ]
