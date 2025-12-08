@@ -235,7 +235,7 @@ cmd = "ruff check --fix-only && ruff format"
 depends-on = ["fix-conftest"]
 description = "├ fix python with ruff"
 inputs = [
-  "{_scripts,py,tests,docs,contrib}/**/*.{ipynb,py}",
+  "{_scripts,py,docs,contrib,examples}/**/*.{ipynb,py}",
   "pyproject.toml",
   "!**/.*",
 ]
@@ -244,7 +244,7 @@ inputs = [
 cmd = "ruff check && ruff format --check"
 description = "├ check python with ruff"
 inputs = [
-  "{_scripts,py,tests,docs,contrib}/**/*.{ipynb,py}",
+  "{_scripts,py,tests,docs,contrib,examples}/**/*.{ipynb,py}",
   "pyproject.toml",
   "!**/.*",
 ]
@@ -499,12 +499,17 @@ description = "├ optimize SVG for docs with scour"
 inputs = ["docs/_static/*-inkscape.svg"]
 outputs = ["docs/_static/*.svg", "docs/_static/*.svg", "!*inkscape.svg"]
 
+[feature.tasks-docs.tasks.docs-lite-clean]
+cmd = """rm -rf build/.cache/lite build/docs-app build/docs examples/.jupyterlite.doit.db"""
+
 [feature.tasks-docs.tasks.docs-lite]
-cmd = """cd examples
+cmd = """
+  cp *.md examples/files
+  && cd examples
   && jupyter-lite doit --debug -- pre_archive:report:SHA256SUMS"""
 depends-on = ["docs-pip"]
 description = "├ build a demo site with jupyter-lite"
-inputs = ["examples", "py/**/*.py", "!**/.*"]
+inputs = ["examples", "py/**/*.py", "!**/.*", "*.md"]
 outputs = ["build/docs-app/SHA256SUMS"]
 
 [feature.tasks-docs.tasks._sphinx]
@@ -527,7 +532,7 @@ inputs = [
   "py/*/src/**/*.py",
   "build/docs-app/SHA256SUMS",
   "dist/*.whl",
-  "docs/**/*.{css,ipynb,md,py,toml}",
+  "docs/**/*.{css,ipynb,html,md,py,toml}",
   "!**/.*",
   "!**/{__pycache__,vale}",
 ]

@@ -7,6 +7,23 @@ line-length:
 
 # specific rules ###############################################################
 MD033:
-  allowed_elements: [kbd, details, summary, i, code, br, b, section, iframe, div, pre]
+  allowed_elements:
+    - a
+    - b
+    - br
+    - button
+    - code
+    - details
+    - div
+    - form
+    - i
+    - iframe
+    - input
+    - kbd
+    - li
+    - pre
+    - section
+    - summary
+    - ul
 
 MD041: false

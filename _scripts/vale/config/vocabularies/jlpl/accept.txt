@@ -97,10 +97,12 @@ pythonhosted
 raw_packages
 README
 ReadTheDocs
+REPL
 REPLite
 repo
 reproducibility
 resolvers
+rewrite_missing
 root_posix
 runtimes
 service_class

@@ -1,0 +1,9 @@
+{% extends "pydata_sphinx_theme/layout.html" %}
+
+{% block css %}
+  <link
+    rel="preload"
+    href="{{ with_v(pathto, '_static/jlpl.css') }}"
+    as="style" />
+  {{ super() }}
+{% endblock %}
